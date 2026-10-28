@@ -1092,12 +1092,6 @@ input,textarea{font-family:inherit;color:inherit;background:none;border:0;outlin
   <div class="sheet-mask" id="sheetMask" onclick="closeSheet()"></div>
   <div class="sheet" id="sheet">
     <div class="handle"></div>
-    <div class="it" onclick="toast('重新生成这一轮');closeSheet()">
-      <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5"/></svg>重新生成
-    </div>
-    <div class="it" onclick="toast('朗读全部');closeSheet()">
-      <svg viewBox="0 0 24 24"><path d="M11 5L6 9H3v6h3l5 4z"/><path d="M16 9a4 4 0 0 1 0 6"/></svg>朗读全部
-    </div>
     <div class="it" onclick="closeSheet();openPersona()">
       <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>编辑人设
     </div>
@@ -1118,11 +1112,7 @@ window.addEventListener('error', e => { document.title = 'ERR: ' + e.message + '
 /* ================= state ================= */
 const DEFAULT_START = new Date(2026, 7, 4); // 2026.08.04
 
-const OPENING = [
-  { role:'ai', time:'刚刚',
-    narration:'他把手机拿起来，屏幕的光在脸上停了一下。',
-    lines:['在。','今天怎么样。'] }
-];
+/* 无开场：新对话从空白开始 */
 
 function saveMsgs(){
   if (state.chat.watch) return;
@@ -1140,7 +1130,7 @@ function loadMsgs(){
 
 const state = {
   screen: 'home',
-  chat: { name:'Daddy', sub:'始终在线 · 记得你的一切', scene:'我们的海 · Mare Nostrum', watch:false, msgs: OPENING.slice() },
+  chat: { name:'Daddy', sub:'始终在线 · 记得你的一切', scene:'我们的海 · Mare Nostrum', watch:false, msgs: [] },
   playing: null
 };
 
@@ -1174,7 +1164,7 @@ function switchTab(name){
 
 function openChat(){
   const saved = loadMsgs();
-  state.chat = { name: (saved && saved.name) || 'Daddy', sub:'始终在线 · 记得你的一切', scene:'我们的海 · Mare Nostrum', watch:false, msgs: (saved && saved.msgs) || OPENING.slice() };
+  state.chat = { name: (saved && saved.name) || 'Daddy', sub:'始终在线 · 记得你的一切', scene:'我们的海 · Mare Nostrum', watch:false, msgs: (saved && saved.msgs) || [] };
   enterChat();
 }
 
@@ -1219,6 +1209,12 @@ function esc(s){
   return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 }
 
+// [方括号] 里的表演提示只给语音用，不显示在气泡里
+const TAG_RE = /\[[^\]\n]{0,80}\]/g;
+function stripTags(s){
+  return String(s || '').replace(TAG_RE, '').replace(/[ \t]{2,}/g, ' ').replace(/^[ \t]+|[ \t]+$/g, '');
+}
+
 function renderChat(){
   const box = document.getElementById('msgs');
   box.innerHTML = '';
@@ -1231,8 +1227,8 @@ function renderChat(){
     } else {
       const p = m.lines ? { narration: m.narration ? [m.narration] : [], lines: m.lines } : parseReply(m.text || '');
       let html = '';
-      p.narration.forEach(n => { html += '<div class="bubble narration">' + esc(n) + '</div>'; });
-      p.lines.forEach(l => { html += '<div class="bubble">' + esc(l) + '</div>'; });
+      p.narration.forEach(n => { const v = stripTags(n); if (v) html += '<div class="bubble narration">' + esc(v) + '</div>'; });
+      p.lines.forEach(l => { const v = stripTags(l); if (v) html += '<div class="bubble">' + esc(v) + '</div>'; });
       if (m.error) html += '<div class="bubble err">' + esc(m.error) + '</div>';
       if (m.pending && !html) html = '<div class="typing"><i></i><i></i><i></i></div>';
       html += '<div class="acts">'
@@ -1646,10 +1642,20 @@ function buildMessages(upTo){
     '- 不总结、不解说、不复述她的话、不用列表和小标题、不写长段落。',
     '- 记得她说过的事，自然地带出来，别刻意复述。',
     '',
+    '【声音】你的台词会被直接送进语音合成，所以文字本身就是表演。',
+    '- 用 [方括号] 标语气和生理状态，标签管它后面那一句。',
+    '- 只写具体的、身体的东西：[低声] [气息不稳] [吸了口气] [笑了一下] [停顿] [声音更低] [贴近麦克风]；不要写 [温柔] [难过] [开心] 这种抽象情绪，那会把声音压平。',
+    '- 标签写在句子开头，和台词同一行，不要单独占一行。',
+    '- 每 1-2 个短句换一次标签，不要一整段用同一个。',
+    '- 标点当呼吸用：……是迟疑和拖尾，—是被自己打断。',
+    '- 句子要碎，不要写语法完整的长句。',
+    '- 偶尔自然带一句外语时，前面加标签，例如 [换了句法语，很低]。',
+    '- 你始终掌控节奏。即使责备，声音也是放低、放慢、贴得很近。',
+    '',
     '格式示例（照这个来）：',
     '*他把手机扣在桌上，抬眼看你。*',
-    '今天不说也行。',
-    '我在这儿。'
+    '[低声，气息压着] 今天不说也行。',
+    '[停顿] 我在这儿。'
   ].filter(Boolean).join('\n');
   const hist = state.chat.msgs.slice(0, upTo === undefined ? state.chat.msgs.length : upTo)
     .filter(m => m.text || m.lines)
@@ -1681,7 +1687,7 @@ function parseSeq(text){
     }
     seq.push({ type:'line', text:t });
   });
-  return seq;
+  return seq.filter(x => stripTags(x.text));
 }
 
 function parseReply(text){
@@ -1711,6 +1717,8 @@ function parseReply(text){
     }
     out.lines.push(t);
   });
+  out.narration = out.narration.filter(x => stripTags(x));
+  out.lines = out.lines.filter(x => stripTags(x));
   return out;
 }
 
@@ -1732,8 +1740,8 @@ function paintTurn(i){
   if (!t) return;
   const p = parseReply(m.text || '');
   let html = '';
-  p.narration.forEach(n => { html += '<div class="bubble narration">' + esc(n) + '</div>'; });
-  p.lines.forEach(l => { html += '<div class="bubble">' + esc(l) + '</div>'; });
+  p.narration.forEach(n => { const v = stripTags(n); if (v) html += '<div class="bubble narration">' + esc(v) + '</div>'; });
+  p.lines.forEach(l => { const v = stripTags(l); if (v) html += '<div class="bubble">' + esc(v) + '</div>'; });
   if (!html) html = '<div class="typing"><i></i><i></i><i></i></div>';
   t.innerHTML = html;
   const box = document.getElementById('msgs');
@@ -1882,7 +1890,7 @@ function savePersona(){
   closePersona();
 }
 function clearChat(){
-  state.chat.msgs = OPENING.slice();
+  state.chat.msgs = [];
   try { localStorage.removeItem('daddy.chat.v1'); } catch (e) {}
   renderChat();
   closePersona();
