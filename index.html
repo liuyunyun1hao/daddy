@@ -892,6 +892,10 @@ input,textarea{font-family:inherit;color:inherit;background:none;border:0;outlin
             <span class="k">额度</span>
             <span class="v" id="usageTime">刷新 ›</span>
           </div>
+          <div class="row" onclick="testApi()">
+            <span class="k">测试接口</span>
+            <span class="v" id="apiTest">点一下 ›</span>
+          </div>
         </div>
 
         <div class="group-label">语音 · ElevenLabs</div>
@@ -1446,7 +1450,7 @@ function saveCfg(){
 }
 // 部署到静态托管（GitHub Pages）时没有 /api，默认走这台机器上的代理隧道。
 // 换隧道后改这一行即可（deploy 脚本会按 URL.txt 自动重写）。
-const DEFAULT_BASE = 'https://9e8d2983ff174f4d-144-12-172-205.serveousercontent.com/api';
+const DEFAULT_BASE = 'https://daddy-six-vert.vercel.app/api';
 function isLocalHost(){
   const h = location.hostname;
   return h === '127.0.0.1' || h === 'localhost' || h === '0.0.0.0' || h === '' || /^192\.168\.|^10\./.test(h);
@@ -1730,7 +1734,32 @@ function apiError(body, status){
     if (status === 429) return '额度用完了 · 等窗口重置';
     return msg ? (msg + ' (' + status + ')') : ('请求失败 ' + status);
   } catch (e) {
+    const raw = String(body || '').trim();
+    if (raw.charAt(0) === '<') return '接口 ' + status + '：返回的是网页，代理没生效';
+    if (status === 404) return '接口 404：代理路径不对';
     return '请求失败 ' + status;
+  }
+}
+
+async function testApi(){
+  const el = document.getElementById('apiTest');
+  if (el) el.textContent = '测试中…';
+  const say = t => { if (el) el.textContent = t; };
+  try {
+    const r = await fetch(apiURL('/models'), { headers: cfg.key ? authHeaders() : {} });
+    const txt = await r.text();
+    if (!r.ok){
+      say(r.status + ' ✗');
+      toast(apiError(txt, r.status));
+      return;
+    }
+    let n = 0;
+    try { n = (JSON.parse(txt).data || []).length; } catch (e) {}
+    say('200 · ' + n + ' 个模型 ✓');
+    toast('接口通了 · ' + n + ' 个模型');
+  } catch (e) {
+    say('连不上 ✗');
+    toast(niceErr(e));
   }
 }
 
