@@ -1298,7 +1298,7 @@ function saveCfg(){
 }
 // 部署到静态托管（GitHub Pages）时没有 /api，默认走这台机器上的代理隧道。
 // 换隧道后改这一行即可（deploy 脚本会按 URL.txt 自动重写）。
-const DEFAULT_BASE = 'https://e52832ff5222b6.lhr.life/api';
+const DEFAULT_BASE = 'https://b7dcd0326ab10f.lhr.life/api';
 function isLocalHost(){
   const h = location.hostname;
   return h === '127.0.0.1' || h === 'localhost' || h === '0.0.0.0' || h === '' || /^192\.168\.|^10\./.test(h);
