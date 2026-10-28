@@ -1098,7 +1098,7 @@ input,textarea{font-family:inherit;color:inherit;background:none;border:0;outlin
     <div class="it" onclick="toast('分支对话');closeSheet()">
       <svg viewBox="0 0 24 24"><circle cx="6" cy="6" r="2.5"/><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="12" r="2.5"/><path d="M6 8.5v7M8.5 6H14a4 4 0 0 1 4 4"/></svg>从这里分支
     </div>
-    <div class="it danger" onclick="toast('已清空当前对话');closeSheet()">
+    <div class="it danger" onclick="closeSheet();clearChat()">
       <svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/></svg>清空对话
     </div>
     <div class="cancel" onclick="closeSheet()">取消</div>
@@ -1248,7 +1248,7 @@ function renderChat(){
 /* ================= actions ================= */
 function copyTurn(i){
   const m = state.chat.msgs[i];
-  const txt = msgText(m);
+  const txt = stripTags(msgText(m));
   if (navigator.clipboard) navigator.clipboard.writeText(txt).catch(()=>{});
   toast('已复制');
 }
