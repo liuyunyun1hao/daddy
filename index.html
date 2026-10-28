@@ -874,30 +874,6 @@ input,textarea{font-family:inherit;color:inherit;background:none;border:0;outlin
         <div class="group">
           <div class="row">
             <span class="k">供应商</span>
-            <span class="v">OpenCode Go</span>
-          </div>
-          <div class="field">
-            <label>接口地址</label>
-            <input id="apiBase" placeholder="留空 = 用内置代理地址" spellcheck="false" autocomplete="off">
-          </div>
-          <div class="field">
-            <label>API Key</label>
-            <input id="apiKey" type="password" placeholder="sk-..." autocomplete="off">
-          </div>
-          <div class="field">
-            <label>模型</label>
-            <select id="modelSel" class="sel"><option value="">填 Key 后自动拉取</option></select>
-          </div>
-          <div class="row" onclick="refreshUsage(true)">
-            <span class="k">额度</span>
-            <span class="v" id="usageHint">点击刷新 ›</span>
-          </div>
-        </div>
-
-        <div class="group-label">语音 · TTS</div>
-        <div class="group">
-          <div class="row">
-            <span class="k">供应商</span>
             <span class="v">ElevenLabs · 官方</span>
           </div>
           <div class="field">
@@ -906,23 +882,30 @@ input,textarea{font-family:inherit;color:inherit;background:none;border:0;outlin
           </div>
           <div class="field">
             <label>API Key</label>
-            <input id="ttsKey" type="password" placeholder="填你的 ElevenLabs Key">
+            <input id="ttsKey" type="password" placeholder="sk_ 开头的 ElevenLabs Key" spellcheck="false" autocomplete="off">
           </div>
           <div class="field">
             <label>模型</label>
             <select id="ttsModel" class="sel">
               <option value="eleven_v4">eleven_v4 · 最新</option>
+              <option value="eleven_v4_turbo">eleven_v4_turbo · 更快</option>
+              <option value="eleven_v3">eleven_v3</option>
               <option value="eleven_multilingual_v2">eleven_multilingual_v2</option>
               <option value="eleven_turbo_v2_5">eleven_turbo_v2_5</option>
+              <option value="eleven_flash_v2_5">eleven_flash_v2_5</option>
             </select>
           </div>
           <div class="row">
             <span class="k">自动朗读回复</span>
-            <span class="switch on" onclick="this.classList.toggle('on')"></span>
+            <span class="switch on" id="ttsAuto" onclick="toggleTtsAuto(this)"></span>
+          </div>
+          <div class="row" onclick="testTts()">
+            <span class="k">试听当前音色</span>
+            <span class="v" id="ttsTest">播放一句 ›</span>
           </div>
           <div class="row" onclick="openPersona()">
             <span class="k">音色</span>
-            <span class="v">在 Daddy 人设里设置 ›</span>
+            <span class="v" id="voiceName">在 Daddy 人设里设置 ›</span>
           </div>
         </div>
 
@@ -1030,17 +1013,27 @@ input,textarea{font-family:inherit;color:inherit;background:none;border:0;outlin
 
       <div class="group-label">音色 · ElevenLabs</div>
       <div class="group" id="voiceList">
-        <div class="voice on" data-vid="pNInz6obpgDQGcFmaJgB" onclick="pickVoice(this)">
+        <div class="voice on" data-vid="pNInz6obpgDQGcFmaJgB" data-name="Adam" onclick="pickVoice(this)">
           <span class="vn">Adam</span><span class="vd">低沉 · 克制</span><span class="vt">✓</span>
         </div>
-        <div class="voice" data-vid="ErXwobaYiN019PkySvjV" onclick="pickVoice(this)">
+        <div class="voice" data-vid="ErXwobaYiN019PkySvjV" data-name="Antoni" onclick="pickVoice(this)">
           <span class="vn">Antoni</span><span class="vd">温和 · 偏暖</span><span class="vt">✓</span>
         </div>
-        <div class="voice" data-vid="21m00Tcm4TlvDq8ikWAM" onclick="pickVoice(this)">
-          <span class="vn">Rachel</span><span class="vd">平静 · 女声</span><span class="vt">✓</span>
+        <div class="voice" data-vid="JBFqnCBsd6RMkjVDRZzb" data-name="George" onclick="pickVoice(this)">
+          <span class="vn">George</span><span class="vd">沙哑 · 年长</span><span class="vt">✓</span>
         </div>
-        <div class="voice" data-vid="EXAVITQu4vr4xnSDxMaL" onclick="pickVoice(this)">
-          <span class="vn">Bella</span><span class="vd">轻 · 女声</span><span class="vt">✓</span>
+        <div class="voice" data-vid="TX3LPaxmHKxFdv7VOQHJ" data-name="Liam" onclick="pickVoice(this)">
+          <span class="vn">Liam</span><span class="vd">年轻 · 清亮</span><span class="vt">✓</span>
+        </div>
+      </div>
+      <div class="group" style="margin-top:9px">
+        <div class="row" onclick="loadVoices(true)">
+          <span class="k">从账号拉取音色</span>
+          <span class="v" id="voiceFetch">拉取 ›</span>
+        </div>
+        <div class="row" onclick="previewVoice(document.getElementById('pVoiceId').value)">
+          <span class="k">试听选中的音色</span>
+          <span class="v">播放一句 ›</span>
         </div>
       </div>
       <div class="group" style="margin-top:9px">
@@ -1255,41 +1248,176 @@ async function regen(i){
   }
 }
 
-function togglePlay(i){
-  if (state.playing === i){ stopPlay(); return; }
-  stopPlay();
-  state.playing = i;
-  const turn = document.querySelector('.turn[data-i="' + i + '"]');
-  const bubbles = turn.querySelectorAll('.bubble');
-  const btn = document.getElementById('play' + i);
-  btn.classList.add('on');
-  btn.innerHTML = ICONS.stop;
-  let k = 0;
-  const step = () => {
-    if (state.playing !== i) return;
-    bubbles.forEach(b => b.classList.remove('speaking'));
-    if (k >= bubbles.length){ stopPlay(); return; }
-    bubbles[k].classList.add('speaking');
-    bubbles[k].scrollIntoView({block:'nearest', behavior:'smooth'});
-    k++;
-    state.playTimer = setTimeout(step, 1500);
+/* ================= TTS · ElevenLabs ================= */
+const ttsState = { turn:null, audio:null, seq:[], cache:new Map(), token:0 };
+
+function ttsOpts(){
+  return {
+    base: (cfg.ttsUrl || 'https://api.elevenlabs.io/v1').replace(/\/+$/, ''),
+    key: cfg.ttsKey || '',
+    model: cfg.ttsModel || 'eleven_v4',
+    voice: cfg.voice || 'pNInz6obpgDQGcFmaJgB'
   };
-  step();
 }
 
-function stopPlay(){
-  if (state.playTimer) clearTimeout(state.playTimer);
-  document.querySelectorAll('.bubble.speaking').forEach(b => b.classList.remove('speaking'));
-  document.querySelectorAll('.act.on').forEach(b => {
-    b.classList.remove('on');
-    if (b.id && b.id.indexOf('play') === 0) b.innerHTML = ICONS.speak;
+async function ttsBlobUrl(text, kind, voice){
+  const o = ttsOpts();
+  const v = voice || o.voice;
+  const ck = v + '|' + o.model + '|' + kind + '|' + text;
+  const hit = ttsState.cache.get(ck);
+  if (hit) return hit;
+  // 叙事压低情绪、台词放开一点，听起来才像「他在讲」和「他在对你说」
+  const vs = kind === 'narr'
+    ? { stability:0.62, similarity_boost:0.72, style:0.10, use_speaker_boost:true }
+    : { stability:0.40, similarity_boost:0.82, style:0.36, use_speaker_boost:true };
+  const url = o.base + '/text-to-speech/' + encodeURIComponent(v) + '?output_format=mp3_44100_128';
+  const r = await fetch(url, {
+    method:'POST',
+    headers:{ 'xi-api-key': o.key, 'Content-Type':'application/json', 'Accept':'audio/mpeg' },
+    body: JSON.stringify({ text:text, model_id:o.model, voice_settings:vs })
   });
-  state.playing = null;
+  if (!r.ok){
+    let m = 'HTTP ' + r.status;
+    try {
+      const j = await r.json();
+      const d = j && j.detail;
+      m = (d && (d.message || d)) || (j && j.message) || m;
+      if (typeof m !== 'string') m = JSON.stringify(m);
+    } catch (e) {}
+    if (r.status === 401) m = 'Key 无效，或没有 text-to-speech 权限';
+    else if (r.status === 402) m = '额度不足';
+    else if (r.status === 422) m = '音色 ID 不对，或这个模型不支持';
+    throw new Error(m);
+  }
+  const blob = await r.blob();
+  const obj = URL.createObjectURL(blob);
+  ttsState.cache.set(ck, obj);
+  return obj;
+}
+
+function playAudio(url){
+  return new Promise(function(resolve){
+    const a = new Audio(url);
+    ttsState.audio = a;
+    let done = false;
+    const fin = function(){ if (done) return; done = true; if (ttsState.audio === a) ttsState.audio = null; resolve(); };
+    a.onended = fin;
+    a.onerror = fin;
+    a.play().catch(fin);
+  });
+}
+
+function paintPlayBtn(i, on){
+  const b = document.getElementById('play' + i);
+  if (!b) return;
+  b.classList.toggle('on', !!on);
+  b.innerHTML = on ? ICONS.stop : ICONS.speak;
+}
+
+function highlightSeg(i, k){
+  const turn = document.querySelector('.turn[data-i="' + i + '"]');
+  if (!turn) return;
+  const bs = turn.querySelectorAll('.bubble');
+  bs.forEach(function(b){ b.classList.remove('speaking'); });
+  const seq = ttsState.seq;
+  if (k >= seq.length) return;
+  let narrTotal = 0, narrBefore = 0, lineBefore = 0;
+  for (let j = 0; j < seq.length; j++) if (seq[j].type === 'narr') narrTotal++;
+  for (let j = 0; j < k; j++){ if (seq[j].type === 'narr') narrBefore++; else lineBefore++; }
+  const pos = seq[k].type === 'narr' ? narrBefore : narrTotal + lineBefore;
+  if (bs[pos]){
+    bs[pos].classList.add('speaking');
+    bs[pos].scrollIntoView({ block:'nearest', behavior:'smooth' });
+  }
+}
+
+async function togglePlay(i){
+  if (ttsState.turn === i){ stopSpeak(); return; }
+  stopSpeak();
+  if (!cfg.ttsKey){ toast('先在设置里填 ElevenLabs Key'); switchTab('settings'); return; }
+  const m = state.chat.msgs[i];
+  if (!m) return;
+  const seq = parseSeq(msgText(m));
+  if (!seq.length) return;
+  ttsState.turn = i;
+  ttsState.seq = seq;
+  const token = ++ttsState.token;
+  paintPlayBtn(i, true);
+  try {
+    for (let k = 0; k < seq.length; k++){
+      if (token !== ttsState.token) return;
+      highlightSeg(i, k);
+      const url = await ttsBlobUrl(seq[k].text, seq[k].type);
+      if (token !== ttsState.token) return;
+      await playAudio(url);
+    }
+  } catch (e){
+    if (token === ttsState.token) toast('朗读失败：' + e.message);
+  } finally {
+    if (token === ttsState.token) stopSpeak();
+  }
+}
+
+function stopSpeak(){
+  ttsState.token++;
+  if (ttsState.audio){ try { ttsState.audio.pause(); } catch (e) {} ttsState.audio = null; }
+  document.querySelectorAll('.bubble.speaking').forEach(function(b){ b.classList.remove('speaking'); });
+  if (ttsState.turn != null) paintPlayBtn(ttsState.turn, false);
+  ttsState.turn = null;
+  ttsState.seq = [];
+}
+
+async function previewVoice(vid){
+  if (!cfg.ttsKey){ toast('先在设置里填 ElevenLabs Key'); switchTab('settings'); return; }
+  stopSpeak();
+  try {
+    const url = await ttsBlobUrl('今天也辛苦了。过来，我抱抱你。', 'line', vid);
+    await playAudio(url);
+  } catch (e){
+    toast('试听失败：' + e.message);
+  }
+}
+
+function testTts(){ previewVoice(cfg.voice); }
+
+function toggleTtsAuto(el){
+  cfg.ttsAuto = !cfg.ttsAuto;
+  el.classList.toggle('on', cfg.ttsAuto);
+  saveCfg();
+}
+
+async function loadVoices(manual){
+  const box = document.getElementById('voiceList');
+  if (!box) return;
+  if (!cfg.ttsKey){ if (manual) toast('先填 ElevenLabs Key'); return; }
+  const hint = document.getElementById('voiceFetch');
+  if (hint) hint.textContent = '拉取中…';
+  try {
+    const base = (cfg.ttsUrl || 'https://api.elevenlabs.io/v1').replace(/\/+$/, '');
+    const r = await fetch(base + '/voices?page_size=100', { headers:{ 'xi-api-key': cfg.ttsKey, 'Accept':'application/json' } });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const j = await r.json();
+    const list = (j.voices || []).slice(0, 30);
+    if (!list.length) throw new Error('账号里没有可用音色');
+    box.innerHTML = list.map(function(v){
+      const labels = [];
+      if (v.labels && v.labels.accent) labels.push(v.labels.accent);
+      if (v.labels && v.labels.description) labels.push(v.labels.description);
+      if (v.category) labels.push(v.category);
+      const on = v.voice_id === cfg.voice ? ' on' : '';
+      return '<div class="voice' + on + '" data-vid="' + v.voice_id + '" data-name="' + esc(v.name) + '" onclick="pickVoice(this)">' +
+        '<span class="vn">' + esc(v.name) + '</span><span class="vd">' + esc(labels.join(' · ')) + '</span><span class="vt">✓</span></div>';
+    }).join('');
+    if (hint) hint.textContent = list.length + ' 个 ›';
+  } catch (e){
+    if (hint) hint.textContent = '重试 ›';
+    if (manual) toast('拉取失败：' + e.message);
+  }
 }
 
 /* ================= OpenCode Go · 配置与接口 ================= */
 const CFG_STORE = 'daddy.cfg.v1';
-const cfg = Object.assign({ base:'', key:'', model:'deepseek-v4.1-flash' }, (function(){
+const cfg = Object.assign({ base:'', key:'', model:'deepseek-v4.1-flash', ttsUrl:'https://api.elevenlabs.io/v1', ttsKey:'', ttsModel:'eleven_v4', ttsAuto:true, voice:'pNInz6obpgDQGcFmaJgB' }, (function(){
   try { return JSON.parse(localStorage.getItem(CFG_STORE) || '{}'); } catch (e) { return {}; }
 })());
 
@@ -1298,7 +1426,7 @@ function saveCfg(){
 }
 // 部署到静态托管（GitHub Pages）时没有 /api，默认走这台机器上的代理隧道。
 // 换隧道后改这一行即可（deploy 脚本会按 URL.txt 自动重写）。
-const DEFAULT_BASE = 'https://7cc9ac9fcc0964.lhr.life/api';
+const DEFAULT_BASE = 'https://de64b36def33f7.lhr.life/api';
 function isLocalHost(){
   const h = location.hostname;
   return h === '127.0.0.1' || h === 'localhost' || h === '0.0.0.0' || h === '' || /^192\.168\.|^10\./.test(h);
@@ -1434,6 +1562,15 @@ function initApi(){
     sel.addEventListener('change', function(){ cfg.model = sel.value; saveCfg(); paintChip(); });
   }
   paintChip();
+  const tUrl = document.getElementById('ttsUrl'), tKey = document.getElementById('ttsKey'),
+        tModel = document.getElementById('ttsModel'), tAuto = document.getElementById('ttsAuto');
+  if (tUrl){ tUrl.value = cfg.ttsUrl; tUrl.addEventListener('change', function(){ cfg.ttsUrl = tUrl.value.trim() || 'https://api.elevenlabs.io/v1'; saveCfg(); }); }
+  if (tKey){ tKey.value = cfg.ttsKey; tKey.addEventListener('change', function(){ cfg.ttsKey = tKey.value.trim(); saveCfg(); loadVoices(false); }); }
+  if (tModel){ tModel.value = cfg.ttsModel; tModel.addEventListener('change', function(){ cfg.ttsModel = tModel.value; saveCfg(); }); }
+  if (tAuto) tAuto.classList.toggle('on', !!cfg.ttsAuto);
+  paintVoiceName();
+  if (cfg.ttsKey) loadVoices(false);
+
   loadModels().then(paintChip);
   if (cfg.key) refreshUsage(false);
   setInterval(function(){ if (document.visibilityState === 'visible' && cfg.key) refreshUsage(false); }, 120000);
@@ -1495,6 +1632,32 @@ function buildMessages(upTo){
     .slice(-24)
     .map(m => ({ role: m.role === 'user' ? 'user' : 'assistant', content: msgText(m) }));
   return [{ role:'system', content: sys }].concat(hist);
+}
+
+function parseSeq(text){
+  const seq = [];
+  String(text || '').replace(/\r/g, '').split('\n').forEach(function(raw){
+    let t = raw.trim();
+    if (!t) return;
+    if (/^\*[\s\S]*\*$/.test(t)){
+      const v = t.replace(/^\*+/, '').replace(/\*+$/, '').trim();
+      if (v) seq.push({ type:'narr', text:v });
+      return;
+    }
+    if (/^[（(][\s\S]*[)）]$/.test(t)){
+      const v = t.replace(/^[（(]/, '').replace(/[)）]$/, '').trim();
+      if (v) seq.push({ type:'narr', text:v });
+      return;
+    }
+    const m = t.match(/^\*([^*]{1,120})\*\s*([\s\S]*)$/);
+    if (m){
+      if (m[1].trim()) seq.push({ type:'narr', text:m[1].trim() });
+      if (m[2].trim()) seq.push({ type:'line', text:m[2].trim() });
+      return;
+    }
+    seq.push({ type:'line', text:t });
+  });
+  return seq;
 }
 
 function parseReply(text){
@@ -1603,6 +1766,7 @@ async function streamReply(aiIdx){
   delete state.chat.msgs[aiIdx].pending;
   state.chat.msgs[aiIdx].text = full || '（没有内容返回）';
   renderChat();
+  if (cfg.ttsAuto && cfg.ttsKey && full.trim()) togglePlay(aiIdx);
 }
 
 const REPLIES = [
@@ -1653,6 +1817,12 @@ ta.addEventListener('keydown', e => {
 
 /* ================= persona panel ================= */
 function openPersona(){
+  const pid = document.getElementById('pVoiceId');
+  if (pid) pid.value = cfg.voice;
+  const rows = document.querySelectorAll('#voiceList .voice');
+  let hit = null;
+  rows.forEach(function(r){ r.classList.toggle('on', r.dataset.vid === cfg.voice); if (r.dataset.vid === cfg.voice) hit = r; });
+  if (!hit && rows.length){ rows[0].classList.add('on'); }
   document.getElementById('panel-persona').classList.add('on');
 }
 function closePersona(){
@@ -1661,9 +1831,26 @@ function closePersona(){
 function pickVoice(el){
   el.parentNode.querySelectorAll('.voice').forEach(v => v.classList.remove('on'));
   el.classList.add('on');
-  document.getElementById('pVoiceId').value = el.dataset.vid;
+  const vid = el.dataset.vid;
+  document.getElementById('pVoiceId').value = vid;
+  cfg.voice = vid;
+  saveCfg();
+  paintVoiceName();
+  previewVoice(vid);
+}
+
+function paintVoiceName(){
+  const el = document.getElementById('voiceName');
+  if (!el) return;
+  let name = '';
+  const row = document.querySelector('.voice[data-vid="' + cfg.voice + '"]');
+  if (row) name = row.dataset.name || (row.querySelector('.vn') || {}).textContent || '';
+  el.textContent = name ? (name + ' ›') : (cfg.voice.slice(0, 8) + '… ›');
 }
 function savePersona(){
+  const pid = document.getElementById('pVoiceId');
+  if (pid && pid.value.trim()){ cfg.voice = pid.value.trim(); saveCfg(); }
+  paintVoiceName();
   const nm = document.getElementById('pName').value.trim() || 'Daddy';
   state.chat.name = nm;
   document.getElementById('chatName').textContent = nm;
