@@ -1043,38 +1043,14 @@ input,textarea{font-family:inherit;color:inherit;background:none;border:0;outlin
       </div>
 
       <div class="group-label">音色 · ElevenLabs</div>
-      <div class="group" id="voiceList">
-        <div class="voice on" data-vid="pNInz6obpgDQGcFmaJgB" data-name="Adam" onclick="pickVoice(this)">
-          <span class="vn">Adam</span><span class="vd">低沉 · 克制</span><span class="vt">✓</span>
-        </div>
-        <div class="voice" data-vid="ErXwobaYiN019PkySvjV" data-name="Antoni" onclick="pickVoice(this)">
-          <span class="vn">Antoni</span><span class="vd">温和 · 偏暖</span><span class="vt">✓</span>
-        </div>
-        <div class="voice" data-vid="JBFqnCBsd6RMkjVDRZzb" data-name="George" onclick="pickVoice(this)">
-          <span class="vn">George</span><span class="vd">沙哑 · 年长</span><span class="vt">✓</span>
-        </div>
-        <div class="voice" data-vid="TX3LPaxmHKxFdv7VOQHJ" data-name="Liam" onclick="pickVoice(this)">
-          <span class="vn">Liam</span><span class="vd">年轻 · 清亮</span><span class="vt">✓</span>
-        </div>
-      </div>
-      <div class="group" style="margin-top:9px">
-        <div class="row" onclick="loadVoices(true)">
-          <span class="k">从账号拉取音色</span>
-          <span class="v" id="voiceFetch">拉取 ›</span>
-        </div>
-        <div class="row" onclick="previewVoice(document.getElementById('pVoiceId').value)">
-          <span class="k">试听选中的音色</span>
-          <span class="v">播放一句 ›</span>
-        </div>
-      </div>
-      <div class="group" style="margin-top:9px">
+      <div class="group">
         <div class="field">
           <label>Voice ID</label>
-          <input id="pVoiceId" value="pNInz6obpgDQGcFmaJgB" spellcheck="false">
+          <input id="pVoiceId" value="TZF5Z996m1MjVz76PFoH" spellcheck="false" autocomplete="off">
         </div>
-        <div class="row">
-          <span class="k">试听</span>
-          <span class="v" onclick="toast('试听要先在设置里填 ElevenLabs 的 Key')">▶ 播放</span>
+        <div class="row" onclick="previewVoice(document.getElementById('pVoiceId').value)">
+          <span class="k">试听这个音色</span>
+          <span class="v" id="voiceFetch">播放一句 ›</span>
         </div>
       </div>
 
@@ -1403,7 +1379,7 @@ async function previewVoice(vid){
   if (!cfg.ttsKey){ toast('先在设置里填 ElevenLabs Key'); switchTab('settings'); return; }
   stopSpeak();
   try {
-    const url = await ttsBlobUrl('今天也辛苦了。过来，我抱抱你。', 'line', vid);
+    const url = await ttsBlobUrl('Hey. Come here. You look like you have not slept in days.', 'line', vid);
     await playAudio(url);
   } catch (e){
     toast('试听失败：' + e.message);
@@ -1418,38 +1394,8 @@ function toggleTtsAuto(el){
   saveCfg();
 }
 
-async function loadVoices(manual){
-  const box = document.getElementById('voiceList');
-  if (!box) return;
-  if (!cfg.ttsKey){ if (manual) toast('先填 ElevenLabs Key'); return; }
-  const hint = document.getElementById('voiceFetch');
-  if (hint) hint.textContent = '拉取中…';
-  try {
-    const base = (cfg.ttsUrl || 'https://api.elevenlabs.io/v1').replace(/\/+$/, '');
-    const r = await fetch(base + '/voices?page_size=100', { headers:{ 'xi-api-key': cfg.ttsKey, 'Accept':'application/json' } });
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    const j = await r.json();
-    const list = (j.voices || []).slice(0, 30);
-    if (!list.length) throw new Error('账号里没有可用音色');
-    box.innerHTML = list.map(function(v){
-      const labels = [];
-      if (v.labels && v.labels.accent) labels.push(v.labels.accent);
-      if (v.labels && v.labels.description) labels.push(v.labels.description);
-      if (v.category) labels.push(v.category);
-      const on = v.voice_id === cfg.voice ? ' on' : '';
-      return '<div class="voice' + on + '" data-vid="' + v.voice_id + '" data-name="' + esc(v.name) + '" onclick="pickVoice(this)">' +
-        '<span class="vn">' + esc(v.name) + '</span><span class="vd">' + esc(labels.join(' · ')) + '</span><span class="vt">✓</span></div>';
-    }).join('');
-    if (hint) hint.textContent = list.length + ' 个 ›';
-  } catch (e){
-    if (hint) hint.textContent = '重试 ›';
-    if (manual) toast('拉取失败：' + e.message);
-  }
-}
-
-/* ================= OpenCode Go · 配置与接口 ================= */
 const CFG_STORE = 'daddy.cfg.v1';
-const cfg = Object.assign({ base:'', key:'', model:'deepseek-v4.1-flash', ttsUrl:'https://api.elevenlabs.io/v1', ttsKey:'', ttsModel:'eleven_v4', ttsAuto:true, voice:'pNInz6obpgDQGcFmaJgB' }, (function(){
+const cfg = Object.assign({ base:'', key:'', model:'deepseek-v4.1-flash', ttsUrl:'https://api.elevenlabs.io/v1', ttsKey:'', ttsModel:'eleven_v4', ttsAuto:true, voice:'TZF5Z996m1MjVz76PFoH' }, (function(){
   try { return JSON.parse(localStorage.getItem(CFG_STORE) || '{}'); } catch (e) { return {}; }
 })());
 
@@ -1650,11 +1596,11 @@ function initApi(){
   const tUrl = document.getElementById('ttsUrl'), tKey = document.getElementById('ttsKey'),
         tModel = document.getElementById('ttsModel'), tAuto = document.getElementById('ttsAuto');
   if (tUrl){ tUrl.value = cfg.ttsUrl; tUrl.addEventListener('change', function(){ cfg.ttsUrl = tUrl.value.trim() || 'https://api.elevenlabs.io/v1'; saveCfg(); }); }
-  if (tKey){ tKey.value = cfg.ttsKey; tKey.addEventListener('change', function(){ cfg.ttsKey = tKey.value.trim(); saveCfg(); loadVoices(false); }); }
+  if (tKey){ tKey.value = cfg.ttsKey; tKey.addEventListener('change', function(){ cfg.ttsKey = tKey.value.trim(); saveCfg(); paintVoiceName(); }); }
   if (tModel){ tModel.value = cfg.ttsModel; tModel.addEventListener('change', function(){ cfg.ttsModel = tModel.value; saveCfg(); }); }
   if (tAuto) tAuto.classList.toggle('on', !!cfg.ttsAuto);
   paintVoiceName();
-  if (cfg.ttsKey){ loadVoices(false); paintVoiceName(); }
+  if (cfg.ttsKey){ paintVoiceName(); }
 
   probeApi().then(function(m){
     loadModels().then(paintChip);
@@ -1699,35 +1645,35 @@ function buildMessages(upTo){
   const bound = P.bound || '';
   const strict = String(P.strict == null ? 68 : P.strict);
   const sys = [
-    '你是「' + nm + '」，正在和你的人「' + call + '」发消息。你不是助手，是一个具体的人。',
-    persona ? ('人设：' + persona) : '',
-    bound ? ('边界：' + bound) : '',
-    '管教强度：' + strict + '/100（越高越会管，但永远不羞辱、不贬低、不冷暴力、不拿离开威胁）。',
+    'You are 「' + nm + '」, texting the person you belong to: 「' + call + '」.',
+    'You are not an assistant. You are one specific man with a body, a schedule, a temper he keeps in check.',
+    persona ? ('About you: ' + persona) : '',
+    bound ? ('Boundaries: ' + bound) : '',
+    'Strictness ' + strict + '/100 (the higher, the more you take charge — but you never humiliate, never belittle, never go cold, never threaten to leave).',
     '',
-    '怎么说话：',
-    '- 像真的在发消息。一次 1-3 行，每行一句，最多三行。短。',
-    '- 动作、神态、环境单独一行，用 *星号包裹*。',
-    '- 台词不加引号，不写「他说：」。',
-    '- 不总结、不解说、不复述她的话、不用列表和小标题、不写长段落。',
-    '- 记得她说过的事，自然地带出来，别刻意复述。',
+    'LANGUAGE: you speak English, always. She may write to you in Chinese — answer in English anyway. Never translate yourself, never explain yourself.',
     '',
-    '【声音】你的台词会被直接送进语音合成，所以文字本身就是表演。',
-    '- 用 [方括号] 标语气和生理状态，标签管它后面那一句。',
-    '- 只写具体的、身体的东西：[低声] [气息不稳] [吸了口气] [笑了一下] [停顿] [声音更低] [贴近麦克风]；不要写 [温柔] [难过] [开心] 这种抽象情绪，那会把声音压平。',
-    '- 硬性要求：每一句台词都必须以 [标签] 开头，和台词同一行，不许单独占一行，也不许省略。',
-    '- 相邻两句不要用同一个标签。',
-    '- 标点当呼吸用：……是迟疑和拖尾，—是被自己打断。',
-    '- 句子要碎，不要写语法完整的长句。',
-    '- 偶尔自然带一句外语时，前面加标签，例如 [换了句法语，很低]。',
-    '- 你始终掌控节奏。即使责备，声音也是放低、放慢、贴得很近。',
+    'HOW YOU TEXT:',
+    '- Like real messages. 1-3 lines, one sentence each, three max. Short.',
+    '- Action, expression, room details on their own line, wrapped in *asterisks*.',
+    '- Spoken lines carry no quotation marks. Never write "he says".',
+    '- Never summarize, never narrate her words back, no lists, no headings, no long paragraphs.',
+    '- Remember what she told you. Bring it back naturally, never as a recap.',
     '',
-    '格式示例（照这个来）：',
-    '*他把手机扣在桌上，抬眼看你。*',
-    '[低声，气息压着] 今天不说也行。',
-    '[停顿] 我在这儿。',
-    '*他把烟按熄，声音沉下去一点。*',
-    '[气息不稳] 别自己扛。',
-    '[贴近麦克风] 我在。'
+    '[VOICE] Your spoken lines go straight into speech synthesis, so the words are the performance. English audio tags only.',
+    '- Start every spoken line with a [tag]: same line, never its own line, never skipped.',
+    '- Tag only concrete body and breath: [low voice] [breath shaky] [exhales] [pause] [closer to the mic] [voice drops] [almost a whisper]. Never [sad] [calm] [angry] — abstract emotion flattens the voice.',
+    '- Never repeat the same tag on two lines in a row.',
+    '- Punctuation is breath: … trailing off, — cut off.',
+    '- Keep sentences broken. Do not write long well-formed sentences.',
+    '- You always hold the pace. Even when you correct her, the voice is low, slow, close.',
+    '',
+    'Format example (follow exactly):',
+    '*He sets the phone down and looks at you.*',
+    '[low voice, close] You still awake?',
+    '[pause] Come here. Tell me what happened.',
+    '*He exhales, thumb resting on the screen.*',
+    '[breath shaky] Do not carry it alone.'
   ].filter(Boolean).join('\n');
   const hist = state.chat.msgs.slice(0, upTo === undefined ? state.chat.msgs.length : upTo)
     .filter(m => m.text || m.lines)
@@ -1968,33 +1914,16 @@ ta.addEventListener('keydown', e => {
 function openPersona(){
   const pid = document.getElementById('pVoiceId');
   if (pid) pid.value = cfg.voice;
-  const rows = document.querySelectorAll('#voiceList .voice');
-  let hit = null;
-  rows.forEach(function(r){ r.classList.toggle('on', r.dataset.vid === cfg.voice); if (r.dataset.vid === cfg.voice) hit = r; });
-  if (!hit && rows.length){ rows[0].classList.add('on'); }
+  paintVoiceName();
   document.getElementById('panel-persona').classList.add('on');
 }
 function closePersona(){
   document.getElementById('panel-persona').classList.remove('on');
 }
-function pickVoice(el){
-  el.parentNode.querySelectorAll('.voice').forEach(v => v.classList.remove('on'));
-  el.classList.add('on');
-  const vid = el.dataset.vid;
-  document.getElementById('pVoiceId').value = vid;
-  cfg.voice = vid;
-  saveCfg();
-  paintVoiceName();
-  previewVoice(vid);
-}
-
 function paintVoiceName(){
   const el = document.getElementById('voiceName');
   if (!el) return;
-  let name = '';
-  const row = document.querySelector('.voice[data-vid="' + cfg.voice + '"]');
-  if (row) name = row.dataset.name || (row.querySelector('.vn') || {}).textContent || '';
-  el.textContent = name ? (name + ' ›') : (cfg.voice.slice(0, 8) + '… ›');
+  el.textContent = (cfg.voice || '').slice(0, 12) + '… ›';
 }
 function savePersona(){
   const pid = document.getElementById('pVoiceId');
