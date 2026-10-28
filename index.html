@@ -874,6 +874,30 @@ input,textarea{font-family:inherit;color:inherit;background:none;border:0;outlin
         <div class="group">
           <div class="row">
             <span class="k">供应商</span>
+            <span class="v">OpenCode Go</span>
+          </div>
+          <div class="field">
+            <label>API 地址</label>
+            <input id="apiBase" placeholder="留空 = 用内置代理地址" spellcheck="false" autocomplete="off">
+          </div>
+          <div class="field">
+            <label>API Key</label>
+            <input id="apiKey" type="password" placeholder="oc_ 开头的 Key" spellcheck="false" autocomplete="off">
+          </div>
+          <div class="field">
+            <label>模型</label>
+            <select id="modelSel" class="sel"></select>
+          </div>
+          <div class="row" onclick="refreshUsage(true)">
+            <span class="k">额度</span>
+            <span class="v" id="usageTime">刷新 ›</span>
+          </div>
+        </div>
+
+        <div class="group-label">语音 · ElevenLabs</div>
+        <div class="group">
+          <div class="row">
+            <span class="k">供应商</span>
             <span class="v">ElevenLabs · 官方</span>
           </div>
           <div class="field">
@@ -1426,7 +1450,7 @@ function saveCfg(){
 }
 // 部署到静态托管（GitHub Pages）时没有 /api，默认走这台机器上的代理隧道。
 // 换隧道后改这一行即可（deploy 脚本会按 URL.txt 自动重写）。
-const DEFAULT_BASE = 'https://de64b36def33f7.lhr.life/api';
+const DEFAULT_BASE = 'https://c31a3c646c8ae1.lhr.life/api';
 function isLocalHost(){
   const h = location.hostname;
   return h === '127.0.0.1' || h === 'localhost' || h === '0.0.0.0' || h === '' || /^192\.168\.|^10\./.test(h);
