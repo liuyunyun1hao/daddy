@@ -364,6 +364,8 @@ input,textarea{font-family:inherit;color:inherit;background:none;border:0;outlin
   background:none;display:block;padding:2px 0 6px;
 }
 .composer textarea::placeholder{color:rgba(255,255,255,.3)}
+.composer textarea{scrollbar-width:none;-ms-overflow-style:none;overflow-y:auto}
+.composer textarea::-webkit-scrollbar{display:none;width:0;height:0}
 .composer-row{display:flex;align-items:center;gap:2px}
 .c-btn{
   width:32px;height:32px;border-radius:50%;display:grid;place-items:center;
@@ -1957,8 +1959,9 @@ ta.addEventListener('input', () => {
   ta.style.height = Math.min(ta.scrollHeight, 110) + 'px';
   document.getElementById('sendBtn').classList.toggle('off', !ta.value.trim());
 });
+const COARSE = (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) || (navigator.maxTouchPoints || 0) > 0;
 ta.addEventListener('keydown', e => {
-  if (e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); send(); }
+  if (e.key === 'Enter' && !e.shiftKey && !COARSE){ e.preventDefault(); send(); }
 });
 
 /* ================= persona panel ================= */
