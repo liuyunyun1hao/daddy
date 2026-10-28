@@ -1593,7 +1593,7 @@ function initApi(){
   if (tModel){ tModel.value = cfg.ttsModel; tModel.addEventListener('change', function(){ cfg.ttsModel = tModel.value; saveCfg(); }); }
   if (tAuto) tAuto.classList.toggle('on', !!cfg.ttsAuto);
   paintVoiceName();
-  if (cfg.ttsKey) loadVoices(false);
+  if (cfg.ttsKey){ loadVoices(false); paintVoiceName(); }
 
   loadModels().then(paintChip);
   if (cfg.key) refreshUsage(false);
