@@ -1482,10 +1482,41 @@ function isLocalHost(){
   const h = location.hostname;
   return h === '127.0.0.1' || h === 'localhost' || h === '0.0.0.0' || h === '' || /^192\.168\.|^10\./.test(h);
 }
+let apiMode = cfg.mode || (isLocalHost() ? 'direct' : 'query');
+function apiBase(){
+  if (cfg.base) return cfg.base.replace(/\/+$/, '');
+  if (isLocalHost()) return '/api';
+  return (DEFAULT_BASE || '/api').replace(/\/+$/, '');
+}
 function apiURL(path){
-  if (cfg.base) return cfg.base.replace(/\/+$/, '') + path;
-  if (isLocalHost()) return '/api' + path;
-  return (DEFAULT_BASE || '/api').replace(/\/+$/, '') + path;
+  if (apiMode === 'query') return apiBase() + '/proxy?p=' + encodeURIComponent(path);
+  return apiBase() + path;
+}
+// 有的托管平台不认 api/[...all].js 这种通配文件名，多段路径会直接 404。
+// 这里自动试两条路：/api/xxx 和 /api/proxy?p=/xxx，哪条通就用哪条。
+// 用 OPTIONS 探 /chat/completions（多段路径）来区分，不烧 token。
+async function modeWorks(m){
+  const prev = apiMode;
+  apiMode = m;
+  try {
+    const ctl = new AbortController();
+    const t = setTimeout(function(){ ctl.abort(); }, 8000);
+    const r = await fetch(apiURL('/chat/completions'), { method:'OPTIONS', signal: ctl.signal });
+    clearTimeout(t);
+    if (r.status !== 404 && r.status !== 405) return true;
+  } catch (e) {}
+  apiMode = prev;
+  return false;
+}
+async function probeApi(){
+  const order = apiMode === 'query' ? ['query','direct'] : ['direct','query'];
+  for (let i = 0; i < order.length; i++){
+    if (await modeWorks(order[i])){
+      if (cfg.mode !== order[i]){ cfg.mode = order[i]; saveCfg(); }
+      return order[i];
+    }
+  }
+  return null;
 }
 function sessId(){
   let s = null;
@@ -1623,8 +1654,10 @@ function initApi(){
   paintVoiceName();
   if (cfg.ttsKey){ loadVoices(false); paintVoiceName(); }
 
-  loadModels().then(paintChip);
-  if (cfg.key) refreshUsage(false);
+  probeApi().then(function(m){
+    loadModels().then(paintChip);
+    if (cfg.key) refreshUsage(false);
+  });
   setInterval(function(){ if (document.visibilityState === 'visible' && cfg.key) refreshUsage(false); }, 120000);
 }
 
@@ -1789,7 +1822,7 @@ async function testApi(){
     let n = 0;
     try { n = (JSON.parse(txt).data || []).length; } catch (e) {}
     say('200 · ' + n + ' 个模型 ✓');
-    toast('接口通了 · ' + n + ' 个模型');
+    toast('接口通了 · ' + n + ' 个模型 · ' + apiMode);
   } catch (e) {
     say('连不上 ✗');
     toast(niceErr(e));
@@ -1823,7 +1856,16 @@ async function streamReply(aiIdx){
       body: JSON.stringify({ model: cfg.model, messages: buildMessages(aiIdx), stream: true })
     });
   } catch (e) { clearTimeout(wd); throw e; }
-  if (!r.ok){ clearTimeout(wd); throw new Error(apiError(await r.text(), r.status)); }
+  if (!r.ok){
+    const body = await r.text();
+    clearTimeout(wd);
+    if (r.status === 404){
+      const before = apiMode;
+      const m = await probeApi();
+      if (m && m !== before) return streamReply(aiIdx);
+    }
+    throw new Error(apiError(body, r.status));
+  }
 
   const reader = r.body.getReader();
   const dec = new TextDecoder();
