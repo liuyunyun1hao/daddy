@@ -1034,8 +1034,9 @@ input,textarea{font-family:inherit;color:inherit;background:none;border:0;outlin
           <textarea id="pBound" rows="3">不追问你不想说的事。不替你决定，但会拦你。</textarea>
         </div>
         <div class="field">
-          <label>管教强度</label>
-          <input type="range" class="slider" id="pStrict" min="0" max="100" value="68">
+          <label>管教强度 <span id="pStrictV">68</span></label>
+          <input type="range" class="slider" id="pStrict" min="0" max="100" value="68"
+                 oninput="document.getElementById('pStrictV').textContent=this.value">
         </div>
       </div>
 
@@ -1127,7 +1128,10 @@ function saveMsgs(){
 function loadMsgs(){
   try {
     const j = JSON.parse(localStorage.getItem('daddy.chat.v1') || 'null');
-    if (j && j.msgs && j.msgs.length) return j;
+    if (j && j.msgs && j.msgs.length){
+      j.msgs = j.msgs.filter(function(m){ return !m.pending; });
+      if (j.msgs.length) return j;
+    }
   } catch (e) {}
   return null;
 }
@@ -1148,6 +1152,8 @@ function boot(){
   document.getElementById('daysNum').textContent = days;
   const md = document.getElementById('memDays');
   if (md) md.textContent = days;
+  initPersona();
+  state.chat.name = cfg.persona.name || state.chat.name;
   renderChat();
   initApi();
   const target = new URLSearchParams(location.search).get('s');
@@ -1168,7 +1174,7 @@ function switchTab(name){
 
 function openChat(){
   const saved = loadMsgs();
-  state.chat = { name: (saved && saved.name) || 'Daddy', sub:'始终在线 · 记得你的一切', scene:'我们的海 · Mare Nostrum', watch:false, msgs: (saved && saved.msgs) || [] };
+  state.chat = { name: (saved && saved.name) || cfg.persona.name || 'Daddy', sub:'始终在线 · 记得你的一切', scene:'我们的海 · Mare Nostrum', watch:false, msgs: (saved && saved.msgs) || [] };
   enterChat();
 }
 
@@ -1445,8 +1451,29 @@ const cfg = Object.assign({ base:'', key:'', model:'deepseek-v4.1-flash', ttsUrl
   try { return JSON.parse(localStorage.getItem(CFG_STORE) || '{}'); } catch (e) { return {}; }
 })());
 
+const PERSONA_DEF = {
+  name: 'Daddy',
+  text: '三十四岁，做建筑。话少，声音低，习惯先听完再开口。\n\n他不说「我爱你」，只用做的。',
+  call: '宝宝',
+  bound: '不追问你不想说的事。不替你决定，但会拦你。',
+  strict: 68
+};
+cfg.persona = Object.assign({}, PERSONA_DEF, cfg.persona || {});
+
 function saveCfg(){
   try { localStorage.setItem(CFG_STORE, JSON.stringify(cfg)); } catch (e) {}
+}
+
+function initPersona(){
+  const P = cfg.persona;
+  const set = function(id, v){ const el = document.getElementById(id); if (el) el.value = v; };
+  set('pName', P.name);
+  set('pPersona', P.text);
+  set('pCall', P.call);
+  set('pBound', P.bound);
+  set('pStrict', P.strict);
+  const sv = document.getElementById('pStrictV');
+  if (sv) sv.textContent = P.strict;
 }
 // 部署到静态托管（GitHub Pages）时没有 /api，默认走这台机器上的代理隧道。
 // 换隧道后改这一行即可（deploy 脚本会按 URL.txt 自动重写）。
@@ -1478,6 +1505,7 @@ function authHeaders(extra){
 function niceErr(e){
   const m = (e && e.message) || '请求失败';
   if (/Failed to fetch|NetworkError|Load failed/i.test(m)) return '连不上接口 · 检查代理地址或网络';
+  if (/abort/i.test(m) || (e && e.name === 'AbortError')) return '等了 60 秒没动静 · 接口超时';
   return m;
 }
 
@@ -1605,6 +1633,7 @@ async function send(){
   const text = ta.value.trim();
   if (!text) return;
   if (!cfg.key){ toast('先去设置里填 OpenCode Go 的 Key'); switchTab('settings'); return; }
+  if (state.chat.msgs.some(function(m){ return m.pending; })){ toast('等他说完这句'); return; }
   ta.value = '';
   ta.style.height = '22px';
   document.getElementById('sendBtn').classList.add('off');
@@ -1628,11 +1657,12 @@ function msgText(m){
 }
 
 function buildMessages(upTo){
-  const nm = (document.getElementById('pName') || {}).value || state.chat.name || 'Daddy';
-  const persona = (document.getElementById('pPersona') || {}).value || '';
-  const call = (document.getElementById('pCall') || {}).value || '宝宝';
-  const bound = (document.getElementById('pBound') || {}).value || '';
-  const strict = (document.getElementById('pStrict') || {}).value || '68';
+  const P = cfg.persona;
+  const nm = P.name || 'Daddy';
+  const persona = P.text || '';
+  const call = P.call || '宝宝';
+  const bound = P.bound || '';
+  const strict = String(P.strict == null ? 68 : P.strict);
   const sys = [
     '你是「' + nm + '」，正在和你的人「' + call + '」发消息。你不是助手，是一个具体的人。',
     persona ? ('人设：' + persona) : '',
@@ -1649,8 +1679,8 @@ function buildMessages(upTo){
     '【声音】你的台词会被直接送进语音合成，所以文字本身就是表演。',
     '- 用 [方括号] 标语气和生理状态，标签管它后面那一句。',
     '- 只写具体的、身体的东西：[低声] [气息不稳] [吸了口气] [笑了一下] [停顿] [声音更低] [贴近麦克风]；不要写 [温柔] [难过] [开心] 这种抽象情绪，那会把声音压平。',
-    '- 标签写在句子开头，和台词同一行，不要单独占一行。',
-    '- 每 1-2 个短句换一次标签，不要一整段用同一个。',
+    '- 硬性要求：每一句台词都必须以 [标签] 开头，和台词同一行，不许单独占一行，也不许省略。',
+    '- 相邻两句不要用同一个标签。',
     '- 标点当呼吸用：……是迟疑和拖尾，—是被自己打断。',
     '- 句子要碎，不要写语法完整的长句。',
     '- 偶尔自然带一句外语时，前面加标签，例如 [换了句法语，很低]。',
@@ -1659,7 +1689,10 @@ function buildMessages(upTo){
     '格式示例（照这个来）：',
     '*他把手机扣在桌上，抬眼看你。*',
     '[低声，气息压着] 今天不说也行。',
-    '[停顿] 我在这儿。'
+    '[停顿] 我在这儿。',
+    '*他把烟按熄，声音沉下去一点。*',
+    '[气息不稳] 别自己扛。',
+    '[贴近麦克风] 我在。'
   ].filter(Boolean).join('\n');
   const hist = state.chat.msgs.slice(0, upTo === undefined ? state.chat.msgs.length : upTo)
     .filter(m => m.text || m.lines)
@@ -1778,12 +1811,19 @@ function paintTurn(i){
 }
 
 async function streamReply(aiIdx){
-  const r = await fetch(apiURL('/chat/completions'), {
-    method: 'POST',
-    headers: authHeaders({ 'Content-Type':'application/json', 'Accept':'text/event-stream' }),
-    body: JSON.stringify({ model: cfg.model, messages: buildMessages(aiIdx), stream: true })
-  });
-  if (!r.ok) throw new Error(apiError(await r.text(), r.status));
+  const ac = new AbortController();
+  let wd = setTimeout(function(){ ac.abort(); }, 60000);
+  const bump = function(){ clearTimeout(wd); wd = setTimeout(function(){ ac.abort(); }, 60000); };
+  let r;
+  try {
+    r = await fetch(apiURL('/chat/completions'), {
+      method: 'POST',
+      signal: ac.signal,
+      headers: authHeaders({ 'Content-Type':'application/json', 'Accept':'text/event-stream' }),
+      body: JSON.stringify({ model: cfg.model, messages: buildMessages(aiIdx), stream: true })
+    });
+  } catch (e) { clearTimeout(wd); throw e; }
+  if (!r.ok){ clearTimeout(wd); throw new Error(apiError(await r.text(), r.status)); }
 
   const reader = r.body.getReader();
   const dec = new TextDecoder();
@@ -1802,9 +1842,11 @@ async function streamReply(aiIdx){
   };
 
   let finished = false;
+  try {
   while (!finished) {
     const { done, value } = await reader.read();
     if (done) break;
+    bump();
     buf += dec.decode(value, { stream: true });
     let nl;
     while ((nl = buf.indexOf('\n')) >= 0) {
@@ -1822,6 +1864,7 @@ async function streamReply(aiIdx){
       else if (d && d.reasoning_content) queue();
     }
   }
+  } finally { clearTimeout(wd); }
   stopped = true;
   try { reader.cancel(); } catch (e) {}
   delete state.chat.msgs[aiIdx].pending;
@@ -1910,11 +1953,20 @@ function paintVoiceName(){
 }
 function savePersona(){
   const pid = document.getElementById('pVoiceId');
-  if (pid && pid.value.trim()){ cfg.voice = pid.value.trim(); saveCfg(); }
+  if (pid && pid.value.trim()) cfg.voice = pid.value.trim();
+  const g = function(id){ const el = document.getElementById(id); return el ? el.value : ''; };
+  cfg.persona = {
+    name: (g('pName').trim() || 'Daddy'),
+    text: g('pPersona'),
+    call: (g('pCall').trim() || '宝宝'),
+    bound: g('pBound'),
+    strict: Number(g('pStrict')) || 0
+  };
+  saveCfg();
   paintVoiceName();
-  const nm = document.getElementById('pName').value.trim() || 'Daddy';
-  state.chat.name = nm;
-  document.getElementById('chatName').textContent = nm;
+  state.chat.name = cfg.persona.name;
+  document.getElementById('chatName').textContent = cfg.persona.name;
+  saveMsgs();
   toast('已保存');
   closePersona();
 }
