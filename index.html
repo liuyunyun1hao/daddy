@@ -1979,6 +1979,7 @@ function openSheet(i){
 function deleteMsg(i){
   closeSheet();
   if (i < 0 || i >= state.chat.msgs.length) return;
+  if (state.chat.msgs[i].pending){ toast('还在生成，等它说完'); return; }
   state.chat.msgs.splice(i, 1);
   renderChat();
   toast('已删除');
@@ -2042,7 +2043,8 @@ function cancelSelect(){
 
 function deleteSel(){
   if (!sel.size){ toast('还没选'); return; }
-  const ids = Array.from(sel).sort(function(a,b){ return b-a; });
+  const ids = Array.from(sel).filter(function(i){ return !(state.chat.msgs[i] || {}).pending; }).sort(function(a,b){ return b-a; });
+  if (!ids.length){ toast('选中的还在生成'); return; }
   ids.forEach(function(i){ state.chat.msgs.splice(i, 1); });
   selMode = false; sel.clear();
   renderChat();
