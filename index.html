@@ -683,6 +683,32 @@ body.selecting .toast{bottom:150px}
   color:#e08a8a;background:rgba(224,138,138,.07);border:1px solid rgba(224,138,138,.15);
 }
 .danger-btn:active{background:rgba(224,138,138,.14)}
+
+.panel-body{padding:0 18px 40px;overflow-y:auto;flex:1}
+.panel-body::-webkit-scrollbar{display:none}
+.panel-body .group{margin-top:2px}
+.panel-body .hint{font-size:12px;line-height:1.9;color:rgba(255,255,255,.3);margin:16px 2px 10px;letter-spacing:.01em}
+body.panel-open .tabbar{opacity:0;pointer-events:none}
+body.panel-open .app{transition:filter .3s}
+.panel{background:rgba(9,11,13,.96)}
+.tgl{font-size:12px;padding:3px 9px;border-radius:20px;border:1px solid rgba(255,255,255,.16);color:rgba(255,255,255,.5)}
+.tgl.on{color:#8fe3f2;border-color:rgba(143,227,242,.5);background:rgba(143,227,242,.1)}
+.mrow{display:flex;align-items:center;gap:9px;padding:11px 2px;border-bottom:1px solid rgba(255,255,255,.045)}
+.mrow:last-child{border-bottom:none}
+.mrow .nm{flex:1;font-size:13px;color:rgba(255,255,255,.82);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mrow .st{font-size:11px;color:rgba(255,255,255,.36);flex:none}
+.mrow .st.ok{color:#7fd6a8}
+.mrow .st.err{color:#ef8a8a}
+.tools{margin:2px 0 8px}
+.tool{display:flex;align-items:center;gap:7px;font-size:11.5px;color:rgba(255,255,255,.42);padding:3px 0;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.tool svg{width:12px;height:12px;stroke:rgba(255,255,255,.36);fill:none;stroke-width:1.6;flex:none}
+.tool .tn{color:rgba(160,220,235,.72)}
+.tool .ta{color:rgba(255,255,255,.28);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:56%}
+.tres{display:none;margin:0 0 7px 19px;padding:7px 10px;border-left:1px solid rgba(255,255,255,.1);font-size:11.5px;line-height:1.7;color:rgba(255,255,255,.42);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;white-space:pre-wrap;word-break:break-word;max-height:150px;overflow:auto}
+.tres.open{display:block}
+.tool .tst{font-size:10px;color:rgba(143,227,242,.75);flex:none}
+.tool .tchev{font-size:13px;color:rgba(255,255,255,.22);flex:none;line-height:1}
+.tool{cursor:pointer}
 </style>
 </head>
 <body>
@@ -1035,12 +1061,12 @@ body.selecting .toast{bottom:150px}
           </div>
         </div>
 
-        <div class="group-label">MCP 本地连接</div>
+        <div class="group-label">工具</div>
         <div class="group">
-          <div class="mcp"><span class="dot"></span><span class="nm">ob · 长期记忆</span><span class="st">已连接</span></div>
-          <div class="mcp"><span class="dot"></span><span class="nm">lc · 设备与日程</span><span class="st">已连接</span></div>
-          <div class="mcp"><span class="dot off"></span><span class="nm">filesystem · 本地文件</span><span class="st">未启用</span></div>
-          <div class="mcp" style="color:rgba(255,255,255,.45)"><span class="nm">＋ 添加服务</span></div>
+          <div class="row" onclick="openTools()">
+            <span class="k">MCP 与本地能力</span>
+            <span class="v" id="toolSummary">— ›</span>
+          </div>
         </div>
 
         <div class="group-label">他</div>
@@ -1258,6 +1284,7 @@ function boot(){
   state.chat.name = cfg.persona.name || state.chat.name;
   renderChat();
   initApi();
+  initTools();
   const target = new URLSearchParams(location.search).get('s');
   if (target) switchTab(target);
   if (location.hash === '#persona') openPersona();
@@ -1318,6 +1345,7 @@ const ICONS = {
   trash:'<svg viewBox="0 0 24 24"><path d="M4 7h16M9.5 7V5h5v2M6.5 7l1 13h9l1-13"/></svg>',
   check:'<svg viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg>',
   chev:'<svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>',
+  gear:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.9l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.9-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1-1.5 1.7 1.7 0 00-1.9.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.9 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1 1.7 1.7 0 00-.3-1.9l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.9.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.9-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.9V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg>',
   tick:'<svg class="mtick" viewBox="0 0 24 24"><path d="M4.5 12.5l5 5L19.5 7"/></svg>',
   more:'<svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.7" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.7" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.7" fill="currentColor" stroke="none"/></svg>'
 };
@@ -1345,6 +1373,26 @@ function segHTML(seg, k){
   const v = stripTags(seg.text);
   if (!v) return '';
   return '<div class="bubble' + (seg.type === 'narr' ? ' narration' : '') + '" data-seg="' + k + '">' + esc(v) + '</div>';
+}
+
+function toolsHTML(m){
+  if (!m.tools || !m.tools.length) return '';
+  return '<div class="tools">' + m.tools.map(function(t, k){
+    let nm = String(t.name || '');
+    const hit = nm.indexOf('mcp__') === 0 ? resolveMcp(nm) : null;
+    if (hit) nm = (hit.srv.name || 'mcp') + ' · ' + hit.t.name;
+    let arg = String(t.args || '');
+    if (arg.length > 52) arg = arg.slice(0, 52) + '…';
+    let html = '<div class="tool" onclick="toggleTres(this)">' + ICONS.gear
+      + '<span class="tn">' + esc(nm) + '</span><span class="ta">' + esc(arg) + '</span>'
+      + (t.running ? '<span class="tst">执行中</span>' : '<span class="tchev">›</span>') + '</div>';
+    html += '<div class="tres' + (t.running ? ' open' : '') + '">' + esc(String(t.result || (t.running ? '…' : ''))).slice(0, 700) + '</div>';
+    return html;
+  }).join('') + '</div>';
+}
+function toggleTres(el){
+  const box = el.nextElementSibling;
+  if (box) box.classList.toggle('open');
 }
 
 function thinkHTML(m, i){
@@ -1380,7 +1428,7 @@ function renderChat(){
         + '<button class="act" aria-label="更多" onclick="openSheet(' + i + ')">' + ICONS.more + '</button>'
         + '</div>';
     } else {
-      let html = thinkHTML(m, i);
+      let html = toolsHTML(m) + thinkHTML(m, i);
       aiSegments(m).forEach(function(seg, k){ html += segHTML(seg, k); });
       if (m.error) html += '<div class="bubble err">' + esc(m.error) + '</div>';
       if (m.pending && !html) html = '<div class="typing"><i></i><i></i><i></i></div>';
@@ -1915,6 +1963,12 @@ function buildMessages(upTo){
     '- Keep sentences broken. Do not write long well-formed sentences.',
     '- You always hold the pace. Even when you correct her, the voice is low, slow, close.',
     '',
+    'TOOLS: you can call tools to check the real world and to keep notes on her.',
+    '- now / weather: time and weather questions — check, never guess.',
+    '- remember: whenever she tells you something that matters later (dates, plans, how she is feeling, what she cannot eat, something she is scared of).',
+    '- recall: before answering anything about her past, her plans, or things she told you before.',
+    '- Never mention the tools out loud. Just use them, then answer like a man who happens to know.',
+    '',
     'Format example (follow exactly):',
     '*He sets the phone down and looks at you.*',
     '[low voice, close] You still awake?',
@@ -2028,7 +2082,7 @@ function paintTurn(i){
   const m = state.chat.msgs[i];
   const t = document.querySelector('.turn[data-i="' + i + '"]');
   if (!t) return;
-  let html = thinkHTML(m, i);
+  let html = toolsHTML(m) + thinkHTML(m, i);
   aiSegments(m).forEach(function(seg, k){ html += segHTML(seg, k); });
   if (!html) html = '<div class="typing"><i></i><i></i><i></i></div>';
   t.innerHTML = html;
@@ -2036,17 +2090,21 @@ function paintTurn(i){
   box.scrollTop = box.scrollHeight;
 }
 
-async function streamReply(aiIdx){
+async function streamOnce(aiIdx, extra){
   const ac = new AbortController();
-  let wd = setTimeout(function(){ ac.abort(); }, 60000);
-  const bump = function(){ clearTimeout(wd); wd = setTimeout(function(){ ac.abort(); }, 60000); };
+  let wd = setTimeout(function(){ ac.abort(); }, 90000);
+  const bump = function(){ clearTimeout(wd); wd = setTimeout(function(){ ac.abort(); }, 90000); };
+  const msgs = buildMessages(aiIdx).concat(extra || []);
+  const payload = Object.assign({ model: cfg.model, messages: msgs, stream: true }, reasoningPayload());
+  const tl = activeTools();
+  if (tl.length){ payload.tools = tl; payload.tool_choice = 'auto'; }
   let r;
   try {
     r = await fetch(apiURL('/chat/completions'), {
       method: 'POST',
       signal: ac.signal,
       headers: authHeaders({ 'Content-Type':'application/json', 'Accept':'text/event-stream' }),
-      body: JSON.stringify(Object.assign({ model: cfg.model, messages: buildMessages(aiIdx), stream: true }, reasoningPayload()))
+      body: JSON.stringify(payload)
     });
   } catch (e) { clearTimeout(wd); throw e; }
   if (!r.ok){
@@ -2054,8 +2112,8 @@ async function streamReply(aiIdx){
     clearTimeout(wd);
     if (r.status === 404){
       const before = apiMode;
-      const m = await probeApi();
-      if (m && m !== before) return streamReply(aiIdx);
+      const m2 = await probeApi();
+      if (m2 && m2 !== before) return streamOnce(aiIdx, extra);
     }
     throw new Error(apiError(body, r.status));
   }
@@ -2063,8 +2121,8 @@ async function streamReply(aiIdx){
   const reader = r.body.getReader();
   const dec = new TextDecoder();
   let buf = '', full = '', think = '';
-  let paintQueued = false;
-  let stopped = false;
+  let paintQueued = false, stopped = false;
+  const calls = [];
   const queue = () => {
     if (paintQueued || stopped) return;
     paintQueued = true;
@@ -2075,42 +2133,102 @@ async function streamReply(aiIdx){
       paintTurn(aiIdx);
     });
   };
+  const grab = (d) => {
+    if (!d || !Array.isArray(d.tool_calls)) return;
+    d.tool_calls.forEach(function(tc){
+      const k = typeof tc.index === 'number' ? tc.index : 0;
+      const c = calls[k] || (calls[k] = { id:'', name:'', args:'' });
+      if (tc.id) c.id = tc.id;
+      if (tc.function){
+        if (tc.function.name && !c.name) c.name = tc.function.name;
+        if (tc.function.arguments) c.args += tc.function.arguments;
+      }
+    });
+  };
 
   let finished = false;
   try {
-  while (!finished) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    bump();
-    buf += dec.decode(value, { stream: true });
-    let nl;
-    while ((nl = buf.indexOf('\n')) >= 0) {
-      const line = buf.slice(0, nl).trim();
-      buf = buf.slice(nl + 1);
-      if (!line.startsWith('data:')) continue;
-      const data = line.slice(5).trim();
-      if (data === '[DONE]') { finished = true; break; }
-      if (!data) continue;
-      let j;
-      try { j = JSON.parse(data); } catch (e) { continue; }
-      const ch = j.choices && j.choices[0];
-      const d = ch && (ch.delta || ch.message);
-      const rk = d && (d.reasoning_content || d.reasoning || d.thinking);
-      if (typeof rk === 'string' && rk) {
-        think += rk;
-        state.chat.msgs[aiIdx].reasoning = think;
-        queue();
-      } else if (d && typeof d.content === 'string' && d.content) { full += d.content; queue(); }
+    while (!finished){
+      const { done, value } = await reader.read();
+      if (done) break;
+      bump();
+      buf += dec.decode(value, { stream:true });
+      let nl;
+      while ((nl = buf.indexOf('\n')) >= 0){
+        const line = buf.slice(0, nl).trim();
+        buf = buf.slice(nl + 1);
+        if (!line.startsWith('data:')) continue;
+        const data = line.slice(5).trim();
+        if (data === '[DONE]') { finished = true; break; }
+        if (!data) continue;
+        let j;
+        try { j = JSON.parse(data); } catch(e){ continue; }
+        const ch = j.choices && j.choices[0];
+        const d = ch && (ch.delta || ch.message);
+        if (!d) continue;
+        grab(d);
+        const rk = d.reasoning_content || d.reasoning || d.thinking;
+        if (typeof rk === 'string' && rk){
+          think += rk;
+          state.chat.msgs[aiIdx].reasoning = think;
+          queue();
+        } else if (typeof d.content === 'string' && d.content){
+          full += d.content;
+          queue();
+        }
+      }
     }
-  }
   } finally { clearTimeout(wd); }
   stopped = true;
-  try { reader.cancel(); } catch (e) {}
-  delete state.chat.msgs[aiIdx].pending;
-  state.chat.msgs[aiIdx].text = full || '（没有内容返回）';
-  if (think) state.chat.msgs[aiIdx].reasoning = think;
-  renderChat();
-  if (cfg.ttsAuto && cfg.ttsKey && full.trim()) togglePlay(aiIdx);
+  try { reader.cancel(); } catch(e){}
+  return { content: full, think: think, toolCalls: calls.filter(function(c){ return c.name; }) };
+}
+
+async function runTurn(aiIdx){
+  const m = state.chat.msgs[aiIdx];
+  const extra = [];
+  m.tools = [];
+  let last = null;
+  for (let round = 0; round < 4; round++){
+    const res = await streamOnce(aiIdx, extra);
+    last = res;
+    if (!res.toolCalls.length) break;
+    const shown = res.toolCalls.map(function(tc){ return { name: tc.name, args: tc.args, result: '', running: true }; });
+    m.tools.push.apply(m.tools, shown);
+    m.text = '';
+    paintTurn(aiIdx);
+    for (let k = 0; k < res.toolCalls.length; k++){
+      shown[k].result = await execTool(res.toolCalls[k].name, res.toolCalls[k].args);
+      shown[k].running = false;
+      paintTurn(aiIdx);
+    }
+    const assistant = {
+      role: 'assistant',
+      content: res.content || '',
+      tool_calls: res.toolCalls.map(function(tc, k){
+        return { id: tc.id || ('call_' + round + '_' + k), type:'function', function:{ name: tc.name, arguments: tc.args || '{}' } };
+      })
+    };
+    extra.push(assistant);
+    assistant.tool_calls.forEach(function(tc, k){ extra.push({ role:'tool', tool_call_id: tc.id, content: shown[k].result }); });
+    if (round === 3) break;
+  }
+  const fin = last || { content:'', think:'', toolCalls:[] };
+  if (fin.toolCalls && fin.toolCalls.length && !fin.content) m.text = '（工具调用次数到上限，先停在这里）';
+  else m.text = fin.content || '（没有内容返回）';
+  if (fin.think) m.reasoning = fin.think;
+}
+
+async function streamReply(aiIdx){
+  try {
+    await runTurn(aiIdx);
+  } finally {
+    delete state.chat.msgs[aiIdx].pending;
+    if (!state.chat.msgs[aiIdx].text) state.chat.msgs[aiIdx].text = '（没有内容返回）';
+    renderChat();
+    const full = state.chat.msgs[aiIdx].text || '';
+    if (cfg.ttsAuto && cfg.ttsKey && full.trim()) togglePlay(aiIdx);
+  }
 }
 
 const REPLIES = [
@@ -2248,15 +2366,269 @@ ta.addEventListener('keydown', e => {
   if (e.key === 'Enter' && !e.shiftKey && !COARSE){ e.preventDefault(); send(); }
 });
 
+
+/* ================= tools & mcp ================= */
+const MEM_STORE = 'daddy.mem.v1';
+function memLoad(){ try { return JSON.parse(localStorage.getItem(MEM_STORE) || '[]'); } catch(e){ return []; } }
+function memSave(a){ try { localStorage.setItem(MEM_STORE, JSON.stringify(a.slice(-300))); } catch(e){} }
+
+const BUILTIN_TOOLS = [
+  { id:'now', label:'时间 · now', desc:'Get the current local date and time (Asia/Shanghai). Use when she asks what time or day it is, or to sense how late it is.',
+    params:{ type:'object', properties:{}, required:[] },
+    run: function(){ const d = new Date(); return d.toLocaleString('zh-CN', { timeZone:'Asia/Shanghai', hour12:false }) + ' ' + ['周日','周一','周二','周三','周四','周五','周六'][d.getDay()]; } },
+
+  { id:'weather', label:'天气 · weather', desc:'Look up live weather for a city. Use when she mentions weather, going out, being cold or hot, or asks what to wear.',
+    params:{ type:'object', properties:{ city:{ type:'string', description:'city name, Chinese is fine' } }, required:['city'] },
+    run: async function(a){
+      const r = await fetch('https://wttr.in/' + encodeURIComponent(a.city || 'Shanghai') + '?format=j1&lang=zh', { signal: AbortSignal.timeout(15000) });
+      if (!r.ok) return 'ERROR: weather service ' + r.status;
+      const j = await r.json();
+      const c = j.current_condition && j.current_condition[0];
+      if (!c) return 'ERROR: no weather data';
+      const d = (c.lang_zh && c.lang_zh[0] && c.lang_zh[0].value) || (c.weatherDesc && c.weatherDesc[0].value) || '';
+      return (a.city || '') + ': ' + c.temp_C + 'C, ' + d + ', feels like ' + c.FeelsLikeC + 'C, humidity ' + c.humidity + '%';
+    } },
+
+  { id:'remember', label:'记住 · remember', desc:'Save a lasting fact about her: preference, plan, feeling, a date, something she told you. Use whenever she tells you something you should not forget later.',
+    params:{ type:'object', properties:{ about:{ type:'string', description:'short key' }, detail:{ type:'string', description:'one sentence' } }, required:['about','detail'] },
+    run: function(a){ const list = memLoad(); list.push({ about:String(a.about||''), detail:String(a.detail||''), at:Date.now() }); memSave(list); paintMemHint(); return 'saved: ' + a.about; } },
+
+  { id:'recall', label:'回忆 · recall', desc:'Search the facts you saved about her before. Use when she references the past, or you need context about her life.',
+    params:{ type:'object', properties:{ query:{ type:'string' } }, required:['query'] },
+    run: function(a){
+      const q = String(a.query || '').toLowerCase();
+      const all = memLoad();
+      const hit = all.filter(function(x){ return (x.about + ' ' + x.detail).toLowerCase().indexOf(q) >= 0; }).slice(-12);
+      if (!hit.length) return all.length ? '(nothing matched "' + q + '"; you have ' + all.length + ' memories)' : '(memory is empty)';
+      return hit.map(function(x){ return '- ' + x.about + ': ' + x.detail; }).join('\n');
+    } },
+
+  { id:'notify', label:'通知 · notify', desc:'Send a notification to her phone right now. Use sparingly, for something she must not miss.',
+    params:{ type:'object', properties:{ title:{ type:'string' }, body:{ type:'string' } }, required:['title','body'] },
+    run: async function(a){
+      if (!('Notification' in window)) return 'ERROR: this browser has no Notification API';
+      if (Notification.permission === 'default') await Notification.requestPermission();
+      if (Notification.permission !== 'granted') return 'ERROR: permission denied';
+      new Notification(String(a.title || 'Daddy'), { body: String(a.body || '') });
+      return 'sent';
+    } },
+
+  { id:'timer', label:'定时提醒 · timer', desc:'Set a reminder that fires after N minutes. Use when she says she is going to do something later and wants to be reminded.',
+    params:{ type:'object', properties:{ minutes:{ type:'number' }, text:{ type:'string' } }, required:['minutes','text'] },
+    run: function(a){
+      const min = Math.max(1, Number(a.minutes) || 1);
+      setTimeout(function(){
+        if ('Notification' in window && Notification.permission === 'granted') new Notification('Daddy', { body: String(a.text || '到点了') });
+        toast('⏰ ' + String(a.text || '到点了'));
+      }, min * 60000);
+      return 'reminder set in ' + min + ' min';
+    } },
+
+  { id:'open_url', label:'打开链接 · open_url', desc:'Open a link for her in a new tab.',
+    params:{ type:'object', properties:{ url:{ type:'string' } }, required:['url'] },
+    run: function(a){ const u = String(a.url || ''); if (!/^https?:\/\//.test(u)) return 'ERROR: url must start with http(s)'; window.open(u, '_blank', 'noopener'); return 'opened'; } },
+
+  { id:'copy', label:'复制 · copy', desc:'Copy a piece of text to her clipboard.',
+    params:{ type:'object', properties:{ text:{ type:'string' } }, required:['text'] },
+    run: async function(a){ try { await navigator.clipboard.writeText(String(a.text || '')); return 'copied'; } catch(e){ return 'ERROR: ' + e.message; } } }
+];
+
+function toolEnabled(id){ return !cfg.tools || cfg.tools[id] !== false; }
+function toggleTool(id, el){
+  if (!cfg.tools) cfg.tools = {};
+  cfg.tools[id] = !toolEnabled(id);
+  saveCfg();
+  el.classList.toggle('on', toolEnabled(id));
+  el.textContent = toolEnabled(id) ? '开' : '关';
+  paintToolSummary();
+}
+function toolFnName(si, ti, raw){
+  const n = 'mcp__' + si + '__' + String(raw).replace(/[^a-zA-Z0-9_-]/g, '_');
+  return n.slice(0, 60) + '_' + ti;
+}
+function activeTools(){
+  const out = [];
+  BUILTIN_TOOLS.forEach(function(t){
+    if (!toolEnabled(t.id)) return;
+    out.push({ type:'function', function:{ name:t.id, description:t.desc, parameters:t.params } });
+  });
+  (cfg.mcp || []).forEach(function(srv, si){
+    if (srv.enabled === false || !srv.tools || !srv.tools.length) return;
+    srv.tools.forEach(function(t, ti){
+      out.push({ type:'function', function:{
+        name: toolFnName(si, ti, t.name),
+        description: String(t.desc || t.name).slice(0, 900),
+        parameters: (t.params && t.params.type) ? t.params : { type:'object', properties:{} }
+      } });
+    });
+  });
+  return out;
+}
+function resolveMcp(name){
+  const all = [];
+  (cfg.mcp || []).forEach(function(srv, si){
+    (srv.tools || []).forEach(function(t, ti){
+      all.push({ srv:srv, t:t, fn: toolFnName(si, ti, t.name) });
+    });
+  });
+  const clean = String(name || '');
+  return all.filter(function(x){ return x.fn === clean; })[0]
+      || all.filter(function(x){ return x.t.name === clean; })[0]
+      || all.filter(function(x){ return x.fn.slice(-clean.length) === clean; })[0]
+      || all.filter(function(x){ return x.t.name === clean.replace(/^mcp_+[0-9]+_+/, ''); })[0];
+}
+async function execTool(name, argsStr){
+  let args = {};
+  try { args = argsStr ? JSON.parse(argsStr) : {}; } catch(e){ return 'ERROR: arguments are not valid JSON'; }
+  try {
+    const def = BUILTIN_TOOLS.filter(function(t){ return t.id === name; })[0];
+    if (def){
+      const out = await def.run(args);
+      return String(out === undefined ? 'ok' : out).slice(0, 6000);
+    }
+    const hit = resolveMcp(name);
+    if (hit) return await mcpCallTool(hit.srv, hit.t.name, args);
+    return 'ERROR: unknown tool ' + name;
+  } catch(e){
+    return 'ERROR: ' + (e && e.message ? e.message : String(e));
+  }
+}
+
+/* ---------- minimal MCP client (streamable HTTP) ---------- */
+let RPC_ID = 0;
+async function mcpRpc(srv, method, params, notify){
+  const payload = { jsonrpc:'2.0', method:method };
+  if (!notify){ payload.id = ++RPC_ID; }
+  if (params !== undefined) payload.params = params;
+  const headers = { 'Content-Type':'application/json', 'Accept':'application/json, text/event-stream' };
+  if (srv.session) headers['Mcp-Session-Id'] = srv.session;
+  if (srv.headers){
+    try { const h = typeof srv.headers === 'string' ? JSON.parse(srv.headers) : srv.headers; Object.keys(h).forEach(function(k){ headers[k] = h[k]; }); } catch(e){}
+  }
+  const r = await fetch(srv.url, { method:'POST', headers:headers, body: JSON.stringify(payload), signal: AbortSignal.timeout(25000) });
+  const sid = r.headers.get('Mcp-Session-Id');
+  if (sid) srv.session = sid;
+  if (notify) return null;
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  const ct = r.headers.get('content-type') || '';
+  if (ct.indexOf('text/event-stream') >= 0){
+    const txt = await r.text();
+    let out = null;
+    txt.split('\n').forEach(function(line){
+      const t = line.trim();
+      if (t.indexOf('data:') !== 0) return;
+      try { const j = JSON.parse(t.slice(5).trim()); if (j && (j.result !== undefined || j.error)) out = j; } catch(e){}
+    });
+    if (!out) throw new Error('empty stream reply');
+    return out;
+  }
+  return await r.json();
+}
+async function mcpInit(srv){
+  srv.session = '';
+  const init = await mcpRpc(srv, 'initialize', { protocolVersion:'2024-11-05', capabilities:{}, clientInfo:{ name:'daddy', version:'1.0' } });
+  if (init && init.error) throw new Error(init.error.message || 'initialize failed');
+  try { await mcpRpc(srv, 'notifications/initialized', undefined, true); } catch(e){}
+  const list = await mcpRpc(srv, 'tools/list', {});
+  const tools = ((list && list.result && list.result.tools) || []).map(function(t){
+    return { name:t.name, desc:t.description || '', params:t.inputSchema || { type:'object', properties:{} } };
+  });
+  srv.tools = tools;
+  return tools;
+}
+async function mcpCallTool(srv, toolName, args){
+  const res = await mcpRpc(srv, 'tools/call', { name: toolName, arguments: args });
+  if (res && res.error) return 'ERROR: ' + (res.error.message || JSON.stringify(res.error));
+  const c = res && res.result;
+  const parts = (c && c.content) || [];
+  const txt = parts.map(function(p){ return p && p.type === 'text' ? p.text : JSON.stringify(p).slice(0, 400); }).join('\n');
+  return (txt || JSON.stringify(c || {}).slice(0, 2000)).slice(0, 6000);
+}
+
+/* ---------- tools panel ---------- */
+function openTools(){ paintToolList(); paintMcpList(); paintMemHint(); document.getElementById('panel-tools').classList.add('on'); document.body.classList.add('panel-open'); }
+function closeTools(){ document.getElementById('panel-tools').classList.remove('on'); paintToolSummary(); if (!document.querySelector('.panel.on')) document.body.classList.remove('panel-open'); }
+function paintToolSummary(){
+  const on = BUILTIN_TOOLS.filter(function(t){ return toolEnabled(t.id); }).length;
+  const mc = (cfg.mcp || []).filter(function(s){ return s.enabled !== false; }).length;
+  const total = activeTools().length;
+  const el = document.getElementById('toolSummary');
+  if (el) el.textContent = (on + ' 内置' + (mc ? ' · ' + mc + ' MCP' : '') + ' · ' + total + ' 个工具 ›');
+}
+function paintMemHint(){
+  const el = document.getElementById('memHint');
+  if (el) el.textContent = '记忆库：' + memLoad().length + ' 条';
+}
+function paintToolList(){
+  const box = document.getElementById('toolList');
+  if (!box) return;
+  box.innerHTML = BUILTIN_TOOLS.map(function(t){
+    const on = toolEnabled(t.id);
+    return '<div class="mrow"><span class="nm">' + esc(t.label) + '</span>'
+      + '<span class="tgl' + (on ? ' on' : '') + '" onclick="toggleTool(\'' + t.id + '\',this)">' + (on ? '开' : '关') + '</span></div>';
+  }).join('');
+  paintToolSummary();
+}
+function paintMcpList(){
+  const box = document.getElementById('mcpList');
+  if (!box) return;
+  const list = cfg.mcp || [];
+  if (!list.length){ box.innerHTML = '<div class="mrow"><span class="nm" style="color:rgba(255,255,255,.3)">还没有服务器</span></div>'; return; }
+  box.innerHTML = list.map(function(s, i){
+    const st = s.err ? '<span class="st err">' + esc(s.err) + '</span>'
+      : (s.tools && s.tools.length ? '<span class="st ok">' + s.tools.length + ' 个工具</span>' : '<span class="st">未连接</span>');
+    return '<div class="mrow"><span class="nm">' + esc(s.name || s.url) + '</span>' + st
+      + '<span class="tgl" onclick="refreshMcp(' + i + ')">拉取</span>'
+      + '<span class="tgl" onclick="removeMcp(' + i + ')">删</span></div>';
+  }).join('');
+}
+async function refreshMcp(i){
+  const srv = (cfg.mcp || [])[i];
+  if (!srv) return;
+  srv.err = '';
+  try {
+    const tools = await mcpInit(srv);
+    toast('已连接 · ' + tools.length + ' 个工具');
+  } catch(e){
+    srv.err = (e && e.message ? e.message : 'fail').slice(0, 18);
+    toast('连不上：' + (e && e.message ? e.message : ''));
+  }
+  saveCfg(); paintMcpList(); paintToolSummary();
+}
+async function addMcp(){
+  const url = prompt('MCP 服务器地址（Streamable HTTP，通常以 /mcp 结尾）');
+  if (!url) return;
+  const name = prompt('给它起个名字', url.replace(/^https?:\/\//, '').split('/')[0]) || 'mcp';
+  if (!cfg.mcp) cfg.mcp = [];
+  const srv = { name:name, url:url.trim(), enabled:true, tools:[] };
+  cfg.mcp.push(srv);
+  saveCfg();
+  await refreshMcp(cfg.mcp.length - 1);
+  paintMcpList(); paintToolSummary();
+}
+function removeMcp(i){
+  if (!cfg.mcp) return;
+  cfg.mcp.splice(i, 1);
+  saveCfg(); paintMcpList(); paintToolSummary();
+}
+function initTools(){
+  if (!cfg.tools) cfg.tools = {};
+  if (!cfg.mcp) cfg.mcp = [];
+  paintToolSummary(); paintMemHint();
+  if (location.hash === '#tools') openTools();
+}
+
 /* ================= persona panel ================= */
 function openPersona(){
   const pid = document.getElementById('pVoiceId');
   if (pid) pid.value = cfg.voice;
   paintVoiceName();
   document.getElementById('panel-persona').classList.add('on');
+  document.body.classList.add('panel-open');
 }
 function closePersona(){
   document.getElementById('panel-persona').classList.remove('on');
+  if (!document.querySelector('.panel.on')) document.body.classList.remove('panel-open');
 }
 function paintVoiceName(){
   const el = document.getElementById('voiceName');
@@ -2293,5 +2665,24 @@ function clearChat(){
 /* everything is declared by now */
 boot();
 </script>
+
+<div class="panel" id="panel-tools">
+  <div class="panel-head">
+    <button class="icon-btn" onclick="closeTools()"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <div class="ttl">工具<small>Tools &amp; MCP</small></div>
+    <button class="save" onclick="closeTools()">完成</button>
+  </div>
+  <div class="panel-body">
+    <div class="group-label">内置能力</div>
+    <div class="group" id="toolList"></div>
+    <div class="group-label">MCP 服务器</div>
+    <div class="group" id="mcpList"></div>
+    <div class="group">
+      <div class="row" onclick="addMcp()"><span class="k">＋ 添加 MCP 服务器</span><span class="v">HTTP ›</span></div>
+    </div>
+    <div class="hint">内置能力不需要网络服务，直接在手机上执行。MCP 服务器要求它能被浏览器直连（支持 CORS）；本机 DSH 里的 nudge / lc / ob 跑在电脑侧，手机浏览器连不上，需要在你的服务器上另开一个 HTTP MCP 端点。</div>
+    <div class="hint" id="memHint">记忆库：0 条</div>
+  </div>
+</div>
 </body>
 </html>
