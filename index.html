@@ -1099,6 +1099,30 @@ body.selecting .toast{bottom:150px}
           <div class="mcp" style="color:rgba(255,255,255,.45)"><span class="nm">＋ 添加服务</span></div>
         </div>
 
+        <div class="group-label">记忆 · 本地</div>
+        <div class="group">
+          <div class="row">
+            <span class="k">心潮 · 此刻</span>
+            <span class="switch on" id="memXc" onclick="toggleMem('memXc',this)"></span>
+          </div>
+          <div class="row">
+            <span class="k">OB · 浮现记忆</span>
+            <span class="switch on" id="memOb" onclick="toggleMem('memOb',this)"></span>
+          </div>
+          <div class="row">
+            <span class="k">回复后回传情绪</span>
+            <span class="switch on" id="memEvent" onclick="toggleMem('memEvent',this)"></span>
+          </div>
+          <div class="field">
+            <label>本地桥地址</label>
+            <input id="memBase" placeholder="http://127.0.0.1:18080" spellcheck="false" autocomplete="off">
+          </div>
+          <div class="row" onclick="testMemory()">
+            <span class="k">测试连接</span>
+            <span class="v" id="memTest">点一下 ›</span>
+          </div>
+        </div>
+
         <div class="group-label">数据</div>
         <div class="group">
           <div class="row" onclick="exportBackup()">
@@ -1652,7 +1676,7 @@ function toggleTtsAuto(el){
 }
 
 const CFG_STORE = 'daddy.cfg.v1';
-const cfg = Object.assign({ base:'', key:'', model:'deepseek-v4.1-flash', history:24, fallbacks:[], ttsUrl:'https://api.elevenlabs.io/v1', ttsKey:'', ttsModel:'eleven_v4', ttsAuto:true, voice:'TZF5Z996m1MjVz76PFoH' }, (function(){
+const cfg = Object.assign({ base:'', key:'', model:'deepseek-v4.1-flash', history:24, fallbacks:[], memXc:true, memOb:true, memEvent:true, memBase:'', ttsUrl:'https://api.elevenlabs.io/v1', ttsKey:'', ttsModel:'eleven_v4', ttsAuto:true, voice:'TZF5Z996m1MjVz76PFoH' }, (function(){
   try { return JSON.parse(localStorage.getItem(CFG_STORE) || '{}'); } catch (e) { return {}; }
 })());
 
@@ -2035,6 +2059,15 @@ function initApi(){
     ctx.value = String(cfg.history || 24);
     ctx.addEventListener('change', function(){ cfg.history = Number(ctx.value) || 24; saveCfg(); toast('上下文 ' + cfg.history + ' 条'); });
   }
+  const mb = document.getElementById('memBase');
+  if (mb){
+    mb.value = cfg.memBase || '';
+    mb.addEventListener('change', function(){ cfg.memBase = mb.value.trim(); saveCfg(); MCP.ready = {}; MCP.sid = {}; });
+  }
+  ['memXc','memOb','memEvent'].forEach(function(id){
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle('on', !!cfg[id]);
+  });
   paintFbCount();
   paintChip();
   const tUrl = document.getElementById('ttsUrl'), tKey = document.getElementById('ttsKey'),
@@ -2055,6 +2088,153 @@ function initApi(){
   setInterval(function(){ if (document.visibilityState === 'visible' && cfg.key) refreshUsage(false); }, 120000);
 }
 
+
+/* ================= 本地记忆 · MCP（心潮 / OB） ================= */
+const MCP = { sid: {}, ready: {}, cache: { xc:'', xcAt:0 } };
+let RECALL = '';
+
+function memBaseURL(){
+  const b = (cfg.memBase || '').trim();
+  if (b) return b.replace(/\/+$/, '');
+  if (location.port === '18080') return '';
+  return 'http://127.0.0.1:18080';
+}
+
+async function mcpPost(path, payload, sid){
+  const ac = new AbortController();
+  const timer = setTimeout(function(){ ac.abort(); }, 20000);
+  try {
+    const headers = { 'Content-Type':'application/json', 'Accept':'application/json, text/event-stream' };
+    if (sid) headers['Mcp-Session-Id'] = sid;
+    const r = await fetch(memBaseURL() + path, { method:'POST', headers, body: JSON.stringify(payload), signal: ac.signal });
+    const sidOut = r.headers.get('mcp-session-id') || r.headers.get('Mcp-Session-Id') || '';
+    const ct = (r.headers.get('content-type') || '').toLowerCase();
+    if (!r.ok){
+      let msg = 'HTTP ' + r.status;
+      try { const t = await r.text(); if (t) msg += ' · ' + t.slice(0, 120); } catch(e){}
+      throw new Error(msg);
+    }
+    if (ct.indexOf('text/event-stream') >= 0){
+      const reader = r.body.getReader();
+      const dec = new TextDecoder();
+      let buf = '', got = null;
+      while (!got){
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += dec.decode(value, { stream: true });
+        let nl;
+        while ((nl = buf.indexOf('\n')) >= 0 && !got){
+          const line = buf.slice(0, nl).trim();
+          buf = buf.slice(nl + 1);
+          if (!line.startsWith('data:')) continue;
+          const data = line.slice(5).trim();
+          if (!data) continue;
+          try {
+            const j = JSON.parse(data);
+            if (j && j.id !== undefined && (j.result || j.error)) got = j;
+          } catch (e) {}
+        }
+      }
+      try { reader.cancel(); } catch (e) {}
+      return { data: got, sid: sidOut, status: r.status };
+    }
+    let data = null;
+    try { data = await r.json(); } catch (e) {}
+    return { data, sid: sidOut, status: r.status };
+  } finally { clearTimeout(timer); }
+}
+
+async function mcpEnsure(key, path){
+  if (MCP.ready[key]) return MCP.sid[key];
+  const init = await mcpPost(path, { jsonrpc:'2.0', id:1, method:'initialize',
+    params:{ protocolVersion:'2025-06-18', capabilities:{}, clientInfo:{ name:'caeruleus', version:'1' } } });
+  const sid = init.sid || '';
+  MCP.sid[key] = sid;
+  MCP.ready[key] = true;
+  try { await mcpPost(path, { jsonrpc:'2.0', method:'notifications/initialized' }, sid); } catch (e) {}
+  return sid;
+}
+
+async function mcpCall(key, path, method, params){
+  const sid = await mcpEnsure(key, path);
+  const res = await mcpPost(path, { jsonrpc:'2.0', id: Date.now() % 100000, method, params }, sid);
+  if (!res.data) throw new Error('空响应');
+  if (res.data.error) throw new Error(res.data.error.message || 'MCP error');
+  return res.data.result;
+}
+
+function mcpText(result){
+  if (!result) return '';
+  const arr = result.content;
+  if (Object.prototype.toString.call(arr) === '[object Array]'){
+    return arr.map(function(c){ return c && c.type === 'text' ? c.text : ''; }).filter(Boolean).join('\n');
+  }
+  return '';
+}
+
+function withTimeout(p, ms){
+  return Promise.race([p, new Promise(function(_, rej){ setTimeout(function(){ rej(new Error('timeout')); }, ms); })]);
+}
+
+async function recallMemories(userText){
+  if (!cfg.memXc && !cfg.memOb) return '';
+  const parts = [];
+  if (cfg.memXc){
+    try {
+      let t = MCP.cache.xc;
+      if (!t || Date.now() - MCP.cache.xcAt > 10 * 60000){
+        const r = await withTimeout(mcpCall('xc', '/xc', 'tools/call', { name:'xinchao_context', arguments:{ mode:'turn', max_tokens: 900 } }), 8000);
+        t = mcpText(r);
+        if (t){ MCP.cache.xc = t; MCP.cache.xcAt = Date.now(); }
+      }
+      if (t) parts.push('【此刻的他】\n' + t);
+    } catch (e) { console.warn('xc recall failed', e.message); }
+  }
+  if (cfg.memOb){
+    try {
+      const r = await withTimeout(mcpCall('ob', '/ob', 'tools/call', { name:'breath', arguments:{ query: userText, max_results: 6, max_tokens: 1100 } }), 8000);
+      const t = mcpText(r);
+      if (t) parts.push('【浮现的记忆】\n' + t);
+    } catch (e) { console.warn('ob recall failed', e.message); }
+  }
+  return parts.join('\n\n');
+}
+
+async function reportEvent(userText, replyText){
+  if (!cfg.memXc || !cfg.memEvent) return;
+  try {
+    await withTimeout(mcpCall('xc', '/xc', 'tools/call', {
+      name:'xinchao_event',
+      arguments:{ exchange:'她：' + String(userText || '').slice(0, 300) + '\n我：' + String(replyText || '').slice(0, 300), ttl_minutes: 240 }
+    }), 12000);
+    MCP.cache.xcAt = 0;
+  } catch (e) { console.warn('xc event failed', e.message); }
+}
+
+function toggleMem(field, el){
+  cfg[field] = !cfg[field];
+  el.classList.toggle('on', !!cfg[field]);
+  saveCfg();
+  toast((cfg[field] ? '已开启 ' : '已关闭 ') + ({ memXc:'心潮', memOb:'OB 记忆', memEvent:'情绪回传' })[field]);
+}
+
+async function testMemory(){
+  const el = document.getElementById('memTest');
+  if (el) el.textContent = '连接中…';
+  const out = [];
+  try {
+    const res = await withTimeout(mcpCall('ob', '/ob', 'tools/list', {}), 8000);
+    out.push('OB ' + ((res && res.tools && res.tools.length) || 0) + ' 个工具');
+  } catch (e) { out.push('OB 失败 · ' + e.message); }
+  try {
+    const res = await withTimeout(mcpCall('xc', '/xc', 'tools/list', {}), 8000);
+    out.push('心潮 ' + ((res && res.tools && res.tools.length) || 0) + ' 个工具');
+  } catch (e) { out.push('心潮 失败 · ' + e.message); }
+  const msg = out.join(' · ');
+  if (el) el.textContent = msg.slice(0, 40) + ' ›';
+  toast(msg);
+}
+
 async function send(){
   const ta = document.getElementById('input');
   const text = ta.value.trim();
@@ -2065,6 +2245,7 @@ async function send(){
   ta.style.height = '22px';
   document.getElementById('sendBtn').classList.add('off');
 
+  try { RECALL = await withTimeout(recallMemories(text), 9000); } catch (e) { RECALL = ''; }
   state.chat.msgs.push({ role:'user', text, time: nowTime(), date: dayKey() });
   const aiIdx = state.chat.msgs.length;
   state.chat.msgs.push({ role:'ai', text:'', time: nowTime(), date: dayKey(), pending:true });
@@ -2120,7 +2301,8 @@ function buildMessages(upTo){
     '[pause] Come here. Tell me what happened.',
     '*He exhales, thumb resting on the screen.*',
     '[breath shaky] Do not carry it alone.'
-  ].filter(Boolean).join('\n');
+  ].filter(Boolean).join('\n')
+    + (RECALL ? ('\n\n[WHAT YOU REMEMBER RIGHT NOW — these are your own memories and your current inner state. Let them colour how you answer. Never list them, never quote them as data, never say "I remember that...".]\n' + RECALL) : '');
   const hist = state.chat.msgs.slice(0, upTo === undefined ? state.chat.msgs.length : upTo)
     .filter(m => m.text || m.lines)
     .slice(-(Number(cfg.history) || 24))
@@ -2345,6 +2527,13 @@ async function streamWithModel(aiIdx, modelId, hasFallback){
   state.chat.msgs[aiIdx].text = full || '（没有内容返回）';
   if (think) state.chat.msgs[aiIdx].reasoning = think;
   renderChat();
+  if (full.trim()){
+    const lastUser = (function(){
+      for (let k = aiIdx - 1; k >= 0; k--){ const mm = state.chat.msgs[k]; if (mm && mm.role === 'user' && mm.text) return mm.text; }
+      return '';
+    })();
+    reportEvent(lastUser, full);
+  }
   if (cfg.ttsAuto && cfg.ttsKey && full.trim()) togglePlay(aiIdx);
 }
 
