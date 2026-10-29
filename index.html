@@ -555,6 +555,55 @@ body.selecting .turn.on .bubble{outline:1px solid rgba(127,214,232,.4);outline-o
 .mcp .nm{flex:1}
 .mcp .st{font-size:10px;color:var(--ghost);letter-spacing:.06em}
 
+/* ===== model picker ===== */
+.mmask{position:absolute;inset:0;z-index:88;background:rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:opacity .25s}
+.mmask.on{opacity:1;pointer-events:auto}
+.msheet{
+  position:absolute;left:0;right:0;bottom:0;z-index:89;max-height:78%;display:flex;flex-direction:column;
+  background:rgba(23,28,34,.985);border-top:1px solid rgba(255,255,255,.09);
+  border-radius:24px 24px 0 0;transform:translateY(101%);transition:transform .32s cubic-bezier(.2,.8,.3,1);
+  backdrop-filter:blur(22px);box-shadow:0 -14px 44px rgba(0,0,0,.5);
+}
+.msheet.on{transform:none}
+.msheet .handle{width:34px;height:4px;border-radius:4px;background:rgba(255,255,255,.2);margin:9px auto 6px}
+.msearch{display:flex;align-items:center;gap:9px;margin:8px 16px 10px;padding:11px 14px;border-radius:14px;background:rgba(255,255,255,.055)}
+.msearch svg{width:16px;height:16px;stroke:rgba(255,255,255,.42);fill:none;stroke-width:1.7;stroke-linecap:round}
+.msearch input{flex:1;border:0;background:none;outline:none;font-size:14px;color:#f2f2f2;font-family:inherit}
+.msearch input::placeholder{color:rgba(255,255,255,.28)}
+.mlist{flex:1;overflow-y:auto;padding:0 10px 8px;scrollbar-width:none}
+.mlist::-webkit-scrollbar{display:none}
+.mrow{display:flex;align-items:center;gap:11px;padding:12px 12px;border-radius:15px}
+.mrow.on{background:rgba(127,214,232,.13)}
+.mava{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-size:12px;font-weight:600;
+  background:rgba(255,255,255,.07);color:rgba(255,255,255,.75);flex:none;letter-spacing:-.02em}
+.mrow.on .mava{background:rgba(127,214,232,.2);color:#a9e8f4}
+.mmid{flex:1;min-width:0}
+.mname{font-size:14px;color:rgba(255,255,255,.9);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mrow.on .mname{color:#c7f0f9}
+.msub{font-size:11px;color:rgba(255,255,255,.34);margin-top:2px}
+.mtick{width:16px;height:16px;stroke:#7fd6e8;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;opacity:0}
+.mrow.on .mtick{opacity:1}
+.mreason{padding:10px 16px calc(16px + env(safe-area-inset-bottom));border-top:1px solid rgba(255,255,255,.07)}
+.mreason .rlabel{font-size:11px;letter-spacing:.1em;color:rgba(255,255,255,.34);margin-bottom:9px}
+.mreason .rlabel span{color:rgba(255,255,255,.6);margin-left:7px;letter-spacing:0}
+.seg{display:flex;gap:6px}
+.seg span{
+  flex:1;text-align:center;padding:9px 0;border-radius:11px;font-size:12.5px;
+  background:rgba(255,255,255,.05);color:rgba(255,255,255,.5);
+}
+.seg span.on{background:rgba(127,214,232,.16);color:#a9e8f4}
+/* ===== think block ===== */
+.think{margin:2px 0 4px;max-width:94%}
+.think .th{display:flex;align-items:center;gap:7px;font-size:11.5px;color:rgba(255,255,255,.32);padding:2px 2px}
+.think .th .tc{color:rgba(255,255,255,.2)}
+.think .th svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:transform .2s}
+.think.open .th svg{transform:rotate(90deg)}
+.think .tb{
+  display:none;margin-top:4px;padding:10px 13px;border-radius:13px;background:rgba(255,255,255,.028);
+  border-left:1px solid rgba(255,255,255,.1);font-size:12px;line-height:1.85;color:rgba(255,255,255,.42);
+  white-space:pre-wrap;word-break:break-word;
+}
+.think.open .tb{display:block}
 /* ============ sheet / toast ============ */
 .sheet-mask{
   position:absolute;inset:0;z-index:80;background:rgba(0,0,0,.5);
@@ -758,7 +807,7 @@ body.selecting .toast{bottom:150px}
             <button class="c-btn" onclick="toast('附件：图片 / 语音 / 文件')">
               <svg viewBox="0 0 24 24"><path d="M21 12.5l-8.5 8.5a5.5 5.5 0 0 1-7.8-7.8l8.5-8.5a3.7 3.7 0 0 1 5.2 5.2l-8.5 8.5a1.8 1.8 0 0 1-2.6-2.6l7.8-7.8"/></svg>
             </button>
-            <div class="model-chip" onclick="switchTab('settings')"><b id="chipModel">DeepSeek V4.1 Flash</b><span class="v">GO</span></div>
+            <div class="model-chip" onclick="openModels()"><b id="chipModel">DeepSeek V4.1 Flash</b><span class="v">GO</span></div>
             <div class="spacer"></div>
             <button class="c-btn" onclick="toast('表情')">
               <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8.5 14.5a4.5 4.5 0 0 0 7 0"/><circle cx="9" cy="10" r=".8" fill="currentColor" stroke="none"/><circle cx="15" cy="10" r=".8" fill="currentColor" stroke="none"/></svg>
@@ -1119,6 +1168,26 @@ body.selecting .toast{bottom:150px}
     </div>
   </div>
 
+  <div class="mmask" id="mmask" onclick="closeModels()"></div>
+  <div class="msheet" id="msheet">
+    <div class="handle"></div>
+    <div class="msearch">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>
+      <input id="mSearch" placeholder="搜索模型" spellcheck="false" autocomplete="off" oninput="renderModels(this.value)">
+    </div>
+    <div class="mlist" id="mList"></div>
+    <div class="mreason">
+      <div class="rlabel">思维链强度<span id="mReasonName"></span></div>
+      <div class="seg" id="mSeg">
+        <span data-lv="auto" onclick="setReason('auto')">自动</span>
+        <span data-lv="off" onclick="setReason('off')">关闭</span>
+        <span data-lv="low" onclick="setReason('low')">低</span>
+        <span data-lv="medium" onclick="setReason('medium')">中</span>
+        <span data-lv="high" onclick="setReason('high')">高</span>
+      </div>
+    </div>
+  </div>
+
   <div class="sheet-mask" id="sheetMask" onclick="closeSheet()"></div>
   <div class="sheet" id="sheet">
     <div class="handle"></div>
@@ -1248,6 +1317,8 @@ const ICONS = {
   pencil:'<svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.6 3.4a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>',
   trash:'<svg viewBox="0 0 24 24"><path d="M4 7h16M9.5 7V5h5v2M6.5 7l1 13h9l1-13"/></svg>',
   check:'<svg viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></svg>',
+  chev:'<svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>',
+  tick:'<svg class="mtick" viewBox="0 0 24 24"><path d="M4.5 12.5l5 5L19.5 7"/></svg>',
   more:'<svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.7" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.7" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.7" fill="currentColor" stroke="none"/></svg>'
 };
 
@@ -1259,6 +1330,23 @@ function esc(s){
 const TAG_RE = /\[[^\]\n]{0,80}\]/g;
 function stripTags(s){
   return String(s || '').replace(TAG_RE, '').replace(/[ \t]{2,}/g, ' ').replace(/^[ \t]+|[ \t]+$/g, '');
+}
+
+function thinkHTML(m, i){
+  if (!m.reasoning) return '';
+  const open = m.thinkOpen || m.pending;
+  return '<div class="think' + (open ? ' open' : '') + '" onclick="toggleThink(' + i + ',event)">'
+    + '<div class="th">' + ICONS.chev + '<span>思维链</span><span class="tc">' + m.reasoning.length + ' 字</span></div>'
+    + '<div class="tb">' + esc(m.reasoning) + '</div></div>';
+}
+function toggleThink(i, ev){
+  if (ev) ev.stopPropagation();
+  if (selMode) return;
+  const m = state.chat.msgs[i];
+  if (!m) return;
+  m.thinkOpen = !m.thinkOpen;
+  const el = document.querySelector('.turn[data-i="' + i + '"] .think');
+  if (el) el.classList.toggle('open', !!m.thinkOpen);
 }
 
 function renderChat(){
@@ -1278,7 +1366,7 @@ function renderChat(){
         + '</div>';
     } else {
       const p = m.lines ? { narration: m.narration ? [m.narration] : [], lines: m.lines } : parseReply(m.text || '');
-      let html = '';
+      let html = thinkHTML(m, i);
       p.narration.forEach(n => { const v = stripTags(n); if (v) html += '<div class="bubble narration">' + esc(v) + '</div>'; });
       p.lines.forEach(l => { const v = stripTags(l); if (v) html += '<div class="bubble">' + esc(v) + '</div>'; });
       if (m.error) html += '<div class="bubble err">' + esc(m.error) + '</div>';
@@ -1574,6 +1662,80 @@ function prettyModel(id){
   return rest ? (vendor + ' ' + rest) : vendor;
 }
 
+let MODELS = [];
+const LV_LABEL = { auto:'自动', off:'关闭', low:'低', medium:'中', high:'高' };
+
+function reasonLevel(id){
+  return (cfg.reason && cfg.reason[id]) || 'auto';
+}
+function reasoningPayload(){
+  const lv = reasonLevel(cfg.model);
+  if (lv === 'auto') return {};
+  if (lv === 'off') return { reasoning_effort: 'none' };
+  return { reasoning_effort: lv };
+}
+function openModels(){
+  const box = document.getElementById('mSearch');
+  if (box) box.value = '';
+  renderModels('');
+  paintSeg();
+  document.getElementById('mmask').classList.add('on');
+  document.getElementById('msheet').classList.add('on');
+}
+function closeModels(){
+  document.getElementById('mmask').classList.remove('on');
+  document.getElementById('msheet').classList.remove('on');
+}
+function paintSeg(){
+  const seg = document.getElementById('mSeg');
+  if (!seg) return;
+  const lv = reasonLevel(cfg.model);
+  seg.querySelectorAll('span').forEach(function(el){ el.classList.toggle('on', el.dataset.lv === lv); });
+  const nm = document.getElementById('mReasonName');
+  if (nm) nm.textContent = ' · ' + prettyModel(cfg.model);
+}
+function setReason(lv){
+  if (!cfg.reason) cfg.reason = {};
+  cfg.reason[cfg.model] = lv;
+  saveCfg();
+  paintSeg();
+  renderModels(document.getElementById('mSearch').value);
+  toast(lv === 'auto' ? '思维链：跟随模型默认' : ('思维链：' + LV_LABEL[lv]));
+}
+function pickModel(id){
+  if (!id) return;
+  cfg.model = id;
+  saveCfg();
+  paintChip();
+  const sel = document.getElementById('modelSel');
+  if (sel && sel.value !== id){ const has = [].some.call(sel.options, function(o){ return o.value === id; }); if (has) sel.value = id; }
+  paintSeg();
+  renderModels(document.getElementById('mSearch').value);
+  toast('已切换到 ' + prettyModel(id));
+}
+function renderModels(q){
+  const list = document.getElementById('mList');
+  if (!list) return;
+  const kw = String(q || '').trim().toLowerCase();
+  const all = MODELS.length ? MODELS : [cfg.model];
+  const items = all.filter(function(id){
+    return !kw || id.toLowerCase().indexOf(kw) >= 0 || prettyModel(id).toLowerCase().indexOf(kw) >= 0;
+  });
+  if (!items.length){
+    list.innerHTML = '<div style="padding:26px 12px;text-align:center;font-size:12.5px;color:rgba(255,255,255,.3)">没有匹配的模型</div>';
+    return;
+  }
+  list.innerHTML = items.map(function(id){
+    const on = id === cfg.model ? ' on' : '';
+    const lv = reasonLevel(id);
+    const sub = id + (lv === 'auto' ? '' : ' · 思维链' + LV_LABEL[lv]);
+    return '<div class="mrow' + on + '" onclick="pickModel(\'' + id + '\')">'
+      + '<div class="mava">' + esc(id.replace(/[-_.].*$/, '').slice(0, 2).toUpperCase()) + '</div>'
+      + '<div class="mmid"><div class="mname">' + esc(prettyModel(id)) + '</div><div class="msub">' + esc(sub) + '</div></div>'
+      + ICONS.tick + '</div>';
+  }).join('');
+}
+
 async function loadModels(){
   const sel = document.getElementById('modelSel');
   if (!sel) return;
@@ -1583,6 +1745,7 @@ async function loadModels(){
     const j = await r.json();
     const ids = (j.data || j.models || []).map(function(m){ return m.id || m.name; }).filter(Boolean);
     if (!ids.length) throw new Error('empty');
+    MODELS = ids.slice();
     if (ids.indexOf(cfg.model) < 0){ cfg.model = ids[0]; saveCfg(); }
     sel.innerHTML = ids.map(function(id){
       return '<option value="' + id + '"' + (id === cfg.model ? ' selected' : '') + '>' + esc(prettyModel(id)) + '</option>';
@@ -1859,7 +2022,7 @@ function paintTurn(i){
   const t = document.querySelector('.turn[data-i="' + i + '"]');
   if (!t) return;
   const p = parseReply(m.text || '');
-  let html = '';
+  let html = thinkHTML(m, i);
   p.narration.forEach(n => { const v = stripTags(n); if (v) html += '<div class="bubble narration">' + esc(v) + '</div>'; });
   p.lines.forEach(l => { const v = stripTags(l); if (v) html += '<div class="bubble">' + esc(v) + '</div>'; });
   if (!html) html = '<div class="typing"><i></i><i></i><i></i></div>';
@@ -1878,7 +2041,7 @@ async function streamReply(aiIdx){
       method: 'POST',
       signal: ac.signal,
       headers: authHeaders({ 'Content-Type':'application/json', 'Accept':'text/event-stream' }),
-      body: JSON.stringify({ model: cfg.model, messages: buildMessages(aiIdx), stream: true })
+      body: JSON.stringify(Object.assign({ model: cfg.model, messages: buildMessages(aiIdx), stream: true }, reasoningPayload()))
     });
   } catch (e) { clearTimeout(wd); throw e; }
   if (!r.ok){
@@ -1894,7 +2057,7 @@ async function streamReply(aiIdx){
 
   const reader = r.body.getReader();
   const dec = new TextDecoder();
-  let buf = '', full = '';
+  let buf = '', full = '', think = '';
   let paintQueued = false;
   let stopped = false;
   const queue = () => {
@@ -1927,8 +2090,12 @@ async function streamReply(aiIdx){
       try { j = JSON.parse(data); } catch (e) { continue; }
       const ch = j.choices && j.choices[0];
       const d = ch && (ch.delta || ch.message);
-      if (d && typeof d.content === 'string' && d.content) { full += d.content; queue(); }
-      else if (d && d.reasoning_content) queue();
+      const rk = d && (d.reasoning_content || d.reasoning || d.thinking);
+      if (typeof rk === 'string' && rk) {
+        think += rk;
+        state.chat.msgs[aiIdx].reasoning = think;
+        queue();
+      } else if (d && typeof d.content === 'string' && d.content) { full += d.content; queue(); }
     }
   }
   } finally { clearTimeout(wd); }
@@ -1936,6 +2103,7 @@ async function streamReply(aiIdx){
   try { reader.cancel(); } catch (e) {}
   delete state.chat.msgs[aiIdx].pending;
   state.chat.msgs[aiIdx].text = full || '（没有内容返回）';
+  if (think) state.chat.msgs[aiIdx].reasoning = think;
   renderChat();
   if (cfg.ttsAuto && cfg.ttsKey && full.trim()) togglePlay(aiIdx);
 }
