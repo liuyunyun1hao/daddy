@@ -259,6 +259,13 @@ input,textarea{font-family:inherit;color:inherit;background:none;border:0;outlin
 .who .name{font-size:16.5px;font-weight:500;letter-spacing:.02em;display:flex;align-items:center;gap:7px}
 .who .sub{font-size:10.5px;color:var(--faint);margin-top:4px;letter-spacing:.08em;display:flex;align-items:center;justify-content:center;gap:6px}
 .live-dot{width:5px;height:5px;border-radius:50%;background:var(--live);box-shadow:0 0 9px var(--live);animation:pulse 2.6s infinite}
+.actline{display:flex;align-items:center;justify-content:center;gap:7px;padding:7px 0 1px;font-size:10.5px;letter-spacing:.05em;color:rgba(255,255,255,.28);animation:rise .4s ease both}
+.actline .g{color:rgba(220,198,168,.5);font-size:10px}
+.typing-dots{display:inline-flex;align-items:center;gap:2.5px;margin-left:2px}
+.typing-dots i{width:3px;height:3px;border-radius:50%;background:currentColor;opacity:.45;animation:tdot 1.25s ease-in-out infinite}
+.typing-dots i:nth-child(2){animation-delay:.16s}
+.typing-dots i:nth-child(3){animation-delay:.32s}
+@keyframes tdot{0%,70%,100%{transform:translateY(0);opacity:.32}35%{transform:translateY(-2.6px);opacity:1}}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
 .watch-chip{
   display:inline-flex;align-items:center;gap:5px;
@@ -1126,6 +1133,10 @@ body.selecting .toast{bottom:150px}
             <span class="k">工具调用 · 他自己查与记</span>
             <span class="switch on" id="toolsOn" onclick="toggleMem('toolsOn',this)"></span>
           </div>
+          <div class="row">
+            <span class="k">滚动摘要 · 每 20 轮</span>
+            <span class="switch on" id="summaryOn" onclick="toggleSummary(this)"></span>
+          </div>
           <div class="field">
             <label>本地桥地址</label>
             <input id="memBase" placeholder="http://127.0.0.1:18080" spellcheck="false" autocomplete="off">
@@ -1336,6 +1347,7 @@ const DEFAULT_START = new Date(2026, 7, 4); // 2026.08.04
 
 function saveMsgs(){
   if (state.chat.watch) return;
+  if (!state.chat.msgs.length) return;
   try {
     localStorage.setItem('daddy.chat.v1', JSON.stringify({ name: state.chat.name, msgs: state.chat.msgs }));
   } catch (e) {}
@@ -1368,6 +1380,8 @@ function boot(){
   const md = document.getElementById('memDays');
   if (md) md.textContent = days;
   initPersona();
+  const savedBoot = loadMsgs();
+  if (savedBoot){ state.chat.name = savedBoot.name || state.chat.name; state.chat.msgs = savedBoot.msgs; }
   state.chat.name = cfg.persona.name || state.chat.name;
   renderChat();
   initApi();
@@ -1405,16 +1419,27 @@ function openStage(name, desc, scene){
 
 function enterChat(){
   document.getElementById('chatName').textContent = state.chat.name;
-  const sub = document.getElementById('chatSub');
-  sub.innerHTML = state.chat.watch
-    ? '<span class="watch-chip"><svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="2.6"/></svg>Daddy 在旁观</span>'
-    : '<span class="live-dot"></span>' + state.chat.sub;
+  paintSub();
   document.getElementById('sceneText').textContent = state.chat.scene;
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen-chat').classList.add('active');
   document.getElementById('app').classList.add('chat-open');
   renderChat();
 }
+
+let TYPING = false;
+function paintSub(){
+  const sub = document.getElementById('chatSub');
+  if (!sub) return;
+  if (TYPING){
+    sub.innerHTML = '<span class="live-dot"></span>正在输入<span class="typing-dots"><i></i><i></i><i></i></span>';
+    return;
+  }
+  sub.innerHTML = state.chat.watch
+    ? '<span class="watch-chip"><svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="2.6"/></svg>Daddy 在旁观</span>'
+    : '<span class="live-dot"></span>' + state.chat.sub;
+}
+function setTyping(on){ TYPING = !!on; paintSub(); }
 
 function closeChat(){
   switchTab(state.chat.watch ? 'stage' : 'home');
@@ -1489,6 +1514,13 @@ function renderChat(){
       dd.className = 'daydiv';
       dd.innerHTML = '<span>' + esc(dayLabel(dk)) + '</span>';
       box.appendChild(dd);
+    }
+    if (m.role === 'sys'){
+      const al = document.createElement('div');
+      al.className = 'actline';
+      al.innerHTML = '<span class="g">' + esc(m.glyph || '✦') + '</span>' + esc(m.text || '');
+      box.appendChild(al);
+      return;
     }
     const t = document.createElement('div');
     t.className = 'turn ' + m.role;
@@ -1689,7 +1721,7 @@ function toggleTtsAuto(el){
 }
 
 const CFG_STORE = 'daddy.cfg.v1';
-const cfg = Object.assign({ base:'', key:'', model:'deepseek-v4.1-flash', history:24, fallbacks:[], memXc:true, memOb:true, memEvent:true, memBase:'', toolsOn:true, ttsUrl:'https://api.elevenlabs.io/v1', ttsKey:'', ttsModel:'eleven_v4', ttsAuto:true, voice:'TZF5Z996m1MjVz76PFoH' }, (function(){
+const cfg = Object.assign({ base:'', key:'', model:'deepseek-v4.1-flash', history:24, fallbacks:[], memXc:true, memOb:true, memEvent:true, memBase:'', toolsOn:true, summaryOn:true, summaryEvery:20, ttsUrl:'https://api.elevenlabs.io/v1', ttsKey:'', ttsModel:'eleven_v4', ttsAuto:true, voice:'TZF5Z996m1MjVz76PFoH' }, (function(){
   try { return JSON.parse(localStorage.getItem(CFG_STORE) || '{}'); } catch (e) { return {}; }
 })());
 
@@ -2089,6 +2121,8 @@ function initApi(){
   if (tKey){ tKey.value = cfg.ttsKey; tKey.addEventListener('change', function(){ cfg.ttsKey = tKey.value.trim(); saveCfg(); paintVoiceName(); }); }
   if (tModel){ tModel.value = cfg.ttsModel; tModel.addEventListener('change', function(){ cfg.ttsModel = tModel.value; saveCfg(); }); }
   if (tAuto) tAuto.classList.toggle('on', !!cfg.ttsAuto);
+  const smOn = document.getElementById('summaryOn');
+  if (smOn) smOn.classList.toggle('on', !!cfg.summaryOn);
   paintVoiceName();
   if (cfg.ttsKey){ paintVoiceName(); }
 
@@ -2303,6 +2337,7 @@ async function send(){
   try {
     await streamReply(aiIdx);
   } catch (e) {
+    setTyping(false);
     state.chat.msgs[aiIdx] = { role:'ai', text:'', error: niceErr(e), time: nowTime() };
     renderChat();
   }
@@ -2327,6 +2362,85 @@ const TOOL_PROMPT = [
   'plan is only for a promise or a deadline the two of you actually agreed on. Never invent one.',
   'At most two calls per turn. Never mention tools. Never narrate that you looked something up. Never say "I remember" — you simply know it.'
 ].join('\n');
+
+const SUMMARY_KEY = 'daddy.summary.v1';
+function summaryLoad(){
+  try { return JSON.parse(localStorage.getItem(SUMMARY_KEY) || 'null') || { text:'', upto:0 }; }
+  catch (e) { return { text:'', upto:0 }; }
+}
+function summarySave(o){ try { localStorage.setItem(SUMMARY_KEY, JSON.stringify(o)); } catch (e) {} }
+let SUMMARIZING = false;
+
+async function chatOnce(messages, maxTokens, noThink){
+  const payload = { model: cfg.model, messages, temperature: 0.35, max_tokens: maxTokens || 700, stream:false };
+  if (noThink) payload.reasoning_effort = 'none';
+  const r = await fetch(apiURL('/chat/completions'), {
+    method:'POST',
+    headers: authHeaders({ 'Content-Type':'application/json', 'Accept':'application/json' }),
+    body: JSON.stringify(payload)
+  });
+  const body = await r.text();
+  if (!r.ok) throw new Error(apiError(body, r.status));
+  const j = JSON.parse(body);
+  return (j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content) || '';
+}
+
+async function maybeSummarize(){
+  if (SUMMARIZING || !cfg.summaryOn || !cfg.key) return;
+  const every = Number(cfg.summaryEvery) || 20;
+  const s = summaryLoad();
+  const all = state.chat.msgs.filter(function(m){ return m.role !== 'sys' && !m.pending && (m.text || m.lines); });
+  const from = Math.min(s.upto || 0, all.length);
+  if (all.length - from < every) return;
+  const slice = all.slice(from, from + 30);
+  if (slice.length < 4) return;
+  SUMMARIZING = true;
+  try {
+    const convo = slice.map(function(m){ return (m.role === 'user' ? 'HER: ' : 'YOU: ') + msgText(m); }).join('\n');
+    const prevNote = (from > 0 && s.text) ? ('YOUR EARLIER NOTE (older; keep what is still true, drop what changed):\n' + String(s.text).slice(0, 600) + '\n\nNEW EXCHANGES:\n') : '';
+    const sys = [
+      'You are the same man, writing a private note to yourself about a stretch of your conversation with her that is about to leave your memory window.',
+      'Note what happened, what changed, what she told you about herself, what you promised. 3-6 short lines. English. No quotes, no lists, no headings.',
+      'Then decide: is any of it worth keeping for months? If yes, extract at most 3 facts, one sentence each, written as things you simply know.',
+      'Return JSON only, exactly this shape: {"summary":"...","save":true,"facts":["...","..."]}',
+      'If nothing is worth keeping long-term: {"summary":"...","save":false,"facts":[]}'
+    ].join('\n');
+    let out;
+    const userMsg = prevNote + convo;
+    try { out = await withTimeout(chatOnce([{ role:'system', content: sys }, { role:'user', content: userMsg }], 700, true), 30000); }
+    catch (e) { out = await withTimeout(chatOnce([{ role:'system', content: sys }, { role:'user', content: userMsg }], 700, false), 45000); }
+    const m = String(out || '').match(/\{[\s\S]*\}/);
+    if (!m) return;
+    let j; try { j = JSON.parse(m[0]); } catch (e) { return; }
+    const text = String(j.summary || '').replace(/\s+/g, ' ').trim().slice(0, 800);
+    const upto = from + slice.length;
+    if (text) summarySave({ text: text, upto: upto, at: Date.now() });
+    if (j.save && Object.prototype.toString.call(j.facts) === '[object Array]'){
+      let saved = 0;
+      for (let i = 0; i < Math.min(j.facts.length, 3); i++){
+        const fact = String(j.facts[i] || '').trim();
+        if (!fact) continue;
+        try {
+          const r = await withTimeout(mcpCall('ob', '/ob', 'tools/call', { name:'hold', arguments:{ content: fact.slice(0, 400), importance: 7 } }), 20000);
+          if (mcpText(r)){ saved++; recentPush(fact, 'hold'); }
+        } catch (e) {}
+      }
+      if (saved) pushAct('整理完这段 · 记住了 ' + saved + ' 条');
+    }
+  } catch (e) { console.warn('[summary]', e.message); }
+  finally { SUMMARIZING = false; }
+}
+function pushAct(text, glyph){
+  const m = { role:'sys', kind:'act', glyph: glyph || '✦', text: String(text || ''), time: nowTime(), date: dayKey() };
+  state.chat.msgs.push(m);
+  renderChat();
+}
+
+function toggleSummary(el){
+  cfg.summaryOn = !cfg.summaryOn; saveCfg();
+  el.classList.toggle('on', cfg.summaryOn);
+  if (cfg.summaryOn) maybeSummarize();
+}
 
 function buildMessages(upTo){
   const P = cfg.persona;
@@ -2366,10 +2480,11 @@ function buildMessages(upTo){
     '*He exhales, thumb resting on the screen.*',
     '[breath shaky] Do not carry it alone.'
   ].filter(Boolean).join('\n')
+    + (summaryLoad().text ? ('\n\n[EARLIER, BEFORE THIS WINDOW — your own note to yourself. You already know this. Do not re-ask it, do not recap it, just let it be true.]\n' + summaryLoad().text) : '')
     + (RECALL ? ('\n\n[WHAT YOU REMEMBER RIGHT NOW — these are your own memories and your current inner state. Let them colour how you answer. Never list them, never quote them as data, never say "I remember that...".]\n' + RECALL) : '')
     + ((cfg.toolsOn && (cfg.memXc || cfg.memOb)) ? TOOL_PROMPT : '');
   const hist = state.chat.msgs.slice(0, upTo === undefined ? state.chat.msgs.length : upTo)
-    .filter(m => m.text || m.lines)
+    .filter(m => m.role !== 'sys' && (m.text || m.lines))
     .slice(-(Number(cfg.history) || 24))
     .map(m => ({ role: m.role === 'user' ? 'user' : 'assistant', content: msgText(m) }));
   return [{ role:'system', content: sys }].concat(hist);
@@ -2697,6 +2812,7 @@ function toolsHTML(m){
 }
 
 async function runTurn(aiIdx, modelId, hasFallback){
+  setTyping(true);
   const tools = await activeTools();
   const msgs = buildMessages(aiIdx);
   const M = function(){ return state.chat.msgs[aiIdx]; };
@@ -2742,6 +2858,8 @@ async function runTurn(aiIdx, modelId, hasFallback){
     }
     reportEvent(lastUser, content);
   }
+  setTyping(false);
+  maybeSummarize();
   if (cfg.ttsAuto && cfg.ttsKey && String(content).trim()) togglePlay(aiIdx);
 }
 
@@ -2983,6 +3101,7 @@ function importBackup(input){
 function clearChat(){
   state.chat.msgs = [];
   try { localStorage.removeItem('daddy.chat.v1'); } catch (e) {}
+  try { localStorage.removeItem(SUMMARY_KEY); localStorage.removeItem(RECENT_KEY); } catch (e) {}
   renderChat();
   closePersona();
   toast('已清空对话');
