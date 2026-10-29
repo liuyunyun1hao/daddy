@@ -1332,6 +1332,21 @@ function stripTags(s){
   return String(s || '').replace(TAG_RE, '').replace(/[ \t]{2,}/g, ' ').replace(/^[ \t]+|[ \t]+$/g, '');
 }
 
+function aiSegments(m){
+  if (m && m.lines){
+    const arr = [];
+    if (m.narration) arr.push({ type:'narr', text:m.narration });
+    m.lines.forEach(function(l){ arr.push({ type:'line', text:l }); });
+    return arr.filter(function(x){ return stripTags(x.text); });
+  }
+  return parseSeq((m && m.text) || '');
+}
+function segHTML(seg, k){
+  const v = stripTags(seg.text);
+  if (!v) return '';
+  return '<div class="bubble' + (seg.type === 'narr' ? ' narration' : '') + '" data-seg="' + k + '">' + esc(v) + '</div>';
+}
+
 function thinkHTML(m, i){
   if (!m.reasoning) return '';
   const open = m.thinkOpen || m.pending;
@@ -1365,10 +1380,8 @@ function renderChat(){
         + '<button class="act" aria-label="更多" onclick="openSheet(' + i + ')">' + ICONS.more + '</button>'
         + '</div>';
     } else {
-      const p = m.lines ? { narration: m.narration ? [m.narration] : [], lines: m.lines } : parseReply(m.text || '');
       let html = thinkHTML(m, i);
-      p.narration.forEach(n => { const v = stripTags(n); if (v) html += '<div class="bubble narration">' + esc(v) + '</div>'; });
-      p.lines.forEach(l => { const v = stripTags(l); if (v) html += '<div class="bubble">' + esc(v) + '</div>'; });
+      aiSegments(m).forEach(function(seg, k){ html += segHTML(seg, k); });
       if (m.error) html += '<div class="bubble err">' + esc(m.error) + '</div>';
       if (m.pending && !html) html = '<div class="typing"><i></i><i></i><i></i></div>';
       html += '<div class="acts">'
@@ -1490,17 +1503,11 @@ function paintPlayBtn(i, on){
 function highlightSeg(i, k){
   const turn = document.querySelector('.turn[data-i="' + i + '"]');
   if (!turn) return;
-  const bs = turn.querySelectorAll('.bubble');
-  bs.forEach(function(b){ b.classList.remove('speaking'); });
-  const seq = ttsState.seq;
-  if (k >= seq.length) return;
-  let narrTotal = 0, narrBefore = 0, lineBefore = 0;
-  for (let j = 0; j < seq.length; j++) if (seq[j].type === 'narr') narrTotal++;
-  for (let j = 0; j < k; j++){ if (seq[j].type === 'narr') narrBefore++; else lineBefore++; }
-  const pos = seq[k].type === 'narr' ? narrBefore : narrTotal + lineBefore;
-  if (bs[pos]){
-    bs[pos].classList.add('speaking');
-    bs[pos].scrollIntoView({ block:'nearest', behavior:'smooth' });
+  turn.querySelectorAll('.bubble.speaking').forEach(function(b){ b.classList.remove('speaking'); });
+  const el = turn.querySelector('.bubble[data-seg="' + k + '"]');
+  if (el){
+    el.classList.add('speaking');
+    el.scrollIntoView({ block:'nearest', behavior:'smooth' });
   }
 }
 
@@ -2021,10 +2028,8 @@ function paintTurn(i){
   const m = state.chat.msgs[i];
   const t = document.querySelector('.turn[data-i="' + i + '"]');
   if (!t) return;
-  const p = parseReply(m.text || '');
   let html = thinkHTML(m, i);
-  p.narration.forEach(n => { const v = stripTags(n); if (v) html += '<div class="bubble narration">' + esc(v) + '</div>'; });
-  p.lines.forEach(l => { const v = stripTags(l); if (v) html += '<div class="bubble">' + esc(v) + '</div>'; });
+  aiSegments(m).forEach(function(seg, k){ html += segHTML(seg, k); });
   if (!html) html = '<div class="typing"><i></i><i></i><i></i></div>';
   t.innerHTML = html;
   const box = document.getElementById('msgs');
