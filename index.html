@@ -2189,9 +2189,39 @@ function withTimeout(p, ms){
   return Promise.race([p, new Promise(function(_, rej){ setTimeout(function(){ rej(new Error('timeout')); }, ms); })]);
 }
 
+const RECENT_KEY = 'daddy.recentmem.v1';
+function recentLoad(){ try { return JSON.parse(localStorage.getItem(RECENT_KEY) || '[]'); } catch (e) { return []; } }
+function recentSave(a){ try { localStorage.setItem(RECENT_KEY, JSON.stringify(a.slice(-12))); } catch (e) {} }
+function recentPush(text, kind){
+  const t = String(text || '').replace(/\s+/g, ' ').trim();
+  if (!t) return;
+  const list = recentLoad().filter(function(x){ return x.text !== t; });
+  list.push({ text: t.slice(0, 160), kind: kind || 'memory', at: Date.now() });
+  recentSave(list);
+}
+function recentBlock(){
+  const list = recentLoad().slice(-3);
+  if (!list.length) return '';
+  return '【最近记下的事】\n' + list.map(function(x){ return '- ' + x.text; }).join('\n');
+}
+function memSnapshot(){
+  const parts = [];
+  if (cfg.memXc && MCP.cache.xc) parts.push('【此刻的他】\n' + MCP.cache.xc);
+  if (cfg.memOb){ const r = recentBlock(); if (r) parts.push(r); }
+  return parts.join('\n\n');
+}
+function needsRecall(t){
+  const s = String(t || '').trim();
+  if (!s) return false;
+  if (s.length >= 10) return true;
+  if (/[?？]$/.test(s)) return true;
+  return /记得|上次|之前|那天|说过|答应|回忆|以前|曾经|提起/.test(s);
+}
+
 async function recallMemories(userText){
   if (!cfg.memXc && !cfg.memOb) return '';
   const parts = [];
+  if (cfg.memOb){ const rb = recentBlock(); if (rb) parts.push(rb); }
   if (cfg.memXc){
     try {
       let t = MCP.cache.xc;
@@ -2203,9 +2233,9 @@ async function recallMemories(userText){
       if (t) parts.push('【此刻的他】\n' + t);
     } catch (e) { console.warn('xc recall failed', e.message); }
   }
-  if (cfg.memOb){
+  if (cfg.memOb && needsRecall(userText)){
     try {
-      const r = await withTimeout(mcpCall('ob', '/ob', 'tools/call', { name:'breath', arguments:{ query: userText, max_results: 6, max_tokens: 1100 } }), 8000);
+      const r = await withTimeout(mcpCall('ob', '/ob', 'tools/call', { name:'breath', arguments:{ query: userText, max_results: 6, max_tokens: 1100 } }), 6000);
       const t = mcpText(r);
       if (t) parts.push('【浮现的记忆】\n' + t);
     } catch (e) { console.warn('ob recall failed', e.message); }
@@ -2260,11 +2290,15 @@ async function send(){
   ta.style.height = '22px';
   document.getElementById('sendBtn').classList.add('off');
 
-  try { RECALL = await withTimeout(recallMemories(text), 9000); } catch (e) { RECALL = ''; }
   state.chat.msgs.push({ role:'user', text, time: nowTime(), date: dayKey() });
   const aiIdx = state.chat.msgs.length;
   state.chat.msgs.push({ role:'ai', text:'', time: nowTime(), date: dayKey(), pending:true });
   renderChat();
+  RECALL = memSnapshot();
+  try {
+    const fresh = await withTimeout(recallMemories(text), 7000);
+    if (fresh) RECALL = fresh;
+  } catch (e) {}
 
   try {
     await streamReply(aiIdx);
@@ -2287,6 +2321,7 @@ const TOOL_PROMPT = [
   '- grow: save a longer passage when something heavy actually happened.',
   '- xinchao_context: check your own current state when the mood is unclear.',
   '- xinchao_event: record how this exchange felt. At most once per turn.',
+  'What you already know is loaded at the end of this prompt. Do not call breath for anything already listed there — only when you need something older or more specific.',
   'Only use a tool when it earns its place. Never for greetings, filler, one-word messages ("嗯", "好", "在吗"), or pure small talk.',
   'hold is for a concrete fact about her life: a plan, a date, a preference, a person, a fear, a rule. One sentence, her own words. Do not save the same fact twice.',
   'plan is only for a promise or a deadline the two of you actually agreed on. Never invent one.',
@@ -2627,6 +2662,14 @@ async function execMcpTool(name, rawArgs){
   }
   const res = await withTimeout(mcpCall(ent.key, ent.path, 'tools/call', { name: ent.tool, arguments: args }), 25000);
   const txt = mcpText(res);
+  if ((name === 'hold' || name === 'grow') && txt){
+    try {
+      const a = (typeof rawArgs === 'string') ? JSON.parse(rawArgs || '{}') : (rawArgs || {});
+      let c = a.content || '';
+      if (!c && a.items) c = String(a.items[0] || '');
+      if (c) recentPush(c, name);
+    } catch (e) {}
+  }
   if (txt) return txt;
   try { return JSON.stringify(res).slice(0, 4000); } catch (e) { return '(empty)'; }
 }
