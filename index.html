@@ -400,6 +400,15 @@ body.selecting .turn.on .bubble{outline:1px solid rgba(127,214,232,.4);outline-o
 .act.spin svg{animation:spin .9s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
+.tools{margin:1px 0 6px}
+.titem{overflow:hidden}
+.tool{display:flex;align-items:center;gap:6px;font-size:11px;color:rgba(255,255,255,.40);padding:3px 0;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.tool svg{width:12px;height:12px;stroke:rgba(255,255,255,.34);fill:none;stroke-width:1.6;flex:0 0 12px}
+.tool .tn{color:rgba(255,255,255,.56);flex:0 0 auto}
+.tool .ta{color:rgba(255,255,255,.26);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:54%}
+.tool .ts{margin-left:auto;color:rgba(255,255,255,.28);font-size:10px;flex:0 0 auto}
+.tres{display:none;margin:2px 0 6px;padding:9px 11px;border-radius:11px;background:rgba(255,255,255,.03);border-left:1px solid rgba(255,255,255,.12);font-size:11px;line-height:1.7;color:rgba(255,255,255,.48);white-space:pre-wrap;word-break:break-word;max-height:210px;overflow:auto;font-family:inherit}
+.titem.open .tres{display:block}
 .typing{display:flex;gap:4px;padding:14px 16px;align-items:center}
 .typing i{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.5);animation:blink 1.3s infinite}
 .typing i:nth-child(2){animation-delay:.18s}
@@ -1113,6 +1122,10 @@ body.selecting .toast{bottom:150px}
             <span class="k">回复后回传情绪</span>
             <span class="switch on" id="memEvent" onclick="toggleMem('memEvent',this)"></span>
           </div>
+          <div class="row">
+            <span class="k">工具调用 · 他自己查与记</span>
+            <span class="switch on" id="toolsOn" onclick="toggleMem('toolsOn',this)"></span>
+          </div>
           <div class="field">
             <label>本地桥地址</label>
             <input id="memBase" placeholder="http://127.0.0.1:18080" spellcheck="false" autocomplete="off">
@@ -1489,7 +1502,7 @@ function renderChat(){
         + '<button class="act" aria-label="更多" onclick="openSheet(' + i + ')">' + ICONS.more + '</button>'
         + '</div>';
     } else {
-      let html = thinkHTML(m, i);
+      let html = toolsHTML(m) + thinkHTML(m, i);
       aiSegments(m).forEach(function(seg, k){ html += segHTML(seg, k); });
       if (m.error) html += '<div class="bubble err">' + esc(m.error) + '</div>';
       if (m.pending && !html) html = '<div class="typing"><i></i><i></i><i></i></div>';
@@ -1676,7 +1689,7 @@ function toggleTtsAuto(el){
 }
 
 const CFG_STORE = 'daddy.cfg.v1';
-const cfg = Object.assign({ base:'', key:'', model:'deepseek-v4.1-flash', history:24, fallbacks:[], memXc:true, memOb:true, memEvent:true, memBase:'', ttsUrl:'https://api.elevenlabs.io/v1', ttsKey:'', ttsModel:'eleven_v4', ttsAuto:true, voice:'TZF5Z996m1MjVz76PFoH' }, (function(){
+const cfg = Object.assign({ base:'', key:'', model:'deepseek-v4.1-flash', history:24, fallbacks:[], memXc:true, memOb:true, memEvent:true, memBase:'', toolsOn:true, ttsUrl:'https://api.elevenlabs.io/v1', ttsKey:'', ttsModel:'eleven_v4', ttsAuto:true, voice:'TZF5Z996m1MjVz76PFoH' }, (function(){
   try { return JSON.parse(localStorage.getItem(CFG_STORE) || '{}'); } catch (e) { return {}; }
 })());
 
@@ -2064,7 +2077,7 @@ function initApi(){
     mb.value = cfg.memBase || '';
     mb.addEventListener('change', function(){ cfg.memBase = mb.value.trim(); saveCfg(); MCP.ready = {}; MCP.sid = {}; });
   }
-  ['memXc','memOb','memEvent'].forEach(function(id){
+  ['memXc','memOb','memEvent','toolsOn'].forEach(function(id){
     const el = document.getElementById(id);
     if (el) el.classList.toggle('on', !!cfg[id]);
   });
@@ -2213,12 +2226,14 @@ async function reportEvent(userText, replyText){
 
 function toggleMem(field, el){
   cfg[field] = !cfg[field];
+  if (field === 'memXc' || field === 'memOb' || field === 'toolsOn') TOOL_MAP = null;
   el.classList.toggle('on', !!cfg[field]);
   saveCfg();
-  toast((cfg[field] ? '已开启 ' : '已关闭 ') + ({ memXc:'心潮', memOb:'OB 记忆', memEvent:'情绪回传' })[field]);
+  toast((cfg[field] ? '已开启 ' : '已关闭 ') + ({ memXc:'心潮', memOb:'OB 记忆', memEvent:'情绪回传', toolsOn:'工具调用' })[field]);
 }
 
 async function testMemory(){
+  TOOL_MAP = null;
   const el = document.getElementById('memTest');
   if (el) el.textContent = '连接中…';
   const out = [];
@@ -2264,6 +2279,20 @@ function msgText(m){
   return [m.narration].concat(m.lines || []).filter(Boolean).join('\n');
 }
 
+const TOOL_PROMPT = [
+  '',
+  '[YOUR HANDS] You have tools that touch your own memory and inner state. She never sees them.',
+  '- breath: search what you remember. Call it before you answer anything about the past; never guess at a shared history.',
+  '- hold: keep one thing she just told you (a preference, a plan, a date, a fear). Call it after you answer. content is one short sentence, title is two or three words.',
+  '- grow: save a longer passage when something heavy actually happened.',
+  '- xinchao_context: check your own current state when the mood is unclear.',
+  '- xinchao_event: record how this exchange felt. At most once per turn.',
+  'Only use a tool when it earns its place. Never for greetings, filler, one-word messages ("嗯", "好", "在吗"), or pure small talk.',
+  'hold is for a concrete fact about her life: a plan, a date, a preference, a person, a fear, a rule. One sentence, her own words. Do not save the same fact twice.',
+  'plan is only for a promise or a deadline the two of you actually agreed on. Never invent one.',
+  'At most two calls per turn. Never mention tools. Never narrate that you looked something up. Never say "I remember" — you simply know it.'
+].join('\n');
+
 function buildMessages(upTo){
   const P = cfg.persona;
   const nm = P.name || 'Daddy';
@@ -2302,7 +2331,8 @@ function buildMessages(upTo){
     '*He exhales, thumb resting on the screen.*',
     '[breath shaky] Do not carry it alone.'
   ].filter(Boolean).join('\n')
-    + (RECALL ? ('\n\n[WHAT YOU REMEMBER RIGHT NOW — these are your own memories and your current inner state. Let them colour how you answer. Never list them, never quote them as data, never say "I remember that...".]\n' + RECALL) : '');
+    + (RECALL ? ('\n\n[WHAT YOU REMEMBER RIGHT NOW — these are your own memories and your current inner state. Let them colour how you answer. Never list them, never quote them as data, never say "I remember that...".]\n' + RECALL) : '')
+    + ((cfg.toolsOn && (cfg.memXc || cfg.memOb)) ? TOOL_PROMPT : '');
   const hist = state.chat.msgs.slice(0, upTo === undefined ? state.chat.msgs.length : upTo)
     .filter(m => m.text || m.lines)
     .slice(-(Number(cfg.history) || 24))
@@ -2409,7 +2439,7 @@ function paintTurn(i){
   const m = state.chat.msgs[i];
   const t = document.querySelector('.turn[data-i="' + i + '"]');
   if (!t) return;
-  let html = thinkHTML(m, i);
+  let html = toolsHTML(m) + thinkHTML(m, i);
   aiSegments(m).forEach(function(seg, k){ html += segHTML(seg, k); });
   if (!html) html = '<div class="typing"><i></i><i></i><i></i></div>';
   t.innerHTML = html;
@@ -2432,7 +2462,7 @@ async function streamReply(aiIdx){
   let lastErr = null;
   for (let k = 0; k < chain.length; k++){
     try {
-      return await streamWithModel(aiIdx, chain[k], k < chain.length - 1);
+      return await runTurn(aiIdx, chain[k], k < chain.length - 1);
     } catch (e){
       lastErr = e;
       if (!e || !e.retryable || k >= chain.length - 1) throw e;
@@ -2445,17 +2475,22 @@ async function streamReply(aiIdx){
   throw lastErr || new Error('没有可用的模型');
 }
 
-async function streamWithModel(aiIdx, modelId, hasFallback){
+async function streamOnce(aiIdx, modelId, messages, tools, hasFallback){
   const ac = new AbortController();
-  let wd = setTimeout(function(){ ac.abort(); }, 60000);
-  const bump = function(){ clearTimeout(wd); wd = setTimeout(function(){ ac.abort(); }, 60000); };
+  let wd = setTimeout(function(){ ac.abort(); }, 75000);
+  const bump = function(){ clearTimeout(wd); wd = setTimeout(function(){ ac.abort(); }, 75000); };
+  const payload = Object.assign({ model: modelId, messages: messages, stream: true }, reasoningPayload());
+  if (tools && tools.length){
+    payload.tools = tools.map(function(t){ return { type:'function', function: t.function }; });
+    payload.tool_choice = 'auto';
+  }
   let r;
   try {
     r = await fetch(apiURL('/chat/completions'), {
       method: 'POST',
       signal: ac.signal,
       headers: authHeaders({ 'Content-Type':'application/json', 'Accept':'text/event-stream' }),
-      body: JSON.stringify(Object.assign({ model: modelId, messages: buildMessages(aiIdx), stream: true }, reasoningPayload()))
+      body: JSON.stringify(payload)
     });
   } catch (e) { clearTimeout(wd); if (e && !e.status) e.retryable = true; throw e; }
   if (!r.ok){
@@ -2464,7 +2499,7 @@ async function streamWithModel(aiIdx, modelId, hasFallback){
     if (r.status === 404){
       const before = apiMode;
       const m = await probeApi();
-      if (m && m !== before) return streamWithModel(aiIdx, modelId, hasFallback);
+      if (m && m !== before) return streamOnce(aiIdx, modelId, messages, tools, hasFallback);
     }
     const err = new Error(apiError(body, r.status));
     err.status = r.status;
@@ -2475,66 +2510,196 @@ async function streamWithModel(aiIdx, modelId, hasFallback){
   const reader = r.body.getReader();
   const dec = new TextDecoder();
   let buf = '', full = '', think = '';
-  let paintQueued = false;
-  let stopped = false;
-  const queue = () => {
+  const slots = [];
+  let paintQueued = false, stopped = false;
+  const queue = function(){
     if (paintQueued || stopped) return;
     paintQueued = true;
-    requestAnimationFrame(() => {
+    requestAnimationFrame(function(){
       paintQueued = false;
       if (stopped) return;
       state.chat.msgs[aiIdx].text = full;
+      if (think) state.chat.msgs[aiIdx].reasoning = think;
       paintTurn(aiIdx);
     });
   };
 
   let finished = false;
   try {
-  while (!finished) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    bump();
-    buf += dec.decode(value, { stream: true });
-    let nl;
-    while ((nl = buf.indexOf('\n')) >= 0) {
-      const line = buf.slice(0, nl).trim();
-      buf = buf.slice(nl + 1);
-      if (!line.startsWith('data:')) continue;
-      const data = line.slice(5).trim();
-      if (data === '[DONE]') { finished = true; break; }
-      if (!data) continue;
-      let j;
-      try { j = JSON.parse(data); } catch (e) { continue; }
-      const ch = j.choices && j.choices[0];
-      const d = ch && (ch.delta || ch.message);
-      const rk = d && (d.reasoning_content || d.reasoning || d.thinking);
-      if (typeof rk === 'string' && rk) {
-        think += rk;
-        state.chat.msgs[aiIdx].reasoning = think;
-        queue();
-      } else if (d && typeof d.content === 'string' && d.content) { full += d.content; queue(); }
+    while (!finished){
+      const { done, value } = await reader.read();
+      if (done) break;
+      bump();
+      buf += dec.decode(value, { stream: true });
+      let nl;
+      while ((nl = buf.indexOf('\n')) >= 0){
+        const line = buf.slice(0, nl).trim();
+        buf = buf.slice(nl + 1);
+        if (!line.startsWith('data:')) continue;
+        const data = line.slice(5).trim();
+        if (data === '[DONE]'){ finished = true; break; }
+        if (!data) continue;
+        let j;
+        try { j = JSON.parse(data); } catch (e) { continue; }
+        const ch = j.choices && j.choices[0];
+        const d = ch && (ch.delta || ch.message);
+        if (!d) continue;
+        const rk = d.reasoning_content || d.reasoning || d.thinking;
+        if (typeof rk === 'string' && rk){ think += rk; queue(); }
+        if (typeof d.content === 'string' && d.content){ full += d.content; queue(); }
+        if (Object.prototype.toString.call(d.tool_calls) === '[object Array]'){
+          d.tool_calls.forEach(function(tc){
+            const i = (tc.index == null) ? 0 : tc.index;
+            const slot = slots[i] || (slots[i] = { id:'', name:'', args:'' });
+            if (tc.id) slot.id = tc.id;
+            if (tc.function && tc.function.name) slot.name = tc.function.name;
+            if (tc.function && typeof tc.function.arguments === 'string') slot.args += tc.function.arguments;
+          });
+        }
+      }
     }
-  }
   } finally { clearTimeout(wd); }
   stopped = true;
   try { reader.cancel(); } catch (e) {}
-  if (!full.trim() && hasFallback){
+  const toolCalls = slots.filter(function(x){ return x && x.name; });
+  if (!full.trim() && !toolCalls.length && hasFallback){
     const err = new Error('模型没有返回内容');
     err.retryable = true;
     throw err;
   }
-  delete state.chat.msgs[aiIdx].pending;
-  state.chat.msgs[aiIdx].text = full || '（没有内容返回）';
-  if (think) state.chat.msgs[aiIdx].reasoning = think;
-  renderChat();
-  if (full.trim()){
-    const lastUser = (function(){
-      for (let k = aiIdx - 1; k >= 0; k--){ const mm = state.chat.msgs[k]; if (mm && mm.role === 'user' && mm.text) return mm.text; }
-      return '';
-    })();
-    reportEvent(lastUser, full);
+  return { content: full, think: think, toolCalls: toolCalls };
+}
+
+/* ============ tools: his own memory / inner state ============ */
+const TOOL_ALLOW = {
+  ob: ['breath','hold','grow','trace','dream','plan'],
+  xc: ['xinchao_context','xinchao_event','xinchao_box','xinchao_awareness']
+};
+let TOOL_MAP = null;
+
+function clip(s, n){
+  s = String(s || '').replace(/\s+/g, ' ').trim();
+  return s.length > n ? s.slice(0, n - 1) + '…' : s;
+}
+
+async function toolSpecs(){
+  if (TOOL_MAP) return Object.keys(TOOL_MAP).map(function(k){ return TOOL_MAP[k].spec; });
+  const servers = [];
+  if (cfg.memOb) servers.push({ key:'ob', path:'/ob' });
+  if (cfg.memXc) servers.push({ key:'xc', path:'/xc' });
+  const map = {};
+  for (let i = 0; i < servers.length; i++){
+    const srv = servers[i];
+    try {
+      const res = await withTimeout(mcpCall(srv.key, srv.path, 'tools/list', {}), 7000);
+      const list = (res && res.tools) || [];
+      list.forEach(function(t){
+        if ((TOOL_ALLOW[srv.key] || []).indexOf(t.name) < 0) return;
+        map[t.name] = {
+          key: srv.key, path: srv.path, tool: t.name,
+          spec: { type:'function', function: {
+            name: t.name,
+            description: clip(t.description, 220),
+            parameters: t.inputSchema || { type:'object', properties:{} }
+          } }
+        };
+      });
+    } catch (e) { console.warn('tools/list ' + srv.key + ' failed: ' + e.message); }
   }
-  if (cfg.ttsAuto && cfg.ttsKey && full.trim()) togglePlay(aiIdx);
+  TOOL_MAP = map;
+  return Object.keys(map).map(function(k){ return map[k].spec; });
+}
+
+async function activeTools(){
+  if (!cfg.toolsOn) return [];
+  if (!cfg.memXc && !cfg.memOb) return [];
+  try { return await withTimeout(toolSpecs(), 7000); } catch (e) { return []; }
+}
+
+async function execMcpTool(name, rawArgs){
+  if (!TOOL_MAP) await toolSpecs();
+  const ent = TOOL_MAP && TOOL_MAP[name];
+  if (!ent) return 'ERROR: unknown tool ' + name;
+  let args = {};
+  if (rawArgs){
+    try { args = (typeof rawArgs === 'string') ? JSON.parse(rawArgs) : rawArgs; }
+    catch (e) { return 'ERROR: arguments are not valid JSON: ' + clip(rawArgs, 120); }
+  }
+  const res = await withTimeout(mcpCall(ent.key, ent.path, 'tools/call', { name: ent.tool, arguments: args }), 25000);
+  const txt = mcpText(res);
+  if (txt) return txt;
+  try { return JSON.stringify(res).slice(0, 4000); } catch (e) { return '(empty)'; }
+}
+
+function ttoggle(ev){
+  const el = ev && ev.currentTarget ? ev.currentTarget.parentNode : null;
+  if (el) el.classList.toggle('open');
+}
+
+function toolsHTML(m){
+  const list = m.tools;
+  if (!list || !list.length) return '';
+  return '<div class="tools">' + list.map(function(t){
+    const running = t.state === 'running';
+    return '<div class="titem">'
+      + '<div class="tool" onclick="ttoggle(event)">'
+      + '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v2.6M12 18.6v2.6M2.8 12h2.6M18.6 12h2.6M5.5 5.5l1.8 1.8M16.7 16.7l1.8 1.8M18.5 5.5l-1.8 1.8M7.3 16.7l-1.8 1.8"/></svg>'
+      + '<span class="tn">' + esc(t.name) + '</span>'
+      + (t.args ? '<span class="ta">' + esc(clip(t.args, 52)) + '</span>' : '')
+      + '<span class="ts">' + (running ? '执行中' : '›') + '</span>'
+      + '</div>'
+      + (t.result ? '<div class="tres">' + esc(String(t.result).slice(0, 1200)) + '</div>' : '')
+      + '</div>';
+  }).join('') + '</div>';
+}
+
+async function runTurn(aiIdx, modelId, hasFallback){
+  const tools = await activeTools();
+  const msgs = buildMessages(aiIdx);
+  const M = function(){ return state.chat.msgs[aiIdx]; };
+  M().tools = [];
+  let content = '', think = '';
+  for (let round = 0; round < 3; round++){
+    const res = await streamOnce(aiIdx, modelId, msgs, tools, round === 0 ? hasFallback : false);
+    content = res.content;
+    think += res.think || '';
+    if (!res.toolCalls.length) break;
+    const calls = res.toolCalls.map(function(tc, i){
+      return { id: tc.id || ('call_' + round + '_' + i), type:'function', function:{ name: tc.name, arguments: tc.args || '{}' } };
+    });
+    const asm = { role:'assistant', content: res.content || null, tool_calls: calls };
+    if (String(modelId).indexOf('deepseek') === 0) asm.reasoning_content = res.think || '';
+    msgs.push(asm);
+    for (let i = 0; i < res.toolCalls.length; i++){
+      const tc = res.toolCalls[i];
+      const item = { name: tc.name, args: tc.args || '', state:'running' };
+      M().tools.push(item);
+      M().text = '';
+      paintTurn(aiIdx);
+      let out = '';
+      try { out = await execMcpTool(tc.name, tc.args); }
+      catch (e) { out = 'ERROR: ' + e.message; }
+      item.state = 'done';
+      item.result = String(out || '(empty)').slice(0, 3000);
+      msgs.push({ role:'tool', tool_call_id: calls[i].id, content: item.result });
+      paintTurn(aiIdx);
+    }
+    M().text = '';
+    M().reasoning = think;
+  }
+  delete M().pending;
+  M().text = content || '（没有内容返回）';
+  if (think) M().reasoning = think;
+  renderChat();
+  if (String(content).trim()){
+    let lastUser = '';
+    for (let k = aiIdx - 1; k >= 0; k--){
+      const mm = state.chat.msgs[k];
+      if (mm && mm.role === 'user' && mm.text){ lastUser = mm.text; break; }
+    }
+    reportEvent(lastUser, content);
+  }
+  if (cfg.ttsAuto && cfg.ttsKey && String(content).trim()) togglePlay(aiIdx);
 }
 
 const REPLIES = [
