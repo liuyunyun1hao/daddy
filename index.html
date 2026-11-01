@@ -756,6 +756,119 @@ body.selecting .toast{bottom:150px}
   width:34px;height:34px;border:0;background:none;
 }
 .chat-header .icon-btn:active{background:rgba(255,255,255,.06)}
+
+/* ============ memory · paper ============ */
+#screen-memory{background:#f2f2ef;color:#242522}
+#screen-memory .paper{
+  padding:0 22px 58px;
+  background:radial-gradient(140% 90% at 50% -10%, rgba(255,255,255,.75) 0%, rgba(242,242,239,0) 60%), #f2f2ef;
+}
+#screen-memory .mem-head{border-top:1.2px solid #242522;padding-top:9px;margin-top:8px}
+#screen-memory .mem-top{display:flex;justify-content:space-between;align-items:center;font-size:9px;letter-spacing:.16em;color:#6a6f66}
+#screen-memory .mem-title{font-family:var(--serif);font-size:38px;font-weight:400;line-height:1.04;letter-spacing:-.02em;margin:16px 0 10px;color:#161715}
+#screen-memory .mem-sub{font-size:12.5px;line-height:1.75;color:#555b52;padding-left:12px;border-left:1.2px solid #242522;max-width:23ch}
+#screen-memory .mem-stats{display:flex;align-items:baseline;gap:16px;margin:20px 0 0;padding-bottom:11px;border-bottom:.75px solid #b8bab8;font-size:11px;color:#5b6158}
+#screen-memory .mem-stats b{font-weight:400;color:#1834d4;font-size:14px;margin-right:3px}
+#screen-memory .mem-undo{margin-left:auto;color:#1834d4;font-size:11px;letter-spacing:.05em}
+#screen-memory .mem-tools{display:flex;align-items:center;gap:14px;margin-top:16px;border-bottom:1px solid #242522;padding-bottom:6px}
+#screen-memory .mem-field{flex:1;min-width:0;border:0;border-bottom:.7px solid #8c908e;border-radius:0;background:transparent;padding:9px 0;font-size:13.5px;color:#242522;caret-color:#1834d4;font-family:inherit;-webkit-appearance:none}
+#screen-memory .mem-field::placeholder{color:#8b9087}
+#screen-memory .mem-add{color:#1834d4;font-size:12.5px;white-space:nowrap;padding:9px 0;letter-spacing:.02em}
+#screen-memory .mem-form{border:.7px dashed #8c908e;padding:16px 15px;margin:16px 0 8px}
+#screen-memory .mem-form label{display:block;font-size:9.5px;letter-spacing:.16em;color:#6a6f66;margin:11px 0 1px}
+#screen-memory .mem-form label:first-child{margin-top:0}
+#screen-memory .mem-form textarea{width:100%;resize:none;min-height:76px;font-size:13.5px;line-height:1.85;font-family:inherit}
+#screen-memory .mem-kinds{display:flex;gap:16px;padding:6px 0 3px}
+#screen-memory .mem-kinds button{font-size:11.5px;color:#6a6f66;padding:3px 0;border-bottom:.7px solid transparent}
+#screen-memory .mem-kinds button.on{color:#1834d4;border-bottom-color:#1834d4}
+#screen-memory .mem-form-foot{display:flex;align-items:center;gap:18px;margin-top:13px}
+#screen-memory .mem-save{color:#1834d4;font-size:12.5px}
+#screen-memory .mem-cancel{color:#6a6f66;font-size:11.5px}
+#screen-memory .mem-chips{display:flex;gap:17px;margin-top:16px;overflow-x:auto;padding-bottom:5px}
+#screen-memory .mem-chips::-webkit-scrollbar{display:none}
+#screen-memory .mem-chips button{font-size:11.5px;color:#6a6f66;white-space:nowrap;padding:3px 0;letter-spacing:.04em;border-bottom:.7px solid transparent}
+#screen-memory .mem-chips button.on{color:#1834d4;border-bottom-color:#1834d4}
+#screen-memory .mem-list{position:relative;margin-top:16px;padding-left:16px;border-left:.7px solid #b8bab8}
+#screen-memory .mem-card{position:relative;border-top:.75px solid #8c908e;padding:13px 0 9px;margin-bottom:12px}
+#screen-memory .mem-card::before{content:'';position:absolute;left:-19px;top:17px;width:5px;height:5px;border-radius:50%;background:#1834d4}
+#screen-memory .mem-card.pinned::before{background:#b19b67}
+#screen-memory .mem-time{font-size:9px;letter-spacing:.07em;color:#6f756b}
+#screen-memory .mem-card h2{font-family:var(--serif);font-size:17.5px;font-weight:400;line-height:1.35;margin:7px 0 5px;color:#1b1c19}
+#screen-memory .mem-card.pinned h2{color:#1834d4}
+#screen-memory .mem-card p{font-size:13px;line-height:1.9;color:#3a3e38;white-space:pre-wrap;overflow-wrap:anywhere}
+#screen-memory .mem-card footer{display:flex;gap:18px;margin-top:9px}
+#screen-memory .mem-card footer button{font-size:10.5px;color:#6f756b;padding:4px 0}
+#screen-memory .mem-empty{border-left:.7px solid #b8bab8;padding:15px 18px;margin:22px 0;font-size:13.5px;line-height:1.9;color:#4a4f47;max-width:26ch}
+#screen-memory .mem-empty small{display:block;font-size:10.5px;color:#7c8279;margin-top:9px}
+#screen-memory .mem-src{margin-top:28px;border-top:1px solid #242522;padding-top:9px}
+#screen-memory .mem-src-head{display:flex;justify-content:space-between;font-size:9px;letter-spacing:.18em;color:#6a6f66;margin-bottom:4px}
+#screen-memory .mem-srow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:.6px dashed #c6c8c2;font-size:12.5px;color:#2b2e29}
+#screen-memory .mem-link{color:#1834d4;font-size:11.5px;white-space:nowrap}
+#screen-memory .mem-mini{max-width:56%;border:0;border-bottom:.7px solid #8c908e;background:transparent;padding:4px 0;font-size:11.5px;color:#242522;text-align:right;font-family:inherit}
+#screen-memory .mem-switch{width:34px;height:19px;border-radius:20px;border:.8px solid #242522;position:relative;flex:0 0 34px;display:block}
+#screen-memory .mem-switch i{position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:50%;background:#8a8f86;transition:transform .22s,background .22s}
+#screen-memory .mem-switch.on i{background:#1834d4;transform:translateX(15px)}
+
+/* ===== TALK-style chat layout (borrowed from between-us) ===== */
+#screen-chat .chat-header{justify-content:space-between;gap:8px;padding:2px 12px 10px}
+#screen-chat .who{display:flex;align-items:center;gap:10px;flex:1;min-width:0;text-align:left;padding-left:2px}
+#screen-chat .who .avatar{width:36px;height:36px;flex:0 0 36px}
+#screen-chat .who-txt{min-width:0}
+#screen-chat .who .name{font-family:var(--serif);font-size:18px;font-weight:400;letter-spacing:.01em;justify-content:flex-start}
+#screen-chat .who .sub{justify-content:flex-start;margin-top:3px;letter-spacing:.05em}
+#screen-chat .scene{justify-content:center;gap:10px;padding:0 16px 12px;font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.24)}
+#screen-chat .scene .sp{font-size:7px;opacity:.9}
+#screen-chat .msgs{gap:16px;padding:4px 14px 16px}
+#screen-chat .turn{display:flex;flex-direction:row;gap:9px;align-items:flex-start}
+#screen-chat .turn.user{flex-direction:row;justify-content:flex-end;align-items:flex-start;margin-top:2px}
+#screen-chat .turn .body{display:flex;flex-direction:column;gap:6px;min-width:0;max-width:calc(100% - 40px)}
+#screen-chat .turn.user .body{align-items:flex-end}
+#screen-chat .turn.user .bubble{border-radius:19px 19px 6px 19px}
+#screen-chat .turn .ava-sm{width:26px;height:26px;flex:0 0 26px;border-radius:50%;margin-top:10px;position:relative;border:1px solid rgba(255,255,255,.14);box-shadow:0 3px 10px rgba(0,0,0,.4)}
+#screen-chat .composer-inner{padding:8px 8px 6px;border-radius:28px}
+#screen-chat .composer-pill{display:flex;align-items:flex-end;gap:6px}
+#screen-chat .composer-pill textarea{flex:1;padding:8px 0;height:24px;line-height:24px}
+#screen-chat .composer-pill .c-btn{width:32px;height:32px;flex:0 0 32px;margin-bottom:2px}
+#screen-chat .composer-pill .send{width:32px;height:32px;flex:0 0 32px;margin:0 0 2px}
+#screen-chat .composer-foot{display:flex;align-items:center;gap:8px;padding:6px 8px 2px 6px}
+#screen-chat .composer-note{font-size:9.5px;letter-spacing:.08em;color:rgba(255,255,255,.24)}
+#screen-chat .turn.ai .body > .bubble:not(.narration):first-of-type{border-top-left-radius:6px}
+#screen-chat .meta{display:flex;align-items:center;gap:13px;margin:1px 0 0 4px;min-height:22px}
+#screen-chat .turn.user .meta{justify-content:flex-end;margin:1px 4px 0 0}
+#screen-chat .meta .acts{margin:0;padding:0}
+#screen-chat .meta .stamp{padding:0}
+
+
+
+/* ===== unsent letters (borrowed from between-us) ===== */
+.panel.letters{background:#f2f2ef;color:#242522}
+.panel.letters .panel-head{padding:calc(12px + env(safe-area-inset-top)) 12px 6px}
+.panel.letters .panel-head .ttl{font-family:var(--serif);font-size:19px;font-weight:400;color:#242522;letter-spacing:.02em}
+.panel.letters .panel-head .ttl small{color:#8b8f88;letter-spacing:.2em;font-size:8.5px}
+.panel.letters .panel-head .icon-btn{color:#242522;background:none;border:0;width:34px;height:34px}
+.panel.letters .panel-head .save{color:#1834d4;font-size:12.5px;letter-spacing:.04em;background:none}
+.panel.letters .scroll{padding:0 26px 60px}
+.lett-top{display:flex;justify-content:space-between;align-items:center;padding:10px 2px 20px;font-size:9px;letter-spacing:.18em;color:#8b8f88;text-transform:uppercase}
+.lett-empty{padding:56px 8px;text-align:center;font-family:var(--serif);font-style:italic;font-size:14px;line-height:2.2;color:#8b8f88}
+.lett{display:block;width:100%;text-align:left;position:relative;padding:20px 2px 22px;border-top:1px solid #dcddd7;background:none;color:inherit}
+.lett .lt-num{font-size:9px;letter-spacing:.16em;color:#8b8f88}
+.lett .lt-st{position:absolute;right:2px;top:20px;font-size:9px;letter-spacing:.12em;color:#9a9e97;border:1px solid #d5d6d0;padding:2px 7px;border-radius:2px}
+.lett.sealed .lt-st{color:#1834d4;border-color:#bfc8ee}
+.lett h3{font-family:var(--serif);font-size:17px;font-weight:400;margin:9px 0 7px;color:#1d1e1a;letter-spacing:.01em}
+.lett p{font-size:12.5px;line-height:1.9;color:#5a5e56;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.lett:active{opacity:.6}
+.lett-new{display:block;width:100%;margin:26px 0 0;padding:14px;border:1px dashed #bfc1ba;background:none;border-radius:2px;font-size:12px;letter-spacing:.06em;color:#6c7068}
+.lett-detail h2{font-family:var(--serif);font-size:22px;font-weight:400;margin:6px 0 20px;color:#1d1e1a}
+.lett-body{font-family:var(--serif);font-size:14.5px;line-height:2.15;color:#2b2d28;white-space:pre-wrap}
+.lett-acts{display:flex;gap:10px;margin:28px 0 0}
+.lett-acts button{flex:1;padding:12px;border:1px solid #c9cac4;background:none;border-radius:2px;font-size:12.5px;color:#2b2d28;letter-spacing:.04em}
+.lett-acts button.danger{color:#b4513f;border-color:#e2cdc7}
+.lett-back{display:block;margin:26px 0 0;background:none;border:0;color:#8b8f88;font-size:11px;letter-spacing:.06em;padding:8px 0}
+.lett-edit .lt-field{width:100%;border:0;border-bottom:1px solid #c9cac4;background:none;padding:8px 0 10px;font-family:var(--serif);font-size:19px;color:#1d1e1a;outline:none}
+.lett-edit .lt-field::placeholder{color:#b0b3ac}
+.lett-edit .lt-area{width:100%;min-height:46vh;border:0;background:none;padding:16px 0;font-family:var(--serif);font-size:14.5px;line-height:2.15;color:#2b2d28;resize:none;outline:none;scrollbar-width:none}
+.lett-edit .lt-area::-webkit-scrollbar{display:none}
+
 </style>
 </head>
 <body>
@@ -830,6 +943,15 @@ body.selecting .toast{bottom:150px}
           <div class="chev">›</div>
         </div>
 
+        <div class="card" onclick="openLetters()">
+          <div class="ico"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></div>
+          <div class="card-main">
+            <div class="card-title">未寄信</div>
+            <div class="card-sub" id="letterSub">还没有写过</div>
+          </div>
+          <div class="chev">›</div>
+        </div>
+
         <div class="card" onclick="switchTab('memory')">
           <div class="ico"><svg viewBox="0 0 24 24"><path d="M12 3a4 4 0 0 0-4 4v1a4 4 0 0 0 0 8v1a4 4 0 0 0 8 0v-1a4 4 0 0 0 0-8V7a4 4 0 0 0-4-4z"/></svg></div>
           <div class="card-main">
@@ -857,8 +979,11 @@ body.selecting .toast{bottom:150px}
           <svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>
         </button>
         <div class="who">
-          <div class="name" id="chatName">Daddy</div>
-          <div class="sub" id="chatSub"><span class="live-dot"></span>始终在线 · 记得你的一切</div>
+          <div class="avatar him"></div>
+          <div class="who-txt">
+            <div class="name" id="chatName">Daddy</div>
+            <div class="sub" id="chatSub"><span class="live-dot"></span>始终在线 · 记得你的一切</div>
+          </div>
         </div>
         <button class="icon-btn" onclick="openPersona()">
           <svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.2" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.2" fill="currentColor" stroke="none"/></svg>
@@ -875,22 +1000,22 @@ body.selecting .toast{bottom:150px}
 
       <div class="composer">
         <div class="composer-inner">
-          <textarea id="input" rows="1" placeholder="说点什么…"></textarea>
-          <div class="composer-row">
-            <button class="c-btn" onclick="toast('附件：图片 / 语音 / 文件')">
-              <svg viewBox="0 0 24 24"><path d="M21 12.5l-8.5 8.5a5.5 5.5 0 0 1-7.8-7.8l8.5-8.5a3.7 3.7 0 0 1 5.2 5.2l-8.5 8.5a1.8 1.8 0 0 1-2.6-2.6l7.8-7.8"/></svg>
+          <div class="composer-pill">
+            <button class="c-btn" onclick="toast('附件：图片 / 语音 / 文件')" aria-label="更多">
+              <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
             </button>
-            <div class="model-chip" onclick="openModels()"><b id="chipModel">DeepSeek V4.1 Flash</b><span class="v">GO</span></div>
-            <div class="spacer"></div>
-            <button class="c-btn" onclick="toast('表情')">
-              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8.5 14.5a4.5 4.5 0 0 0 7 0"/><circle cx="9" cy="10" r=".8" fill="currentColor" stroke="none"/><circle cx="15" cy="10" r=".8" fill="currentColor" stroke="none"/></svg>
-            </button>
-            <button class="c-btn" onclick="toast('按住说话')">
-              <svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
-            </button>
-            <button class="send off" id="sendBtn" onclick="send()">
+            <textarea id="input" rows="1" placeholder="想和他说什么…"></textarea>
+            <button class="send off" id="sendBtn" onclick="send()" aria-label="发送">
               <svg viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></svg>
             </button>
+          </div>
+          <div class="composer-foot">
+            <div class="model-chip" onclick="openModels()"><b id="chipModel">DeepSeek V4.1 Flash</b><span class="v">GO</span></div>
+            <div class="spacer"></div>
+            <button class="c-btn" onclick="toast('语音输入')" aria-label="语音">
+              <svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+            </button>
+            <span class="composer-note">云端 · 已连接</span>
           </div>
         </div>
       </div>
@@ -960,41 +1085,67 @@ body.selecting .toast{bottom:150px}
 
     <!-- ============ MEMORY ============ -->
     <section class="screen" id="screen-memory">
-      <div class="scroll">
-        <div class="page-head">
-          <div>
-            <h1>记忆</h1>
-            <div class="sub">What he keeps</div>
-          </div>
-          <button class="icon-btn" onclick="brainUndo()" title="撤销上一条">
-            <svg viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg>
-          </button>
-          <button class="icon-btn" onclick="toast('搜索记忆')">
-            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5L21 21"/></svg>
-          </button>
-        </div>
-
-        <div class="rel-card">
-          <div class="lbl">Relationship</div>
-          <div class="big">稳定 · 第 <span id="memDays">85</span> 天</div>
-          <div class="sm">他叫你「宝宝」。边界：不越线，但不松手。</div>
-          <div class="rel-grid">
-            <div><b id="mCount">0</b><span>记忆</span></div>
-            <div><b id="mPlan">0</b><span>待兑现约定</span></div>
-            <div><b id="mClue">0</b><span>线索</span></div>
+      <div class="scroll paper">
+        <div class="mem-head">
+          <div class="mem-top"><span>[ 02* ]</span><span>MEMORY</span><span id="memDaysTop">第 87 天</span></div>
+          <h1 class="mem-title">记忆库</h1>
+          <div class="mem-sub">他记得的、你留下的，都收在这里。</div>
+          <div class="mem-stats">
+            <span><b id="mCount">0</b>条</span>
+            <span><b id="mPlan">0</b>个约定</span>
+            <span><b id="mClue">0</b>条线索</span>
+            <span class="mem-undo" onclick="brainUndo()">撤销</span>
           </div>
         </div>
 
-        <div class="chips-row" style="padding-bottom:12px" id="memChips">
-          <button class="chip on" data-k="" onclick="pickMemChip(this)">全部</button>
-          <button class="chip" data-k="fact" onclick="pickMemChip(this)">事实</button>
-          <button class="chip" data-k="event" onclick="pickMemChip(this)">经历</button>
-          <button class="chip" data-k="promise" onclick="pickMemChip(this)">约定</button>
-          <button class="chip" data-k="clue" onclick="pickMemChip(this)">线索</button>
-          <button class="chip" data-k="open" onclick="pickMemChip(this)">未结束</button>
+        <div class="mem-tools">
+          <input id="memSearch" class="mem-field" type="search" placeholder="找一段记忆…" oninput="renderBrainList()">
+          <button class="mem-add" onclick="toggleMemForm()">+ 留下一刻</button>
         </div>
 
-        <div class="tl" id="tl"></div>
+        <form class="mem-form" id="memForm" hidden onsubmit="saveMemForm(event)">
+          <label for="mfTitle">这一刻的名字</label>
+          <input id="mfTitle" class="mem-field" maxlength="40" placeholder="例如：他说会记得的那句话">
+          <label>分类</label>
+          <div class="mem-kinds" id="mfKinds">
+            <button type="button" data-k="fact" class="on" onclick="pickMemKind(this)">事实</button>
+            <button type="button" data-k="event" onclick="pickMemKind(this)">经历</button>
+            <button type="button" data-k="promise" onclick="pickMemKind(this)">约定</button>
+            <button type="button" data-k="clue" onclick="pickMemKind(this)">线索</button>
+          </div>
+          <label for="mfBody">想记住的细节</label>
+          <textarea id="mfBody" class="mem-field" rows="3" maxlength="800" placeholder="把小小的细节也写下来。"></textarea>
+          <div class="mem-form-foot">
+            <button class="mem-save" type="submit">留在记忆里 ↗</button>
+            <button class="mem-cancel" type="button" onclick="toggleMemForm(false)">收起</button>
+          </div>
+        </form>
+
+        <div class="mem-chips" id="memChips">
+          <button class="on" data-k="" onclick="pickMemChip(this)">全部</button>
+          <button data-k="fact" onclick="pickMemChip(this)">事实</button>
+          <button data-k="event" onclick="pickMemChip(this)">经历</button>
+          <button data-k="promise" onclick="pickMemChip(this)">约定</button>
+          <button data-k="clue" onclick="pickMemChip(this)">线索</button>
+          <button data-k="open" onclick="pickMemChip(this)">未结束</button>
+        </div>
+
+        <div class="mem-list" id="tl"></div>
+
+        <div class="mem-src">
+          <div class="mem-src-head"><span>来源</span><span>SOURCES</span></div>
+          <div class="mem-srow"><span>心潮 · 此刻</span><span class="mem-switch on" id="memXc" onclick="toggleMem('memXc',this)"><i></i></span></div>
+          <div class="mem-srow"><span>OB · 浮现记忆</span><span class="mem-switch on" id="memOb" onclick="toggleMem('memOb',this)"><i></i></span></div>
+          <div class="mem-srow"><span>回复后回传情绪</span><span class="mem-switch on" id="memEvent" onclick="toggleMem('memEvent',this)"><i></i></span></div>
+          <div class="mem-srow"><span>本机记忆 · 存在这台设备</span><span class="mem-switch on" id="brainOn" onclick="toggleMem('brainOn',this)"><i></i></span></div>
+          <div class="mem-srow"><span>工具调用 · 他自己查与记</span><span class="mem-switch on" id="toolsOn" onclick="toggleMem('toolsOn',this)"><i></i></span></div>
+          <div class="mem-srow"><span>滚动摘要 · 每 20 轮</span><span class="mem-switch on" id="summaryOn" onclick="toggleSummary(this)"><i></i></span></div>
+          <div class="mem-srow"><span>本地桥地址</span><input id="memBase" class="mem-mini" placeholder="http://127.0.0.1:18080" spellcheck="false"></div>
+          <div class="mem-srow" onclick="testMemory()"><span>测试连接</span><span class="mem-link" id="memTest">点一下 ↘</span></div>
+          <div class="mem-srow"><span>清空本机记忆</span><span class="mem-link" onclick="clearBrain()">不影响对话 ↘</span></div>
+          <div class="mem-srow"><span>导出记忆</span><span class="mem-link" onclick="brainExport()">JSON ↘</span></div>
+          <div class="mem-srow"><span>导入记忆</span><span class="mem-link" onclick="document.getElementById('importMemFile').click()">选择文件 ↘</span></div>
+        </div>
       </div>
     </section>
 
@@ -1103,43 +1254,11 @@ body.selecting .toast{bottom:150px}
           <div class="mcp" style="color:rgba(255,255,255,.45)"><span class="nm">＋ 添加服务</span></div>
         </div>
 
-        <div class="group-label">记忆 · 本地</div>
+        <div class="group-label">记忆</div>
         <div class="group">
-          <div class="row">
-            <span class="k">心潮 · 此刻</span>
-            <span class="switch on" id="memXc" onclick="toggleMem('memXc',this)"></span>
-          </div>
-          <div class="row">
-            <span class="k">OB · 浮现记忆</span>
-            <span class="switch on" id="memOb" onclick="toggleMem('memOb',this)"></span>
-          </div>
-          <div class="row">
-            <span class="k">回复后回传情绪</span>
-            <span class="switch on" id="memEvent" onclick="toggleMem('memEvent',this)"></span>
-          </div>
-          <div class="row">
-            <span class="k">本机记忆 · 存在这台设备</span>
-            <span class="switch on" id="brainOn" onclick="toggleMem('brainOn',this)"></span>
-          </div>
-          <div class="row" onclick="clearBrain()">
-            <span class="k">清空本机记忆</span>
-            <span class="v">不影响对话 ›</span>
-          </div>
-          <div class="row">
-            <span class="k">工具调用 · 他自己查与记</span>
-            <span class="switch on" id="toolsOn" onclick="toggleMem('toolsOn',this)"></span>
-          </div>
-          <div class="row">
-            <span class="k">滚动摘要 · 每 20 轮</span>
-            <span class="switch on" id="summaryOn" onclick="toggleSummary(this)"></span>
-          </div>
-          <div class="field">
-            <label>本地桥地址</label>
-            <input id="memBase" placeholder="http://127.0.0.1:18080" spellcheck="false" autocomplete="off">
-          </div>
-          <div class="row" onclick="testMemory()">
-            <span class="k">测试连接</span>
-            <span class="v" id="memTest">点一下 ›</span>
+          <div class="row" onclick="switchTab('memory')">
+            <span class="k">记忆库 · 他记得的</span>
+            <span class="v" id="memEntryCount">0 条 ›</span>
           </div>
         </div>
 
@@ -1151,14 +1270,6 @@ body.selecting .toast{bottom:150px}
           </div>
           <div class="row" onclick="document.getElementById('importFile').click()">
             <span class="k">导入备份</span>
-            <span class="v">选择文件 ›</span>
-          </div>
-          <div class="row" onclick="brainExport()">
-            <span class="k">导出记忆</span>
-            <span class="v">JSON ›</span>
-          </div>
-          <div class="row" onclick="document.getElementById('importMemFile').click()">
-            <span class="k">导入记忆</span>
             <span class="v">选择文件 ›</span>
           </div>
         </div>
@@ -1340,6 +1451,17 @@ body.selecting .toast{bottom:150px}
   </div>
 
   <div class="toast" id="toast"></div>
+
+  <div class="panel letters" id="panel-letters">
+    <div class="panel-head">
+      <button class="icon-btn" onclick="closeLetters()" aria-label="返回">
+        <svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>
+      </button>
+      <div class="ttl">未寄信<small>UNSENT</small></div>
+      <button class="save" onclick="newLetter()">写一封</button>
+    </div>
+    <div class="scroll" id="lettersView"></div>
+  </div>
 </div>
 
 <script>
@@ -1374,6 +1496,100 @@ const state = {
 };
 
 /* ================= boot ================= */
+
+/* ================= unsent letters ================= */
+const LETTER_KEY = 'daddy.letters.v1';
+function lettersLoad(){ try { return JSON.parse(localStorage.getItem(LETTER_KEY) || '[]'); } catch(e){ return []; } }
+function lettersSave(a){ try { localStorage.setItem(LETTER_KEY, JSON.stringify(a.slice(-200))); } catch(e){} }
+function fmtLDate(ts){ const d=new Date(ts); return d.getFullYear()+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+String(d.getDate()).padStart(2,'0'); }
+function updateLetterCount(){
+  const el = document.getElementById('letterSub');
+  if (!el) return;
+  const all = lettersLoad();
+  const drafts = all.filter(function(x){ return x.state !== 'sealed'; }).length;
+  el.textContent = all.length ? (all.length + ' 封 · ' + (drafts ? drafts + ' 封还没交出去' : '都封好了')) : '还没有写过';
+}
+function openLetters(){
+  document.getElementById('panel-letters').classList.add('on');
+  renderLetters();
+}
+function closeLetters(){ document.getElementById('panel-letters').classList.remove('on'); }
+function renderLetters(){
+  const box = document.getElementById('lettersView');
+  if (!box) return;
+  const all = lettersLoad().slice().reverse();
+  let html = `<div class="lett-top"><span>你写给他的，他都收着</span><span>${all.length} 封</span></div>`;
+  if (!all.length) html += `<div class="lett-empty">还没有写过。<br>那些没说出口的，可以先放在这里。</div>`;
+  html += all.map(function(l, idx){
+    const st = l.state === 'sealed' ? '已封存' : '草稿';
+    return `<button class="lett${l.state === 'sealed' ? ' sealed' : ''}" onclick="readLetter('${l.id}')">`
+      + `<span class="lt-num">[ ${String(all.length - idx).padStart(2,'0')} ] ${fmtLDate(l.ts)}</span>`
+      + `<span class="lt-st">${st}</span>`
+      + `<h3>${esc(l.title || '（没有名字）')}</h3>`
+      + `<p>${esc(String(l.body || '').replace(/\\s+/g, ' ').slice(0, 90))}</p></button>`;
+  }).join('');
+  html += `<button class="lett-new" onclick="newLetter()">+ 写一封没寄出去的信</button>`;
+  box.innerHTML = html;
+  box.scrollTop = 0;
+}
+function readLetter(id){
+  const l = lettersLoad().filter(function(x){ return x.id === id; })[0];
+  if (!l) return;
+  const box = document.getElementById('lettersView');
+  box.innerHTML = `<div class="lett-detail">`
+    + `<div class="lett-top"><span>${l.state === 'sealed' ? '已封存 · 他知道你写过' : '草稿 · 只有你看得见'}</span><span>${fmtLDate(l.ts)}</span></div>`
+    + `<h2>${esc(l.title || '（没有名字）')}</h2>`
+    + `<div class="lett-body">${esc(l.body || '')}</div>`
+    + `<div class="lett-acts">`
+    + `<button onclick="sealLetter('${l.id}')">${l.state === 'sealed' ? '收好' : '封存'}</button>`
+    + `<button onclick="newLetter('${l.id}')">改一改</button>`
+    + `<button class="danger" onclick="deleteLetter('${l.id}')">烧掉</button>`
+    + `</div>`
+    + `<button class="lett-back" onclick="renderLetters()">← 回到所有信</button></div>`;
+  box.scrollTop = 0;
+}
+function newLetter(id){
+  const l = id ? lettersLoad().filter(function(x){ return x.id === id; })[0] : { title:'', body:'' };
+  if (!l) return;
+  const box = document.getElementById('lettersView');
+  box.innerHTML = `<div class="lett-edit">`
+    + `<div class="lett-top"><span>写给 Daddy</span><span>${id ? '修改' : '新的'}</span></div>`
+    + `<input id="ltTitle" class="lt-field" maxlength="40" placeholder="给它起个名字" value="${esc(l.title || '')}">`
+    + `<textarea id="ltBody" class="lt-area" placeholder="写下来。他看不到，直到你交出去。">${esc(l.body || '')}</textarea>`
+    + `<div class="lett-acts">`
+    + `<button onclick="saveLetter('${id || ''}', false)">存成草稿</button>`
+    + `<button onclick="saveLetter('${id || ''}', true)">封存起来</button>`
+    + `</div>`
+    + `<button class="lett-back" onclick="renderLetters()">← 不写了</button></div>`;
+  box.scrollTop = 0;
+  setTimeout(function(){ const t = document.getElementById('ltBody'); if (t) t.focus(); }, 60);
+}
+function saveLetter(id, seal){
+  const t = (document.getElementById('ltTitle') || {}).value || '';
+  const b = (document.getElementById('ltBody') || {}).value || '';
+  if (!b.trim()){ toast('写点什么再存'); return; }
+  const all = lettersLoad();
+  const now = Date.now();
+  const it = id ? all.filter(function(x){ return x.id === id; })[0] : null;
+  if (it){ it.title = t.trim(); it.body = b.trim(); it.ts = now; if (seal) it.state = 'sealed'; }
+  else all.push({ id: 'l' + now.toString(36), title: t.trim(), body: b.trim(), ts: now, state: seal ? 'sealed' : 'draft' });
+  lettersSave(all); updateLetterCount(); toast(seal ? '收好了' : '存成草稿了');
+  renderLetters();
+}
+function sealLetter(id){
+  const all = lettersLoad();
+  const it = all.filter(function(x){ return x.id === id; })[0];
+  if (!it) return;
+  it.state = 'sealed'; it.sealedAt = Date.now();
+  lettersSave(all); updateLetterCount(); toast('封好了。他收着了。');
+  readLetter(id);
+}
+function deleteLetter(id){
+  if (!confirm('把这封信烧掉？')) return;
+  lettersSave(lettersLoad().filter(function(x){ return x.id !== id; }));
+  updateLetterCount(); toast('烧掉了'); renderLetters();
+}
+
 function boot(){
   const now = new Date();
   const hh = String(now.getHours()).padStart(2,'0');
@@ -1384,6 +1600,7 @@ function boot(){
   const md = document.getElementById('memDays');
   if (md) md.textContent = days;
   initPersona();
+  updateLetterCount();
   const savedBoot = loadMsgs();
   if (savedBoot){ state.chat.name = savedBoot.name || state.chat.name; state.chat.msgs = savedBoot.msgs; }
   state.chat.name = cfg.persona.name || state.chat.name;
@@ -1531,25 +1748,30 @@ function renderChat(){
     t.className = 'turn ' + m.role;
     t.dataset.i = i;
     if (m.role === 'user'){
-      t.innerHTML = '<div class="bubble">' + esc(m.text) + '</div>'
-        + (m.time ? '<div class="stamp">' + m.time + '</div>' : '')
+      t.innerHTML = '<div class="body">'
+        + '<div class="bubble">' + esc(m.text) + '</div>'
+        + '<div class="meta">'
+        + (m.time ? '<span class="stamp">' + m.time + '</span>' : '')
         + '<div class="acts">'
         + '<button class="act" aria-label="复制" onclick="copyTurn(' + i + ')">' + ICONS.copy + '</button>'
         + '<button class="act" aria-label="编辑" onclick="openEditor(' + i + ')">' + ICONS.pencil + '</button>'
         + '<button class="act" aria-label="更多" onclick="openSheet(' + i + ')">' + ICONS.more + '</button>'
-        + '</div>';
+        + '</div></div></div>'
+        + '<div class="avatar me ava-sm"></div>';
     } else {
       let html = toolsHTML(m) + thinkHTML(m, i);
       aiSegments(m).forEach(function(seg, k){ html += segHTML(seg, k); });
       if (m.error) html += '<div class="bubble err">' + esc(m.error) + '</div>';
       if (m.pending && !html) html = '<div class="typing"><i></i><i></i><i></i></div>';
-      html += '<div class="acts">'
+      html += '<div class="meta">'
+        + (m.time ? '<span class="stamp">' + m.time + '</span>' : '')
+        + '<div class="acts">'
         + '<button class="act" aria-label="复制" onclick="copyTurn(' + i + ')">' + ICONS.copy + '</button>'
         + '<button class="act" id="regen' + i + '" aria-label="重新生成" onclick="regen(' + i + ')">' + ICONS.regen + '</button>'
         + '<button class="act" id="play' + i + '" aria-label="朗读" onclick="togglePlay(' + i + ')">' + ICONS.speak + '</button>'
         + '<button class="act" aria-label="更多" onclick="openSheet(' + i + ')">' + ICONS.more + '</button>'
-        + '</div>';
-      t.innerHTML = html;
+        + '</div></div>';
+      t.innerHTML = '<div class="avatar him ava-sm"></div><div class="body">' + html + '</div>';
     }
     if (selMode){
       t.classList.add('sel');
@@ -2640,35 +2862,80 @@ function pickMemChip(el){
   document.querySelectorAll('#memChips .chip').forEach(function(c){ c.classList.toggle('on', c === el); });
   renderBrainList();
 }
+const MEM_UNDO = [];
+function shortTitle(t){
+  const s = String(t || '').replace(/[*\[\]]/g, '').replace(/\s+/g, ' ').trim();
+  const cut = s.split(/[。！？!?；;，,、]/)[0] || s;
+  return cut.slice(0, 18);
+}
+function toggleMemForm(open){
+  const f = document.getElementById('memForm');
+  if (!f) return;
+  f.hidden = (typeof open === 'boolean') ? !open : !f.hidden;
+  if (!f.hidden){ const t = document.getElementById('mfTitle'); if (t) t.focus(); }
+}
+function pickMemKind(el){
+  document.querySelectorAll('#mfKinds button').forEach(function(x){ x.classList.toggle('on', x === el); });
+}
+function saveMemForm(ev){
+  if (ev) ev.preventDefault();
+  const t = document.getElementById('mfTitle'), bd = document.getElementById('mfBody');
+  const title = t ? t.value.trim() : '', body = bd ? bd.value.trim() : '';
+  const on = document.querySelector('#mfKinds button.on');
+  const kind = (on && on.dataset.k) || 'fact';
+  if (!title || !body){ toast('名字和细节都要写一点'); return; }
+  const b = brainLoad();
+  b.items.push({ id: 'm' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), kind: kind, text: body, title: title, ts: Date.now(), weight: 7 });
+  brainSave();
+  if (t) t.value = ''; if (bd) bd.value = '';
+  renderBrainList(); toggleMemForm(false); toast('留住了');
+}
+function removeBrain(id){
+  const b = brainLoad();
+  const i = b.items.findIndex(function(x){ return x.id === id; });
+  if (i < 0) return;
+  const item = b.items[i];
+  b.items.splice(i, 1);
+  b.items.forEach(function(x){ if (x.supersededBy === id) x.supersededBy = ''; });
+  MEM_UNDO.push(item);
+  brainSave(); renderBrainList(); toast('已移除，可以撤销');
+}
 function renderBrainList(){
   const tl = document.getElementById('tl');
   if (!tl) return;
+  const qEl = document.getElementById('memSearch');
+  const q = ((qEl && qEl.value) || '').trim().toLowerCase();
   const raw = brainLoad().items.filter(function(x){ return !x.revoked; }).slice().reverse();
-  const all = raw.filter(function(x){ return x.pin; }).concat(raw.filter(function(x){ return !x.pin; }));
-  const list = !brainKind ? all : (brainKind === 'open'
-    ? all.filter(function(x){ return x.kind === 'promise' && !x.done; })
-    : all.filter(function(x){ return x.kind === brainKind; }));
+  const ordered = raw.filter(function(x){ return x.pin; }).concat(raw.filter(function(x){ return !x.pin; }));
+  let list = !brainKind ? ordered
+    : (brainKind === 'open'
+      ? ordered.filter(function(x){ return x.kind === 'promise' && !x.done; })
+      : ordered.filter(function(x){ return x.kind === brainKind; }));
+  if (q) list = list.filter(function(x){ return (((x.title || '') + ' ' + (x.text || '')).toLowerCase().indexOf(q) >= 0); });
+  paintBrainStats();
   if (!list.length){
-    tl.innerHTML = '<div class="tl-empty">' + (all.length
-      ? '这一类，他还没记下。'
-      : '他还没记下什么。<br>你们聊的时候，重要的会留在这里。') + '</div>';
-    paintBrainStats();
+    const empty = raw.length ? (q ? '这一句，还没找到。' : '这一类，他还没记下。') : '有些片刻很轻，却值得留很久。';
+    const hint = raw.length ? (q ? '换一个词再试试。' : '切回「全部」看看。') : '从「留下一刻」开始。';
+    tl.innerHTML = '<div class="mem-empty">' + empty + '<small>' + hint + '</small></div>';
     return;
   }
-  tl.innerHTML = list.slice(0, 80).map(function(x){
+  tl.innerHTML = list.slice(0, 100).map(function(x){
     const d = new Date(x.ts);
-    const wd = ['周日','周一','周二','周三','周四','周五','周六'][d.getDay()];
-    const dead = x.revoked ? ' revoked' : (x.supersededBy ? ' superseded' : '');
-    const tag = x.revoked ? '已撤回' : (x.supersededBy ? '已被更新' : (x.done ? '已结束' : (BRAIN_LABEL[x.kind] || '事实')));
-    return '<div class="tl-item' + dead + '">'
-      + '<div class="tl-date">' + (d.getMonth() + 1) + '.' + d.getDate() + '<br>' + wd + '</div>'
-      + '<div class="tl-body"><div class="tl-kind">' + tag + '</div>'
-      + '<div class="tl-text">' + esc(x.text) + '</div></div>'
-      + '<button class="tl-pin' + (x.pin ? ' on' : '') + '" onclick="event.stopPropagation();togglePin(\'' + x.id + '\')">✦</button>'
-      + '</div>';
+    const date = d.getFullYear() + '.' + String(d.getMonth() + 1).padStart(2, '0') + '.' + String(d.getDate()).padStart(2, '0');
+    const flags = [];
+    if (x.pin) flags.push('置顶');
+    if (x.supersededBy) flags.push('已被更新');
+    if (x.done) flags.push('已结束');
+    if (x.kind === 'promise' && !x.done) flags.push('未结束');
+    return '<article class="mem-card' + (x.pin ? ' pinned' : '') + '">'
+      + '<div class="mem-time">' + date + (flags.length ? ' / ' + flags.join(' / ') : '') + '</div>'
+      + '<h2>' + esc(x.title || shortTitle(x.text)) + '</h2>'
+      + '<p>' + esc(x.text) + '</p>'
+      + '<footer><button onclick="togglePin(\'' + x.id + '\')">' + (x.pin ? '取消置顶' : '置顶') + '</button>'
+      + '<button onclick="removeBrain(\'' + x.id + '\')">移除</button></footer></article>';
   }).join('');
-  paintBrainStats();
 }
+
 function applyReading(save){
   const sz = document.getElementById('rdSize'), lh = document.getElementById('rdLh'), gp = document.getElementById('rdGap');
   if (!sz) return;
@@ -2683,18 +2950,19 @@ function applyReading(save){
   set('rdSizeV', r.size); set('rdLhV', r.lh); set('rdGapV', r.gap);
 }
 function brainUndo(){
+  const item = MEM_UNDO.pop();
+  if (!item){ toast('没有可撤销的'); return; }
   const b = brainLoad();
-  for (let i = b.items.length - 1; i >= 0; i--){
-    if (!b.items[i].pin){ const t = b.items[i].text; b.items.splice(i, 1); brainSave(); paintBrainStats(); toast('撤销：' + t.slice(0, 14)); return; }
-  }
-  toast('没有可撤销的');
+  if (!b.items.some(function(x){ return x.id === item.id; })) b.items.push(item);
+  brainSave(); renderBrainList(); toast('已撤销');
 }
+
 function togglePin(id){
   const b = brainLoad();
   const it = b.items.filter(function(x){ return x.id === id; })[0];
   if (!it) return;
   it.pin = !it.pin;
-  brainSave(); paintBrainStats();
+  brainSave(); renderBrainList();
   toast(it.pin ? '已置顶' : '取消置顶');
 }
 function paintBrainStats(){
@@ -2703,6 +2971,9 @@ function paintBrainStats(){
   set('mCount', items.length);
   set('mPlan', items.filter(function(x){ return x.kind === 'promise' && !x.done; }).length);
   set('mClue', items.filter(function(x){ return x.kind === 'clue'; }).length);
+  const days = Math.floor((Date.now() - DEFAULT_START) / 86400000) + 1;
+  set('memDaysTop', '第 ' + days + ' 天');
+  set('memEntryCount', items.length + ' 条 ›');
 }
 function clearBrain(){
   if (!confirm('清空这台设备上的记忆？对话记录不受影响。')) return;
@@ -2885,7 +3156,8 @@ function paintTurn(i){
   let html = toolsHTML(m) + thinkHTML(m, i);
   aiSegments(m).forEach(function(seg, k){ html += segHTML(seg, k); });
   if (!html) html = '<div class="typing"><i></i><i></i><i></i></div>';
-  t.innerHTML = html;
+  const body = t.querySelector('.body') || t;
+  body.innerHTML = html;
   const box = document.getElementById('msgs');
   box.scrollTop = box.scrollHeight;
 }
