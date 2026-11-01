@@ -2789,7 +2789,7 @@ function memLive(){ return brainLoad().items.filter(function(x){ return !x.revok
 function memStatus(x){
   if (x.supersededBy) return '已被更新';
   if (x.done) return memKindOf(x) === 'scene' ? '已沉底' : '已归档';
-  if (x.kind === 'promise') return '未了';
+  if (x.kind === 'promise') return '约定';
   if (memKindOf(x) === 'pref') return '偏好';
   return memKindOf(x) === 'scene' ? '可浮现' : '正在使用';
 }
@@ -2832,10 +2832,10 @@ function paintMemHead(){
   if (seg) seg.querySelectorAll('button').forEach(function(b){ b.classList.toggle('on', b.dataset.t === memType); });
   const base = all.filter(function(x){ return memKindOf(x) === memType; });
   const defs = memType === 'scene'
-    ? [['all','全部'],['live','可浮现'],['sunk','已沉底'],['fav','舍不得'],['open','未了']]
+    ? [['all','全部'],['live','可浮现'],['sunk','已沉底'],['fav','舍不得丢'],['open','约定']]
     : memType === 'event'
-      ? [['all','正在使用'],['arch','已归档'],['fav','舍不得']]
-      : [['all','全部'],['fav','舍不得']];
+      ? [['all','正在使用'],['arch','已归档'],['fav','舍不得丢']]
+      : [['all','全部'],['fav','舍不得丢']];
   const chips = document.getElementById('memChips');
   if (chips) chips.innerHTML = defs.map(function(d){
     const n = memCountFor(base, d[0]);
