@@ -10,8 +10,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Caeruleus</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-<link href="https://cdn.jsdelivr.net/npm/@fontsource/cormorant-garamond@5/400.min.css" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/@fontsource/cormorant-garamond@5/500.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@fontsource/cormorant-garamond@5/400.min.css" rel="stylesheet" media="print" onload="this.media='all'" onerror="this.remove()">
+<link href="https://cdn.jsdelivr.net/npm/@fontsource/cormorant-garamond@5/500.min.css" rel="stylesheet" media="print" onload="this.media='all'" onerror="this.remove()">
 <style>
 :root{
   --bg:#05080a;
@@ -664,6 +664,17 @@ body.selecting .turn.on .bubble{outline:1px solid rgba(127,214,232,.4);outline-o
   white-space:pre-wrap;word-break:break-word;
 }
 .think.open .tb{display:block}
+#screen-memory .mem-search{
+  display:none;align-items:center;gap:9px;margin:0 16px 12px;padding:10px 14px;
+  border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);
+}
+#screen-memory .mem-search.on{display:flex}
+#screen-memory .mem-search svg{width:14px;height:14px;stroke:rgba(255,255,255,.4);fill:none;stroke-width:1.7;flex:none}
+#screen-memory .mem-search input{
+  flex:1;font-size:13px;background:none;border:0;color:#eee;padding:1px 0;
+}
+#screen-memory .mem-search input::placeholder{color:rgba(255,255,255,.28)}
+
 /* ============ sheet / toast ============ */
 .sheet-mask{
   position:absolute;inset:0;z-index:80;background:rgba(0,0,0,.5);
@@ -969,7 +980,7 @@ body.selecting .toast{bottom:150px}
           <button class="icon-btn" onclick="brainUndo()" title="撤销上一条">
             <svg viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg>
           </button>
-          <button class="icon-btn" onclick="toast('搜索记忆')">
+          <button class="icon-btn" onclick="toggleMemSearch()">
             <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5L21 21"/></svg>
           </button>
         </div>
@@ -985,6 +996,11 @@ body.selecting .toast{bottom:150px}
           </div>
         </div>
 
+        <div class="mem-search" id="memSearchBar">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5L21 21"/></svg>
+          <input id="memSearch" placeholder="找一件他记得的事…" autocomplete="off" oninput="brainQuery=this.value.trim();renderBrainList()">
+        </div>
+
         <div class="chips-row" style="padding-bottom:12px" id="memChips">
           <button class="chip on" data-k="" onclick="pickMemChip(this)">全部</button>
           <button class="chip" data-k="fact" onclick="pickMemChip(this)">事实</button>
@@ -995,6 +1011,34 @@ body.selecting .toast{bottom:150px}
         </div>
 
         <div class="tl" id="tl"></div>
+
+        <div class="group-label" style="margin-top:22px">记忆设置</div>
+        <div class="group">
+          <div class="row">
+            <span class="k">本机记忆 · 存在这台设备</span>
+            <span class="switch on" id="brainOn" onclick="toggleMem('brainOn',this)"></span>
+          </div>
+          <div class="row">
+            <span class="k">工具调用 · 他自己查与记</span>
+            <span class="switch on" id="toolsOn" onclick="toggleMem('toolsOn',this)"></span>
+          </div>
+          <div class="row">
+            <span class="k">滚动摘要 · 每 20 轮</span>
+            <span class="switch on" id="summaryOn" onclick="toggleSummary(this)"></span>
+          </div>
+          <div class="row" onclick="clearBrain()">
+            <span class="k">清空本机记忆</span>
+            <span class="v">不影响对话 ›</span>
+          </div>
+          <div class="row" onclick="brainExport()">
+            <span class="k">导出记忆</span>
+            <span class="v">JSON ›</span>
+          </div>
+          <div class="row" onclick="document.getElementById('importMemFile').click()">
+            <span class="k">导入记忆</span>
+            <span class="v">选择文件 ›</span>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -1095,74 +1139,6 @@ body.selecting .toast{bottom:150px}
           </div>
         </div>
 
-        <div class="group-label">MCP 本地连接</div>
-        <div class="group">
-          <div class="mcp"><span class="dot"></span><span class="nm">ob · 长期记忆</span><span class="st">已连接</span></div>
-          <div class="mcp"><span class="dot"></span><span class="nm">lc · 设备与日程</span><span class="st">已连接</span></div>
-          <div class="mcp"><span class="dot off"></span><span class="nm">filesystem · 本地文件</span><span class="st">未启用</span></div>
-          <div class="mcp" style="color:rgba(255,255,255,.45)"><span class="nm">＋ 添加服务</span></div>
-        </div>
-
-        <div class="group-label">记忆 · 本地</div>
-        <div class="group">
-          <div class="row">
-            <span class="k">心潮 · 此刻</span>
-            <span class="switch on" id="memXc" onclick="toggleMem('memXc',this)"></span>
-          </div>
-          <div class="row">
-            <span class="k">OB · 浮现记忆</span>
-            <span class="switch on" id="memOb" onclick="toggleMem('memOb',this)"></span>
-          </div>
-          <div class="row">
-            <span class="k">回复后回传情绪</span>
-            <span class="switch on" id="memEvent" onclick="toggleMem('memEvent',this)"></span>
-          </div>
-          <div class="row">
-            <span class="k">本机记忆 · 存在这台设备</span>
-            <span class="switch on" id="brainOn" onclick="toggleMem('brainOn',this)"></span>
-          </div>
-          <div class="row" onclick="clearBrain()">
-            <span class="k">清空本机记忆</span>
-            <span class="v">不影响对话 ›</span>
-          </div>
-          <div class="row">
-            <span class="k">工具调用 · 他自己查与记</span>
-            <span class="switch on" id="toolsOn" onclick="toggleMem('toolsOn',this)"></span>
-          </div>
-          <div class="row">
-            <span class="k">滚动摘要 · 每 20 轮</span>
-            <span class="switch on" id="summaryOn" onclick="toggleSummary(this)"></span>
-          </div>
-          <div class="field">
-            <label>本地桥地址</label>
-            <input id="memBase" placeholder="http://127.0.0.1:18080" spellcheck="false" autocomplete="off">
-          </div>
-          <div class="row" onclick="testMemory()">
-            <span class="k">测试连接</span>
-            <span class="v" id="memTest">点一下 ›</span>
-          </div>
-        </div>
-
-        <div class="group-label">数据</div>
-        <div class="group">
-          <div class="row" onclick="exportBackup()">
-            <span class="k">导出备份</span>
-            <span class="v">JSON ›</span>
-          </div>
-          <div class="row" onclick="document.getElementById('importFile').click()">
-            <span class="k">导入备份</span>
-            <span class="v">选择文件 ›</span>
-          </div>
-          <div class="row" onclick="brainExport()">
-            <span class="k">导出记忆</span>
-            <span class="v">JSON ›</span>
-          </div>
-          <div class="row" onclick="document.getElementById('importMemFile').click()">
-            <span class="k">导入记忆</span>
-            <span class="v">选择文件 ›</span>
-          </div>
-        </div>
-
         <div class="group-label">他</div>
         <div class="group">
           <div class="row" onclick="openPersona()">
@@ -1177,8 +1153,14 @@ body.selecting .toast{bottom:150px}
 
         <div class="group-label">数据</div>
         <div class="group">
-          <div class="row"><span class="k">导出全部数据</span><span class="v">JSON</span></div>
-          <div class="row"><span class="k">导入</span><span class="v">兼容旧库</span></div>
+          <div class="row" onclick="exportBackup()">
+            <span class="k">导出备份</span>
+            <span class="v">JSON ›</span>
+          </div>
+          <div class="row" onclick="document.getElementById('importFile').click()">
+            <span class="k">导入备份</span>
+            <span class="v">选择文件 ›</span>
+          </div>
         </div>
       </div>
     </section>
@@ -1726,7 +1708,7 @@ function toggleTtsAuto(el){
 }
 
 const CFG_STORE = 'daddy.cfg.v1';
-const cfg = Object.assign({ base:'', key:'', model:'deepseek-v4.1-flash', history:24, fallbacks:[], brainOn:true, brainUse:6, memXc:true, memOb:true, memEvent:true, memBase:'', toolsOn:true, summaryOn:true, summaryEvery:20, ttsUrl:'https://api.elevenlabs.io/v1', ttsKey:'', ttsModel:'eleven_v4', ttsAuto:true, voice:'TZF5Z996m1MjVz76PFoH' }, (function(){
+const cfg = Object.assign({ base:'', key:'', model:'deepseek-v4.1-flash', history:24, fallbacks:[], brainOn:true, brainUse:6, memXc:false, memOb:false, memEvent:false, memBase:'', toolsOn:true, summaryOn:true, summaryEvery:20, ttsUrl:'https://api.elevenlabs.io/v1', ttsKey:'', ttsModel:'eleven_v4', ttsAuto:true, voice:'TZF5Z996m1MjVz76PFoH' }, (function(){
   try { return JSON.parse(localStorage.getItem(CFG_STORE) || '{}'); } catch (e) { return {}; }
 })());
 
@@ -1738,6 +1720,8 @@ const PERSONA_DEF = {
   strict: 68
 };
 cfg.persona = Object.assign({}, PERSONA_DEF, cfg.persona || {});
+// 外部记忆服务（心潮 / Ombre Brain）已从界面移除：不再读取、不再连接。
+cfg.memXc = false; cfg.memOb = false; cfg.memEvent = false; cfg.memBase = '';
 
 function saveCfg(){
   try { localStorage.setItem(CFG_STORE, JSON.stringify(cfg)); } catch (e) {}
@@ -2640,18 +2624,28 @@ function pickMemChip(el){
   document.querySelectorAll('#memChips .chip').forEach(function(c){ c.classList.toggle('on', c === el); });
   renderBrainList();
 }
+let brainQuery = '';
+function toggleMemSearch(){
+  const bar = document.getElementById('memSearchBar');
+  if (!bar) return;
+  const on = bar.classList.toggle('on');
+  const inp = document.getElementById('memSearch');
+  if (on){ setTimeout(function(){ inp.focus(); }, 80); }
+  else { if (inp) inp.value = ''; brainQuery = ''; renderBrainList(); }
+}
 function renderBrainList(){
   const tl = document.getElementById('tl');
   if (!tl) return;
   const raw = brainLoad().items.filter(function(x){ return !x.revoked; }).slice().reverse();
   const all = raw.filter(function(x){ return x.pin; }).concat(raw.filter(function(x){ return !x.pin; }));
-  const list = !brainKind ? all : (brainKind === 'open'
+  let list = !brainKind ? all : (brainKind === 'open'
     ? all.filter(function(x){ return x.kind === 'promise' && !x.done; })
     : all.filter(function(x){ return x.kind === brainKind; }));
+  if (brainQuery) list = list.filter(function(x){ return String(x.text || '').toLowerCase().indexOf(brainQuery.toLowerCase()) >= 0; });
   if (!list.length){
-    tl.innerHTML = '<div class="tl-empty">' + (all.length
-      ? '这一类，他还没记下。'
-      : '他还没记下什么。<br>你们聊的时候，重要的会留在这里。') + '</div>';
+    tl.innerHTML = '<div class="tl-empty">' + (brainQuery
+      ? '没有找到关于「' + esc(brainQuery) + '」的事。'
+      : (all.length ? '这一类，他还没记下。' : '他还没记下什么。<br>你们聊的时候，重要的会留在这里。')) + '</div>';
     paintBrainStats();
     return;
   }
