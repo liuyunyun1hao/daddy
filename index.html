@@ -1111,20 +1111,12 @@ body.selecting .toast{bottom:150px}
             <span class="v">OpenCode Go</span>
           </div>
           <div class="field">
-            <label>API 地址</label>
-            <input id="apiBase" placeholder="留空 = 用内置代理地址" spellcheck="false" autocomplete="off">
-          </div>
-          <div class="field">
             <label>API Key</label>
             <input id="apiKey" type="password" placeholder="oc_ 开头的 Key" spellcheck="false" autocomplete="off">
           </div>
           <div class="field">
             <label>模型</label>
-            <select id="modelSel" class="sel"></select>
-          </div>
-          <div class="row" onclick="openModels('fallback')">
-            <span class="k">兜底模型</span>
-            <span class="v" id="fbCount">未设置 ›</span>
+            <select id="modelSel" class="sel"><option value="deepseek-v4.1-flash">DeepSeek V4.1 Flash</option></select>
           </div>
           <div class="field">
             <label>上下文条数</label>
@@ -1767,6 +1759,10 @@ const cfg = Object.assign({ base:'', key:'', model:'deepseek-v4.1-flash', histor
   try { return JSON.parse(localStorage.getItem(CFG_STORE) || '{}'); } catch (e) { return {}; }
 })());
 
+// 只走内置代理；兜底链不在界面里出现，也确保不残留旧配置
+cfg.base = '';
+cfg.fallbacks = [];
+
 const PERSONA_DEF = {
   name: 'Daddy',
   text: '三十四岁，做建筑。话少，声音低，习惯先听完再开口。\n\n他不说「我爱你」，只用做的。',
@@ -2094,7 +2090,6 @@ async function refreshUsage(manual){
   if (!cfg.key){
     if (timeEl) timeEl.textContent = '未填 Key';
     if (rowEl) rowEl.textContent = '未填 Key';
-    if (ucard) ucard.classList.add('mini');
     if (manual) toast('先去设置里填 OpenCode Go 的 Key');
     return;
   }
