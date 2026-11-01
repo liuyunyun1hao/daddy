@@ -241,21 +241,21 @@ input,textarea{font-family:inherit;color:inherit;background:none;border:0;outlin
 /* ============ chat ============ */
 #screen-chat{padding-top:2px}
 .chat-header{
-  position:relative;display:flex;align-items:center;justify-content:center;
-  padding:6px 56px 13px;
+  position:relative;display:flex;align-items:center;justify-content:flex-start;gap:10px;
+  padding:6px 14px 13px;
   flex:0 0 auto;
   border-bottom:1px solid rgba(255,255,255,.055);
   margin-bottom:5px;
 }
 .chat-header .back{
-  position:absolute;left:6px;top:50%;transform:translateY(-50%);
-  width:34px;height:34px;border-radius:50%;display:grid;place-items:center;
+  position:static;margin-left:-4px;
+  width:34px;height:34px;border-radius:50%;display:grid;place-items:center;flex:none;
   color:rgba(255,255,255,.8);
 }
 .chat-header .back svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-.who{flex:0 1 auto;min-width:0;text-align:center}
+.who{flex:1;min-width:0;text-align:left}
 .who .name{font-size:16.5px;font-weight:500;letter-spacing:.02em;display:flex;align-items:center;gap:7px}
-.who .sub{font-size:10.5px;color:var(--faint);margin-top:4px;letter-spacing:.08em;display:flex;align-items:center;justify-content:center;gap:6px}
+.who .sub{font-size:10.5px;color:var(--faint);margin-top:4px;letter-spacing:.08em;display:flex;align-items:center;justify-content:flex-start;gap:6px}
 .live-dot{width:5px;height:5px;border-radius:50%;background:var(--live);box-shadow:0 0 9px var(--live);animation:pulse 2.6s infinite}
 .actline{display:flex;align-items:center;justify-content:center;gap:7px;padding:7px 0 1px;font-size:10.5px;letter-spacing:.05em;color:rgba(255,255,255,.28);animation:rise .4s ease both}
 .actline .g{color:rgba(220,198,168,.5);font-size:10px}
@@ -274,8 +274,8 @@ input,textarea{font-family:inherit;color:inherit;background:none;border:0;outlin
 .watch-chip svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:1.6}
 
 .scene{
-  display:flex;align-items:center;justify-content:center;gap:6px;
-  padding:2px 20px 10px;font-size:10px;color:rgba(255,255,255,.26);letter-spacing:.08em;
+  display:flex;align-items:center;justify-content:flex-start;gap:6px;
+  padding:2px 22px 10px;font-size:10px;color:rgba(255,255,255,.26);letter-spacing:.08em;
   flex:0 0 auto;
 }
 .scene .sp{color:var(--accent);font-size:11px;opacity:.8}
@@ -530,7 +530,7 @@ body.selecting .turn.on .bubble{outline:1px solid rgba(127,214,232,.4);outline-o
 .rel-grid{display:flex;gap:0;margin-top:15px;padding-top:14px;border-top:1px solid rgba(255,255,255,.07)}
 .rel-grid div{flex:1;text-align:center;border-right:1px solid rgba(255,255,255,.07)}
 .rel-grid div:last-child{border:0}
-.rel-grid b{display:block;font-size:15px;font-weight:500;font-family:var(--serif)}
+.rel-grid b{display:block;font-size:15px;font-weight:500;font-family:ui-sans-serif,-apple-system,"PingFang SC",sans-serif;font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
 .rel-grid span{font-size:9.5px;color:var(--ghost);letter-spacing:.08em}
 
 .tl{padding:0 16px}
@@ -558,6 +558,12 @@ body.selecting .turn.on .bubble{outline:1px solid rgba(127,214,232,.4);outline-o
 .tl-kind{font-size:9px;letter-spacing:.14em;color:rgba(220,198,168,.8);text-transform:uppercase;margin-bottom:4px}
 .tl-text{font-size:13px;line-height:1.65;color:rgba(236,236,236,.86)}
 .tl-text.serif{font-family:var(--serif);font-style:italic}
+
+/* ============ ctx bar ============ */
+.ctxbar{
+  flex:0 0 auto;padding:0 22px 7px;font-size:9.5px;letter-spacing:.07em;
+  color:rgba(255,255,255,.24);text-align:right;font-variant-numeric:tabular-nums;
+}
 
 /* ============ recent ============ */
 .recent{
@@ -605,6 +611,11 @@ body.selecting .turn.on .bubble{outline:1px solid rgba(127,214,232,.4);outline-o
   cursor:pointer;-webkit-tap-highlight-color:transparent;
 }
 .group-label{border-top:1px solid rgba(255,255,255,.045)}
+.group-label.folded{
+  background:rgba(255,255,255,.032);border-radius:13px;border-top:0;
+  margin:9px 16px 0;padding:15px 16px 15px 17px;
+}
+.group-label.folded:active{background:rgba(255,255,255,.06)}
 .page-head + .group-label{border-top:0}
 .group-label:active{background:rgba(255,255,255,.02)}
 .group-label .lt{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -799,13 +810,13 @@ body.selecting .toast{bottom:150px}
 }
 .danger-btn:active{background:rgba(224,138,138,.14)}
 
-/* ── Tidal 式居中头部：返回/更多绝对定位，不参与流式布局 ── */
+/* ── 左对齐头部：返回在左，名字紧随，更多靠右 ── */
 .chat-header .back{
-  position:absolute;left:4px;top:50%;transform:translateY(-50%);
-  margin:0;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;
+  position:static;left:auto;top:auto;transform:none;
+  margin:0 0 0 -6px;width:32px;height:32px;border-radius:50%;display:grid;place-items:center;
 }
 .chat-header .icon-btn{
-  position:absolute;right:6px;top:50%;transform:translateY(-50%);
+  position:static;margin-left:auto;
   width:34px;height:34px;border:0;background:none;
 }
 .chat-header .icon-btn:active{background:rgba(255,255,255,.06)}
@@ -930,6 +941,8 @@ body.selecting .toast{bottom:150px}
       </div>
 
       <div class="msgs" id="msgs"></div>
+
+      <div class="ctxbar" id="ctxBar">上下文 12k tok</div>
 
       <div class="composer">
         <div class="composer-inner">
@@ -1104,7 +1117,7 @@ body.selecting .toast{bottom:150px}
           </div>
         </div>
 
-        <div class="group-label" onclick="foldSec(this)"><span class="lt">模型 · OpenCode Go</span><span class="fv" id="foldModelV">DeepSeek V4.1 Flash</span><svg class="fa" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></div>
+        <div class="group-label folded" onclick="foldSec(this)"><span class="lt">模型 · OpenCode Go</span><span class="fv" id="foldModelV">DeepSeek V4.1 Flash</span><svg class="fa" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></div>
         <div class="group">
           <div class="row">
             <span class="k">供应商</span>
@@ -1119,13 +1132,12 @@ body.selecting .toast{bottom:150px}
             <select id="modelSel" class="sel"><option value="deepseek-v4.1-flash">DeepSeek V4.1 Flash</option></select>
           </div>
           <div class="field">
-            <label>上下文条数</label>
-            <select id="ctxSel" class="sel">
-              <option value="12">12 条 · 更省额度</option>
-              <option value="24">24 条 · 默认</option>
-              <option value="40">40 条</option>
-              <option value="60">60 条 · 记得更多</option>
-            </select>
+            <label>上下文 · 按 token</label>
+            <input id="ctxTok" type="number" inputmode="numeric" min="2000" max="200000" step="1000" value="12000" spellcheck="false" autocomplete="off">
+          </div>
+          <div class="row">
+            <span class="k">上次请求</span>
+            <span class="v" id="ctxUsage">—</span>
           </div>
           <div class="row" onclick="refreshUsage(true)">
             <span class="k">额度</span>
@@ -1755,7 +1767,7 @@ function toggleTtsAuto(el){
 }
 
 const CFG_STORE = 'daddy.cfg.v1';
-const cfg = Object.assign({ base:'', key:'', model:'deepseek-v4.1-flash', history:24, fallbacks:[], brainOn:true, brainUse:6, memXc:false, memOb:false, memEvent:false, memBase:'', toolsOn:true, summaryOn:true, summaryEvery:20, ttsUrl:'https://api.elevenlabs.io/v1', ttsKey:'', ttsModel:'eleven_v4', ttsAuto:true, voice:'TZF5Z996m1MjVz76PFoH' }, (function(){
+const cfg = Object.assign({ base:'', key:'', model:'deepseek-v4.1-flash', history:24, ctxTokens:12000, fallbacks:[], brainOn:true, brainUse:6, memXc:false, memOb:false, memEvent:false, memBase:'', toolsOn:true, summaryOn:true, summaryEvery:20, ttsUrl:'https://api.elevenlabs.io/v1', ttsKey:'', ttsModel:'eleven_v4', ttsAuto:true, voice:'TZF5Z996m1MjVz76PFoH' }, (function(){
   try { return JSON.parse(localStorage.getItem(CFG_STORE) || '{}'); } catch (e) { return {}; }
 })());
 
@@ -2141,11 +2153,17 @@ function initApi(){
   if (sel){
     sel.addEventListener('change', function(){ cfg.model = sel.value; saveCfg(); paintChip(); paintFbCount(); });
   }
-  const ctx = document.getElementById('ctxSel');
+  const ctx = document.getElementById('ctxTok');
   if (ctx){
-    ctx.value = String(cfg.history || 24);
-    ctx.addEventListener('change', function(){ cfg.history = Number(ctx.value) || 24; saveCfg(); toast('上下文 ' + cfg.history + ' 条'); });
+    ctx.value = String(cfg.ctxTokens || 12000);
+    ctx.addEventListener('change', function(){
+      const n = Math.max(2000, Math.min(200000, Number(ctx.value) || 12000));
+      cfg.ctxTokens = n; ctx.value = String(n); saveCfg();
+      paintCtxBar();
+      toast('上下文 ' + fmtTok(n) + ' tok');
+    });
   }
+  paintCtxBar();
   const mb = document.getElementById('memBase');
   if (mb){
     mb.value = cfg.memBase || '';
@@ -2846,6 +2864,45 @@ function brainOpenBlock(){
   return parts.length ? ('\n\n' + parts.join('\n\n')) : '';
 }
 
+let NO_STREAM_USAGE = false;
+
+function estTokens(str){
+  const t = String(str || '');
+  if (!t) return 0;
+  const cjk = (t.match(/[\u3040-\u30FF\u3400-\u9FFF\uAC00-\uD7AF\uFF00-\uFFEF]/g) || []).length;
+  return Math.round(cjk * 1.02 + (t.length - cjk) / 3.9) + 1;
+}
+function fmtTok(n){
+  n = Number(n) || 0;
+  return n >= 1000 ? (Math.round(n / 100) / 10).toFixed(1).replace(/\.0$/, '') + 'k' : String(n);
+}
+function paintCtxBar(){
+  const bar = document.getElementById('ctxBar');
+  const row = document.getElementById('ctxUsage');
+  const budget = Number(cfg.ctxTokens) || 12000;
+  const u = state.lastUsage;
+  let barTxt = '上下文 ' + fmtTok(budget) + ' tok';
+  let rowTxt = '—';
+  if (u && u.prompt){
+    const hit = Math.round((u.cached || 0) / u.prompt * 100);
+    barTxt = fmtTok(u.prompt) + ' / ' + fmtTok(budget) + ' tok · 缓存 ' + hit + '%';
+    rowTxt = fmtTok(u.prompt) + ' tok · 缓存 ' + fmtTok(u.cached || 0) + ' tok（' + hit + '%）';
+  }
+  if (bar) bar.textContent = barTxt;
+  if (row) row.textContent = rowTxt;
+}
+function useUsage(u){
+  if (!u || !u.prompt_tokens) return;
+  state.lastUsage = {
+    prompt: u.prompt_tokens,
+    cached: (u.prompt_tokens_details && u.prompt_tokens_details.cached_tokens) || 0,
+    completion: u.completion_tokens || 0,
+    reasoning: (u.completion_tokens_details && u.completion_tokens_details.reasoning_tokens) || 0,
+    cost: (u.opencode && u.opencode.list_cost) || u.cost || 0
+  };
+  paintCtxBar();
+}
+
 function buildMessages(upTo){
   const P = cfg.persona;
   const nm = P.name || 'Daddy';
@@ -2888,11 +2945,25 @@ function buildMessages(upTo){
     + (RECALL ? ('\n\n[WHAT YOU REMEMBER RIGHT NOW — these are your own memories and your current inner state. Let them colour how you answer. Never list them, never quote them as data, never say "I remember that...".]\n' + RECALL) : '')
     + (cfg.brainOn ? brainOpenBlock() : '')
     + (cfg.toolsOn ? TOOL_PROMPT : '');
-  const hist = state.chat.msgs.slice(0, upTo === undefined ? state.chat.msgs.length : upTo)
-    .filter(m => m.role !== 'sys' && (m.text || m.lines))
-    .slice(-(Number(cfg.history) || 24))
-    .map(m => ({ role: m.role === 'user' ? 'user' : 'assistant', content: msgText(m) }));
-  return [{ role:'system', content: sys }].concat(hist);
+  const budget = Math.max(2000, Number(cfg.ctxTokens) || 12000);
+  let used = estTokens(sys);
+  const picked = [];
+  const pool = state.chat.msgs.slice(0, upTo === undefined ? state.chat.msgs.length : upTo)
+    .filter(m => m.role !== 'sys' && (m.text || m.lines));
+  for (let i = pool.length - 1; i >= 0; i--){
+    const m = pool[i];
+    const t = msgText(m);
+    const n = estTokens(t) + 6;
+    if (used + n > budget) break;
+    used += n;
+    picked.unshift({ role: m.role === 'user' ? 'user' : 'assistant', content: t });
+  }
+  if (!picked.length && pool.length){
+    const m = pool[pool.length - 1];
+    picked.push({ role: m.role === 'user' ? 'user' : 'assistant', content: msgText(m) });
+  }
+  state.ctxUsed = used;
+  return [{ role:'system', content: sys }].concat(picked);
 }
 
 function parseSeq(text){
@@ -3035,6 +3106,7 @@ async function streamOnce(aiIdx, modelId, messages, tools, hasFallback){
   let wd = setTimeout(function(){ ac.abort(); }, 75000);
   const bump = function(){ clearTimeout(wd); wd = setTimeout(function(){ ac.abort(); }, 75000); };
   const payload = Object.assign({ model: modelId, messages: messages, stream: true }, reasoningPayload());
+  if (!NO_STREAM_USAGE) payload.stream_options = { include_usage: true };
   if (tools && tools.length){
     payload.tools = tools.map(function(t){ return { type:'function', function: t.function }; });
     payload.tool_choice = 'auto';
@@ -3055,6 +3127,10 @@ async function streamOnce(aiIdx, modelId, messages, tools, hasFallback){
       const before = apiMode;
       const m = await probeApi();
       if (m && m !== before) return streamOnce(aiIdx, modelId, messages, tools, hasFallback);
+    }
+    if (r.status === 400 && !NO_STREAM_USAGE && String(body).indexOf('stream_options') >= 0){
+      NO_STREAM_USAGE = true;
+      return streamOnce(aiIdx, modelId, messages, tools, hasFallback);
     }
     const err = new Error(apiError(body, r.status));
     err.status = r.status;
@@ -3096,6 +3172,7 @@ async function streamOnce(aiIdx, modelId, messages, tools, hasFallback){
         if (!data) continue;
         let j;
         try { j = JSON.parse(data); } catch (e) { continue; }
+        if (j.usage) useUsage(j.usage);
         const ch = j.choices && j.choices[0];
         const d = ch && (ch.delta || ch.message);
         if (!d) continue;
@@ -3570,8 +3647,8 @@ function importBackup(input){
       initPersona();
       paintChip();
       paintFbCount();
-      const ctx = document.getElementById('ctxSel');
-      if (ctx) ctx.value = String(cfg.history || 24);
+      const ctx = document.getElementById('ctxTok');
+      if (ctx) ctx.value = String(cfg.ctxTokens || 12000);
       toast('已导入 ' + state.chat.msgs.length + ' 条');
     } catch (e) { toast('导入失败 · ' + e.message); }
     input.value = '';
