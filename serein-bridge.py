@@ -32,6 +32,7 @@ import sys
 import json
 import socket
 import http.client
+import urllib.request
 from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 from urllib.parse import urlparse, unquote
 
@@ -74,6 +75,34 @@ KEY = read_key()
 
 def log(*a):
     print('[bridge]', *a, flush=True)
+
+
+APP_UPSTREAM = os.environ.get('APP_UPSTREAM', 'https://liuyunyun1hao.github.io/daddy')
+APP_FILES = ['index.html', 'manifest.webmanifest', 'sw.js', 'icon-192.png', 'icon-512.png']
+
+
+def ensure_app(force=False):
+    """页面文件不在本地时，从线上仓库拉一份下来（终端里不用再 cp 一堆文件）。"""
+    got = 0
+    for name in APP_FILES:
+        dst = os.path.join(APP_DIR, name)
+        if not force and os.path.isfile(dst) and os.path.getsize(dst) > 200:
+            continue
+        url = APP_UPSTREAM.rstrip('/') + '/' + name
+        try:
+            req = urllib.request.Request(url, headers={'User-Agent': 'CaeruleusBridge/1.0'})
+            with urllib.request.urlopen(req, timeout=40) as r:
+                data = r.read()
+            if len(data) > 200:
+                with open(dst, 'wb') as f:
+                    f.write(data)
+                got += 1
+                log('fetched', name, len(data), 'bytes')
+        except Exception as e:
+            log('fetch failed', name, ':', e)
+    if not got:
+        log('页面文件齐了，跳过下载')
+    return os.path.isfile(os.path.join(APP_DIR, 'index.html'))
 
 
 class Handler(SimpleHTTPRequestHandler):
@@ -237,6 +266,8 @@ def main():
         log('key      = loaded (%d chars)' % len(KEY))
     else:
         log('key      = NOT FOUND — 请在 Termux 里确认 ~/Serein/deploy/secrets/api-token 存在')
+    if not ensure_app():
+        log('!! 没有 index.html，页面无法打开：检查网络，或手动把 index.html 放进', APP_DIR)
     log('open     = http://127.0.0.1:%d/' % BRIDGE_PORT)
     srv = ThreadingHTTPServer(('0.0.0.0', BRIDGE_PORT), Handler)
     srv.daemon_threads = True
