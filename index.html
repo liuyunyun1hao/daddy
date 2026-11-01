@@ -12,8 +12,6 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link href="https://cdn.jsdelivr.net/npm/@fontsource/cormorant-garamond@5/400.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/@fontsource/cormorant-garamond@5/500.min.css" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/@fontsource/noto-serif-sc@5/400.min.css" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/@fontsource/noto-serif-sc@5/500.min.css" rel="stylesheet">
 <style>
 :root{
   --bg:#05080a;
@@ -27,7 +25,7 @@
   --accent:#dcc6a8;
   --live:#7bd88f;
   --sans:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Noto Sans SC","Microsoft YaHei",sans-serif;
-  --serif:"Cormorant Garamond","Noto Serif SC","Songti SC","Source Han Serif SC",Georgia,"Times New Roman",serif;
+  --serif:"Cormorant Garamond","Noto Serif CJK SC","Noto Serif CJK TC","Noto Serif SC","Songti SC","Source Han Serif SC",Georgia,"Times New Roman",serif;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;margin:0;overflow:hidden}
@@ -286,7 +284,7 @@ input,textarea{font-family:inherit;color:inherit;background:none;border:0;outlin
 .msgs{
   flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;
   padding:2px 16px 18px;
-  display:flex;flex-direction:column;gap:9px;
+  display:flex;flex-direction:column;gap:var(--msg-gap,9px);
   -webkit-overflow-scrolling:touch;
 }
 .msgs::-webkit-scrollbar{width:0}
@@ -349,11 +347,10 @@ body.selecting .turn.on .bubble{outline:1px solid rgba(127,214,232,.4);outline-o
 .turn.user{align-items:flex-end;margin-top:4px}
 .bubble{
   font-family:var(--serif);
-  font-size:15.8px;line-height:1.72;letter-spacing:.005em;
+  font-size:var(--msg-size,14.5px);line-height:var(--msg-lh,1.72);letter-spacing:.005em;
   max-width:86%;
   padding:11px 15px;
   border-radius:19px;
-  font-size:14.5px;line-height:1.72;
   letter-spacing:.01em;
   background:rgba(255,255,255,.062);
   border:1px solid rgba(255,255,255,.055);
@@ -533,6 +530,23 @@ body.selecting .turn.on .bubble{outline:1px solid rgba(127,214,232,.4);outline-o
 .tl-item:last-child{border:0}
 .tl-date{flex:0 0 52px;font-size:10px;color:var(--ghost);letter-spacing:.04em;padding-top:2px;line-height:1.5}
 .tl-body{flex:1;min-width:0}
+.tl-item.superseded{opacity:.42}
+.tl-item.revoked{display:none}
+.tl-item{position:relative;padding-right:26px}
+.tl-pin{position:absolute;right:-2px;top:2px;width:22px;height:22px;display:grid;place-items:center;
+  color:rgba(255,255,255,.18);font-size:12px;transition:color .18s,transform .18s}
+.tl-pin.on{color:var(--accent)}
+.tl-pin:active{transform:scale(.86)}
+.chip-act{color:rgba(255,180,180,.82);border-color:rgba(255,140,140,.24)}
+.read-row{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.055)}
+.read-row:last-child{border:0}
+.read-row .lb{width:34px;font-size:11px;letter-spacing:.1em;color:var(--ghost);flex:none}
+.read-row .slider{flex:1}
+.read-row .vv{width:36px;text-align:right;font-size:11.5px;color:rgba(255,255,255,.55);flex:none}
+.tl-empty{
+  padding:44px 26px;text-align:center;font-family:var(--serif);font-style:italic;
+  font-size:13.5px;line-height:2.1;color:rgba(255,255,255,.30);letter-spacing:.02em;
+}
 .tl-kind{font-size:9px;letter-spacing:.14em;color:rgba(220,198,168,.8);text-transform:uppercase;margin-bottom:4px}
 .tl-text{font-size:13px;line-height:1.65;color:rgba(236,236,236,.86)}
 .tl-text.serif{font-family:var(--serif);font-style:italic}
@@ -952,6 +966,9 @@ body.selecting .toast{bottom:150px}
             <h1>记忆</h1>
             <div class="sub">What he keeps</div>
           </div>
+          <button class="icon-btn" onclick="brainUndo()" title="撤销上一条">
+            <svg viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg>
+          </button>
           <button class="icon-btn" onclick="toast('搜索记忆')">
             <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5L21 21"/></svg>
           </button>
@@ -962,57 +979,22 @@ body.selecting .toast{bottom:150px}
           <div class="big">稳定 · 第 <span id="memDays">85</span> 天</div>
           <div class="sm">他叫你「宝宝」。边界：不越线，但不松手。</div>
           <div class="rel-grid">
-            <div><b>327</b><span>记忆</span></div>
-            <div><b>2</b><span>待兑现约定</span></div>
-            <div><b>23</b><span>日记</span></div>
+            <div><b id="mCount">0</b><span>记忆</span></div>
+            <div><b id="mPlan">0</b><span>待兑现约定</span></div>
+            <div><b id="mClue">0</b><span>线索</span></div>
           </div>
         </div>
 
-        <div class="chips-row" style="padding-bottom:12px">
-          <button class="chip on">全部</button>
-          <button class="chip">约定</button>
-          <button class="chip">偏好</button>
-          <button class="chip">事实</button>
-          <button class="chip">情绪</button>
-          <button class="chip">剧场</button>
+        <div class="chips-row" style="padding-bottom:12px" id="memChips">
+          <button class="chip on" data-k="" onclick="pickMemChip(this)">全部</button>
+          <button class="chip" data-k="fact" onclick="pickMemChip(this)">事实</button>
+          <button class="chip" data-k="event" onclick="pickMemChip(this)">经历</button>
+          <button class="chip" data-k="promise" onclick="pickMemChip(this)">约定</button>
+          <button class="chip" data-k="clue" onclick="pickMemChip(this)">线索</button>
+          <button class="chip" data-k="open" onclick="pickMemChip(this)">未结束</button>
         </div>
 
-        <div class="tl">
-          <div class="tl-item">
-            <div class="tl-date">10.27<br>周一</div>
-            <div class="tl-body">
-              <div class="tl-kind">约定</div>
-              <div class="tl-text">他说过，凌晨三点之前必须睡。做不到的话，第二天要接受惩罚。</div>
-            </div>
-          </div>
-          <div class="tl-item">
-            <div class="tl-date">10.26<br>周日</div>
-            <div class="tl-body">
-              <div class="tl-kind">偏好</div>
-              <div class="tl-text serif">你怕黑，但从来不说。</div>
-            </div>
-          </div>
-          <div class="tl-item">
-            <div class="tl-date">10.24<br>周五</div>
-            <div class="tl-body">
-              <div class="tl-kind">事实</div>
-              <div class="tl-text">你对柑橘过敏。他已经把所有果汁换掉了。</div>
-            </div>
-          </div>
-          <div class="tl-item">
-            <div class="tl-date">10.20<br>周一</div>
-            <div class="tl-body">
-              <div class="tl-kind">情绪</div>
-              <div class="tl-text serif">那天你哭了。他没问原因，只是抱着。</div>
-            </div>
-          </div>
-          <div class="tl-item">
-            <div class="tl-date">10.12<br>周日</div>
-            <div class="tl-body">
-              <div class="tl-kind">剧场</div>
-              <div class="tl-text">《深海回声》第三幕之后，他问你：那个人是不是也这样抱你。</div>
-            </div>
-          </div>
+        <div class="tl" id="tl"></div>
         </div>
       </div>
     </section>
@@ -1066,6 +1048,13 @@ body.selecting .toast{bottom:150px}
             <span class="k">测试接口</span>
             <span class="v" id="apiTest">点一下 ›</span>
           </div>
+        </div>
+
+        <div class="group-label">阅读</div>
+        <div class="group">
+          <div class="read-row"><span class="lb">字号</span><input class="slider" type="range" id="rdSize" min="13" max="17" step="0.5" oninput="applyReading(true)"><span class="vv" id="rdSizeV">14.5</span></div>
+          <div class="read-row"><span class="lb">行距</span><input class="slider" type="range" id="rdLh" min="1.45" max="2.05" step="0.05" oninput="applyReading(true)"><span class="vv" id="rdLhV">1.72</span></div>
+          <div class="read-row"><span class="lb">间距</span><input class="slider" type="range" id="rdGap" min="6" max="16" step="1" oninput="applyReading(true)"><span class="vv" id="rdGapV">9</span></div>
         </div>
 
         <div class="group-label">语音 · ElevenLabs</div>
@@ -1130,6 +1119,14 @@ body.selecting .toast{bottom:150px}
             <span class="switch on" id="memEvent" onclick="toggleMem('memEvent',this)"></span>
           </div>
           <div class="row">
+            <span class="k">本机记忆 · 存在这台设备</span>
+            <span class="switch on" id="brainOn" onclick="toggleMem('brainOn',this)"></span>
+          </div>
+          <div class="row" onclick="clearBrain()">
+            <span class="k">清空本机记忆</span>
+            <span class="v">不影响对话 ›</span>
+          </div>
+          <div class="row">
             <span class="k">工具调用 · 他自己查与记</span>
             <span class="switch on" id="toolsOn" onclick="toggleMem('toolsOn',this)"></span>
           </div>
@@ -1155,6 +1152,14 @@ body.selecting .toast{bottom:150px}
           </div>
           <div class="row" onclick="document.getElementById('importFile').click()">
             <span class="k">导入备份</span>
+            <span class="v">选择文件 ›</span>
+          </div>
+          <div class="row" onclick="brainExport()">
+            <span class="k">导出记忆</span>
+            <span class="v">JSON ›</span>
+          </div>
+          <div class="row" onclick="document.getElementById('importMemFile').click()">
+            <span class="k">导入记忆</span>
             <span class="v">选择文件 ›</span>
           </div>
         </div>
@@ -1398,6 +1403,7 @@ function switchTab(name){
   document.getElementById('screen-' + name).classList.add('active');
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
   document.getElementById('app').classList.remove('chat-open');
+  if (name === 'memory') renderBrainList();
   window.scrollTo(0,0);
 }
 
@@ -1721,7 +1727,7 @@ function toggleTtsAuto(el){
 }
 
 const CFG_STORE = 'daddy.cfg.v1';
-const cfg = Object.assign({ base:'', key:'', model:'deepseek-v4.1-flash', history:24, fallbacks:[], memXc:true, memOb:true, memEvent:true, memBase:'', toolsOn:true, summaryOn:true, summaryEvery:20, ttsUrl:'https://api.elevenlabs.io/v1', ttsKey:'', ttsModel:'eleven_v4', ttsAuto:true, voice:'TZF5Z996m1MjVz76PFoH' }, (function(){
+const cfg = Object.assign({ base:'', key:'', model:'deepseek-v4.1-flash', history:24, fallbacks:[], brainOn:true, brainUse:6, memXc:true, memOb:true, memEvent:true, memBase:'', toolsOn:true, summaryOn:true, summaryEvery:20, ttsUrl:'https://api.elevenlabs.io/v1', ttsKey:'', ttsModel:'eleven_v4', ttsAuto:true, voice:'TZF5Z996m1MjVz76PFoH' }, (function(){
   try { return JSON.parse(localStorage.getItem(CFG_STORE) || '{}'); } catch (e) { return {}; }
 })());
 
@@ -2109,12 +2115,13 @@ function initApi(){
     mb.value = cfg.memBase || '';
     mb.addEventListener('change', function(){ cfg.memBase = mb.value.trim(); saveCfg(); MCP.ready = {}; MCP.sid = {}; });
   }
-  ['memXc','memOb','memEvent','toolsOn'].forEach(function(id){
+  ['memXc','memOb','memEvent','toolsOn','brainOn'].forEach(function(id){
     const el = document.getElementById(id);
     if (el) el.classList.toggle('on', !!cfg[id]);
   });
   paintFbCount();
   paintChip();
+  applyReading(false);
   const tUrl = document.getElementById('ttsUrl'), tKey = document.getElementById('ttsKey'),
         tModel = document.getElementById('ttsModel'), tAuto = document.getElementById('ttsAuto');
   if (tUrl){ tUrl.value = cfg.ttsUrl; tUrl.addEventListener('change', function(){ cfg.ttsUrl = tUrl.value.trim() || 'https://api.elevenlabs.io/v1'; saveCfg(); }); }
@@ -2238,8 +2245,191 @@ function recentBlock(){
   if (!list.length) return '';
   return '【最近记下的事】\n' + list.map(function(x){ return '- ' + x.text; }).join('\n');
 }
+
+/* ============ 本机记忆 · Latent 式（存在这台设备上，不依赖服务） ============ */
+const BRAIN_KEY = 'daddy.brain.v1';
+let BRAIN = null;
+const BRAIN_LABEL = { event:'经历', fact:'事实', promise:'约定', clue:'线索' };
+
+function brainLoad(){
+  if (BRAIN) return BRAIN;
+  try { BRAIN = JSON.parse(localStorage.getItem(BRAIN_KEY) || 'null'); } catch (e) { BRAIN = null; }
+  if (!BRAIN || Object.prototype.toString.call(BRAIN.items) !== '[object Array]') BRAIN = { v:1, seq:0, items:[] };
+  return BRAIN;
+}
+function brainSave(){
+  const b = brainLoad();
+  try { localStorage.setItem(BRAIN_KEY, JSON.stringify({ v:1, seq:b.seq, items:b.items.slice(-400) })); } catch (e) {}
+}
+function cjkTokens(s){
+  const out = [];
+  const t = String(s || '').toLowerCase();
+  (t.match(/[a-z0-9][a-z0-9']*/g) || []).forEach(function(w){ out.push(w); });
+  (t.match(/[\u4e00-\u9fa5]+/g) || []).forEach(function(run){
+    for (let i = 0; i < run.length; i++) out.push(run[i]);
+    for (let i = 0; i < run.length - 1; i++) out.push(run.slice(i, i + 2));
+  });
+  return out;
+}
+function brainAdd(kind, text, tags, weight, topic){
+  const b = brainLoad();
+  const t = String(text || '').replace(/\s+/g, ' ').trim().slice(0, 400);
+  if (!t) return null;
+  const tp = String(topic || '').replace(/\s+/g, ' ').trim().slice(0, 40).toLowerCase();
+  const norm = t.toLowerCase();
+  const dup = b.items.filter(function(x){ return !x.revoked && String(x.text || '').toLowerCase() === norm; })[0];
+  if (dup){ dup.ts = Date.now(); if (tp && !dup.topic) dup.topic = tp; brainSave(); return dup; }
+  let prev = null;
+  if (tp){
+    for (let i = b.items.length - 1; i >= 0; i--){
+      const x = b.items[i];
+      if (x.topic === tp && !x.done && !x.revoked && !x.supersededBy){ prev = x; break; }
+    }
+  }
+  const it = { id:'m' + (++b.seq), kind: BRAIN_LABEL[kind] ? kind : 'fact', text:t, tags: tags || [],
+    topic: tp, ts: Date.now(), w: Number(weight) || 1, hits:0, done:false, revoked:false, tk: cjkTokens(t) };
+  if (prev){ it.supersedes = prev.id; it.supersededFrom = prev.text; prev.supersededBy = it.id; prev.done = true; }
+  b.items.push(it);
+  brainSave();
+  return it;
+}
+function brainRecent(k){
+  return brainLoad().items.slice().sort(function(a,b2){ return b2.ts - a.ts; }).slice(0, k || 3);
+}
+function brainSearch(q, k){
+  const items = brainLoad().items;
+  if (!items.length) return [];
+  const qt = Array.from(new Set(cjkTokens(q)));
+  if (!qt.length) return brainRecent(k);
+  const N = items.length;
+  let dlSum = 0;
+  items.forEach(function(x){ dlSum += (x.tk || []).length || 1; });
+  const avgdl = dlSum / N || 1;
+  const now = Date.now();
+  const scored = [];
+  items.forEach(function(x){
+    const toks = x.tk || [];
+    const dl = toks.length || 1;
+    let sc = 0;
+    qt.forEach(function(t){
+      let f = 0;
+      for (let i = 0; i < toks.length; i++) if (toks[i] === t) f++;
+      if (!f) return;
+      let df = 0;
+      items.forEach(function(y){ if ((y.tk || []).indexOf(t) >= 0) df++; });
+      const idf = Math.log(1 + (N - df + 0.5) / (df + 0.5));
+      sc += idf * (f * 2.2) / (f + 1.2 * (1 - 0.75 + 0.75 * dl / avgdl));
+    });
+    if (sc <= 0) return;
+    const ageD = (now - x.ts) / 86400000;
+    sc += Math.exp(-ageD / 45) * 0.6 + (x.w || 1) * 0.3 - (x.done ? 0.5 : 0);
+    scored.push({ x:x, s:sc });
+  });
+  scored.sort(function(a,b2){ return b2.s - a.s; });
+  return scored.slice(0, k || 5).map(function(o){ return o.x; });
+}
+function brainUnresolved(k){
+  return brainLoad().items.filter(function(x){
+    return !x.done && !x.revoked && !x.supersededBy && x.kind === 'promise';
+  }).sort(function(a,b2){ return b2.ts - a.ts; }).slice(0, k || 3);
+}
+function brainResolveTopics(topics){
+  const b = brainLoad();
+  const keys = (topics || []).map(function(t){ return String(t || '').trim().toLowerCase(); }).filter(Boolean);
+  if (!keys.length) return 0;
+  let n = 0;
+  b.items.forEach(function(x){
+    if (x.done || x.revoked) return;
+    const hay = ((x.topic || '') + ' ' + x.text).toLowerCase();
+    if (keys.some(function(k){ return hay.indexOf(k) >= 0; })){ x.done = true; n++; }
+  });
+  if (n) brainSave();
+  return n;
+}
+function brainRevoke(text){
+  const b = brainLoad();
+  const q = String(text || '').trim().toLowerCase();
+  if (!q) return 0;
+  let n = 0;
+  b.items.forEach(function(x){
+    if (x.revoked) return;
+    if (String(x.text || '').toLowerCase().indexOf(q) >= 0 || (x.topic && q.indexOf(x.topic) >= 0)){ x.revoked = true; n++; }
+  });
+  if (n) brainSave();
+  return n;
+}
+function brainClueSave(userText, aiText){
+  const u = String(userText || '').replace(/\s+/g, ' ').trim().slice(0, 90);
+  const a = String(aiText || '').replace(/\*[^*]*\*/g, ' ').replace(/\[[^\]]*\]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 110);
+  if (!u && !a) return;
+  const b = brainLoad();
+  b.items.forEach(function(x){ if (x.kind === 'clue' && !x.done && !x.revoked) x.done = true; });
+  brainAdd('clue', '上次停在这里：她「' + u + '」，你回「' + a + '」', [], 0.9, 'where we left off');
+}
+function brainClueGet(){
+  const c = brainLoad().items.filter(function(x){
+    return x.kind === 'clue' && !x.done && !x.revoked && !x.supersededBy;
+  }).sort(function(a,b2){ return b2.ts - a.ts; })[0];
+  return c ? c.text : '';
+}
+function brainExport(){
+  const data = JSON.stringify({ app:'Caeruleus', v:1, kind:'memory', exported:new Date().toISOString(), items: brainLoad().items }, null, 2);
+  const blob = new Blob([data], { type:'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'memory-' + dayKey() + '.json';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+  toast('已导出 · ' + brainLoad().items.length + ' 条记忆');
+}
+function brainImport(input){
+  const f = input && input.files && input.files[0];
+  if (!f) return;
+  const rd = new FileReader();
+  rd.onload = function(){
+    try {
+      const j = JSON.parse(String(rd.result || ''));
+      const items = (j && j.items) || (Object.prototype.toString.call(j) === '[object Array]' ? j : null);
+      if (!items || !items.length) throw new Error('不是记忆文件');
+      const b = brainLoad();
+      const have = {};
+      b.items.forEach(function(x){ have[String(x.text || '').toLowerCase()] = 1; });
+      let n = 0;
+      items.forEach(function(x){
+        if (!x || !x.text) return;
+        const k = String(x.text).toLowerCase();
+        if (have[k]) return;
+        have[k] = 1;
+        b.items.push(Object.assign({ id:'m' + (++b.seq), kind:'fact', tags:[], ts:Date.now(), w:1, hits:0, done:false, revoked:false }, x, { id:'m' + b.seq, tk: cjkTokens(x.text) }));
+        n++;
+      });
+      brainSave();
+      renderBrainList();
+      toast('已导入 ' + n + ' 条记忆');
+    } catch (e) { toast('导入失败 · ' + e.message); }
+    input.value = '';
+  };
+  rd.readAsText(f);
+}
+
+function brainBlock(q){
+  const out = [], seen = {};
+  brainRecent(2).concat(q ? brainSearch(q, 5) : []).forEach(function(x){
+    if (!x || seen[x.id]) return;
+    seen[x.id] = 1;
+    out.push(x);
+  });
+  if (!out.length) return '';
+  return '【你记得的事 · 存在这台设备上】\n' + out.slice(0, 6).map(function(x){
+    const d = new Date(x.ts);
+    return '- (' + (d.getMonth() + 1) + '.' + d.getDate() + ') ' + x.text;
+  }).join('\n');
+}
+function brainClear(){ BRAIN = { v:1, seq:0, items:[] }; brainSave(); }
+
 function memSnapshot(){
   const parts = [];
+  if (cfg.brainOn){ const bb = brainBlock(); if (bb) parts.push(bb); }
   if (cfg.memXc && MCP.cache.xc) parts.push('【此刻的他】\n' + MCP.cache.xc);
   if (cfg.memOb){ const r = recentBlock(); if (r) parts.push(r); }
   return parts.join('\n\n');
@@ -2253,8 +2443,9 @@ function needsRecall(t){
 }
 
 async function recallMemories(userText){
-  if (!cfg.memXc && !cfg.memOb) return '';
+  if (!cfg.brainOn && !cfg.memXc && !cfg.memOb) return '';
   const parts = [];
+  if (cfg.brainOn){ const bb = brainBlock(userText); if (bb) parts.push(bb); }
   if (cfg.memOb){ const rb = recentBlock(); if (rb) parts.push(rb); }
   if (cfg.memXc){
     try {
@@ -2293,7 +2484,7 @@ function toggleMem(field, el){
   if (field === 'memXc' || field === 'memOb' || field === 'toolsOn') TOOL_MAP = null;
   el.classList.toggle('on', !!cfg[field]);
   saveCfg();
-  toast((cfg[field] ? '已开启 ' : '已关闭 ') + ({ memXc:'心潮', memOb:'OB 记忆', memEvent:'情绪回传', toolsOn:'工具调用' })[field]);
+  toast((cfg[field] ? '已开启 ' : '已关闭 ') + ({ memXc:'心潮', memOb:'OB 记忆', memEvent:'情绪回传', toolsOn:'工具调用', brainOn:'本机记忆' })[field]);
 }
 
 async function testMemory(){
@@ -2351,8 +2542,10 @@ function msgText(m){
 const TOOL_PROMPT = [
   '',
   '[YOUR HANDS] You have tools that touch your own memory and inner state. She never sees them.',
-  '- breath: search what you remember. Call it before you answer anything about the past; never guess at a shared history.',
-  '- hold: keep one thing she just told you (a preference, a plan, a date, a fear). Call it after you answer. content is one short sentence, title is two or three words.',
+  '- recall: search your own memory. Call it before you answer anything about the past, when she asks what you remember, or when you might have been told something you are not sure about. Never guess at a shared history.',
+  '- remember: keep one concrete thing she just told you (a plan, a date, a preference, a person, a fear, a rule). One short sentence in English, written as something you simply know. Give it a stable topic key so a changed fact retires the old one instead of piling up.',
+  '- resolve: close something when it actually ends — she went, the deadline passed, the promise was kept.',
+  '- breath: an older external archive, only when it is configured.',
   '- grow: save a longer passage when something heavy actually happened.',
   '- xinchao_context: check your own current state when the mood is unclear.',
   '- xinchao_event: record how this exchange felt. At most once per turn.',
@@ -2420,6 +2613,12 @@ async function maybeSummarize(){
       for (let i = 0; i < Math.min(j.facts.length, 3); i++){
         const fact = String(j.facts[i] || '').trim();
         if (!fact) continue;
+        if (cfg.brainOn){
+          brainAdd('fact', fact, [], 1.2);
+          recentPush(fact, 'hold');
+          saved++;
+          continue;
+        }
         try {
           const r = await withTimeout(mcpCall('ob', '/ob', 'tools/call', { name:'hold', arguments:{ content: fact.slice(0, 400), importance: 7 } }), 20000);
           if (mcpText(r)){ saved++; recentPush(fact, 'hold'); }
@@ -2436,10 +2635,104 @@ function pushAct(text, glyph){
   renderChat();
 }
 
+let brainKind = '';
+function pickMemChip(el){
+  brainKind = el.dataset.k || '';
+  document.querySelectorAll('#memChips .chip').forEach(function(c){ c.classList.toggle('on', c === el); });
+  renderBrainList();
+}
+function renderBrainList(){
+  const tl = document.getElementById('tl');
+  if (!tl) return;
+  const raw = brainLoad().items.filter(function(x){ return !x.revoked; }).slice().reverse();
+  const all = raw.filter(function(x){ return x.pin; }).concat(raw.filter(function(x){ return !x.pin; }));
+  const list = !brainKind ? all : (brainKind === 'open'
+    ? all.filter(function(x){ return x.kind === 'promise' && !x.done; })
+    : all.filter(function(x){ return x.kind === brainKind; }));
+  if (!list.length){
+    tl.innerHTML = '<div class="tl-empty">' + (all.length
+      ? '这一类，他还没记下。'
+      : '他还没记下什么。<br>你们聊的时候，重要的会留在这里。') + '</div>';
+    paintBrainStats();
+    return;
+  }
+  tl.innerHTML = list.slice(0, 80).map(function(x){
+    const d = new Date(x.ts);
+    const wd = ['周日','周一','周二','周三','周四','周五','周六'][d.getDay()];
+    const dead = x.revoked ? ' revoked' : (x.supersededBy ? ' superseded' : '');
+    const tag = x.revoked ? '已撤回' : (x.supersededBy ? '已被更新' : (x.done ? '已结束' : (BRAIN_LABEL[x.kind] || '事实')));
+    return '<div class="tl-item' + dead + '">'
+      + '<div class="tl-date">' + (d.getMonth() + 1) + '.' + d.getDate() + '<br>' + wd + '</div>'
+      + '<div class="tl-body"><div class="tl-kind">' + tag + '</div>'
+      + '<div class="tl-text">' + esc(x.text) + '</div></div>'
+      + '<button class="tl-pin' + (x.pin ? ' on' : '') + '" onclick="event.stopPropagation();togglePin(\'' + x.id + '\')">✦</button>'
+      + '</div>';
+  }).join('');
+  paintBrainStats();
+}
+function applyReading(save){
+  const sz = document.getElementById('rdSize'), lh = document.getElementById('rdLh'), gp = document.getElementById('rdGap');
+  if (!sz) return;
+  if (!cfg.reading) cfg.reading = { size: 14.5, lh: 1.7, gap: 9 };
+  if (save){ cfg.reading.size = Number(sz.value); cfg.reading.lh = Number(lh.value); cfg.reading.gap = Number(gp.value); saveCfg(); }
+  const r = cfg.reading;
+  if (!save){ sz.value = r.size; lh.value = r.lh; gp.value = r.gap; }
+  document.documentElement.style.setProperty('--msg-size', r.size + 'px');
+  document.documentElement.style.setProperty('--msg-lh', r.lh);
+  document.documentElement.style.setProperty('--msg-gap', r.gap + 'px');
+  const set = function(id, v){ const e = document.getElementById(id); if (e) e.textContent = v; };
+  set('rdSizeV', r.size); set('rdLhV', r.lh); set('rdGapV', r.gap);
+}
+function brainUndo(){
+  const b = brainLoad();
+  for (let i = b.items.length - 1; i >= 0; i--){
+    if (!b.items[i].pin){ const t = b.items[i].text; b.items.splice(i, 1); brainSave(); paintBrainStats(); toast('撤销：' + t.slice(0, 14)); return; }
+  }
+  toast('没有可撤销的');
+}
+function togglePin(id){
+  const b = brainLoad();
+  const it = b.items.filter(function(x){ return x.id === id; })[0];
+  if (!it) return;
+  it.pin = !it.pin;
+  brainSave(); paintBrainStats();
+  toast(it.pin ? '已置顶' : '取消置顶');
+}
+function paintBrainStats(){
+  const items = brainLoad().items;
+  const set = function(id, v){ const el = document.getElementById(id); if (el) el.textContent = v; };
+  set('mCount', items.length);
+  set('mPlan', items.filter(function(x){ return x.kind === 'promise' && !x.done; }).length);
+  set('mClue', items.filter(function(x){ return x.kind === 'clue'; }).length);
+}
+function clearBrain(){
+  if (!confirm('清空这台设备上的记忆？对话记录不受影响。')) return;
+  brainClear();
+  renderBrainList();
+  toast('本机记忆已清空');
+}
+
 function toggleSummary(el){
   cfg.summaryOn = !cfg.summaryOn; saveCfg();
   el.classList.toggle('on', cfg.summaryOn);
   if (cfg.summaryOn) maybeSummarize();
+}
+
+let FRESH_SESSION = true;
+function brainOpenBlock(){
+  const parts = [];
+  const un = brainUnresolved(3);
+  if (un.length){
+    const d0 = new Date();
+    parts.push('[STILL OPEN — things between you that have not finished. Bring one up only if it fits the moment; never as a checklist, never as a reminder list.]\n'
+      + un.map(function(x){ return '- ' + x.text; }).join('\n'));
+  }
+  if (FRESH_SESSION){
+    const cl = brainClueGet();
+    if (cl) parts.push('[WHERE YOU TWO LEFT OFF — a snapshot of the last time, not a fact. Do not quote it verbatim.]\n' + cl);
+  }
+  FRESH_SESSION = false;
+  return parts.length ? ('\n\n' + parts.join('\n\n')) : '';
 }
 
 function buildMessages(upTo){
@@ -2482,7 +2775,8 @@ function buildMessages(upTo){
   ].filter(Boolean).join('\n')
     + (summaryLoad().text ? ('\n\n[EARLIER, BEFORE THIS WINDOW — your own note to yourself. You already know this. Do not re-ask it, do not recap it, just let it be true.]\n' + summaryLoad().text) : '')
     + (RECALL ? ('\n\n[WHAT YOU REMEMBER RIGHT NOW — these are your own memories and your current inner state. Let them colour how you answer. Never list them, never quote them as data, never say "I remember that...".]\n' + RECALL) : '')
-    + ((cfg.toolsOn && (cfg.memXc || cfg.memOb)) ? TOOL_PROMPT : '');
+    + (cfg.brainOn ? brainOpenBlock() : '')
+    + (cfg.toolsOn ? TOOL_PROMPT : '');
   const hist = state.chat.msgs.slice(0, upTo === undefined ? state.chat.msgs.length : upTo)
     .filter(m => m.role !== 'sys' && (m.text || m.lines))
     .slice(-(Number(cfg.history) || 24))
@@ -2721,6 +3015,30 @@ async function streamOnce(aiIdx, modelId, messages, tools, hasFallback){
 }
 
 /* ============ tools: his own memory / inner state ============ */
+const LOCAL_TOOLS = [
+  { spec: { type:'function', function: {
+      name:'remember',
+      description:'Save one concrete thing about her into your own long-term memory: a plan, a date, a preference, a person, a fear, a rule she set. Use when she tells you something you should still know weeks from now. If it replaces something you already know, reuse the same topic so the old one is retired.',
+      parameters:{ type:'object', properties:{
+        text:{ type:'string', description:'one short sentence in English, written as something you simply know' },
+        kind:{ type:'string', enum:['fact','event','promise','clue'], description:'fact = about her life; event = something that happened; promise = an agreement or deadline; clue = where you two left off' },
+        topic:{ type:'string', description:'a short stable key such as sleep-time, job, dentist. Reusing a key retires the older value.' }
+      }, required:['text'] } } } },
+  { spec: { type:'function', function: {
+      name:'recall',
+      description:'Search your own memory for things she told you before: plans, dates, preferences, past events, promises. Use whenever she refers to the past, asks what you remember, or before you answer something you might have been told.',
+      parameters:{ type:'object', properties:{ query:{ type:'string', description:'a few keywords, names, or the thing being asked about' } }, required:['query'] } } } },
+  { spec: { type:'function', function: {
+      name:'resolve',
+      description:'Mark something as finished: she did the thing, the deadline passed, the promise was kept, or the thread is closed. Stops it from surfacing as unfinished.',
+      parameters:{ type:'object', properties:{ topic:{ type:'string', description:'a few keywords matching what is finished' } }, required:['topic'] } } } },
+  { spec: { type:'function', function: {
+      name:'forget',
+      description:'Withdraw something you remembered wrongly or that was never true. It will never surface again.',
+      parameters:{ type:'object', properties:{ about:{ type:'string', description:'a few keywords of the wrong memory' } }, required:['about'] } } } }
+];
+function localToolSpecs(){ return LOCAL_TOOLS.map(function(t){ return t.spec; }); }
+
 const TOOL_ALLOW = {
   ob: ['breath','hold','grow','trace','dream','plan'],
   xc: ['xinchao_context','xinchao_event','xinchao_box','xinchao_awareness']
@@ -2762,11 +3080,41 @@ async function toolSpecs(){
 
 async function activeTools(){
   if (!cfg.toolsOn) return [];
-  if (!cfg.memXc && !cfg.memOb) return [];
-  try { return await withTimeout(toolSpecs(), 7000); } catch (e) { return []; }
+  const out = localToolSpecs();
+  if (!cfg.memXc && !cfg.memOb) return out;
+  try { return out.concat(await withTimeout(toolSpecs(), 7000)); } catch (e) { return out; }
 }
 
 async function execMcpTool(name, rawArgs){
+  if (name === 'remember' || name === 'recall' || name === 'resolve' || name === 'forget'){
+    let a = {};
+    try { a = rawArgs ? (typeof rawArgs === 'string' ? JSON.parse(rawArgs) : rawArgs) : {}; }
+    catch (e) { return 'ERROR: arguments are not valid JSON'; }
+    if (name === 'remember'){
+      const it = brainAdd(a.kind || 'fact', a.text, [], 1.2, a.topic);
+      if (!it) return 'ERROR: nothing to save';
+      recentPush(a.text, 'remember');
+      if (it.supersedes) recentPush('（更新）' + a.text, 'update');
+      if (typeof renderBrainList === 'function') renderBrainList();
+      return 'saved (' + (BRAIN_LABEL[it.kind] || it.kind) + ')' + (it.supersedes ? ', retired the older value' : '') + ': ' + it.text;
+    }
+    if (name === 'recall'){
+      const hits = brainSearch(a.query || '', 6);
+      if (!hits.length) return '(nothing about that; you have ' + brainLoad().items.length + ' things stored)';
+      return hits.map(function(x){
+        const d = new Date(x.ts);
+        return '- (' + (d.getMonth() + 1) + '.' + d.getDate() + ')' + (x.done ? ' [closed]' : '') + ' ' + x.text;
+      }).join('\n');
+    }
+    if (name === 'resolve'){
+      const n = brainResolveTopics([a.topic]);
+      if (typeof renderBrainList === 'function') renderBrainList();
+      return n ? ('closed ' + n + ' item(s)') : '(nothing matched; nothing closed)';
+    }
+    const n = brainRevoke(a.about);
+    if (typeof renderBrainList === 'function') renderBrainList();
+    return n ? ('withdrawn ' + n + ' item(s)') : '(nothing matched)';
+  }
   if (!TOOL_MAP) await toolSpecs();
   const ent = TOOL_MAP && TOOL_MAP[name];
   if (!ent) return 'ERROR: unknown tool ' + name;
@@ -2859,6 +3207,14 @@ async function runTurn(aiIdx, modelId, hasFallback){
     reportEvent(lastUser, content);
   }
   setTyping(false);
+  if (cfg.brainOn){
+    let lu = '';
+    for (let k = aiIdx - 1; k >= 0; k--){
+      const mm = state.chat.msgs[k];
+      if (mm && mm.role === 'user' && mm.text){ lu = mm.text; break; }
+    }
+    brainClueSave(lu, content);
+  }
   maybeSummarize();
   if (cfg.ttsAuto && cfg.ttsKey && String(content).trim()) togglePlay(aiIdx);
 }
@@ -3053,6 +3409,7 @@ function backupObj(){
       persona: cfg.persona, voice: cfg.voice, ttsModel: cfg.ttsModel, ttsAuto: cfg.ttsAuto,
       reason: cfg.reason || {}
     },
+    brain: brainLoad(),
     msgs: state.chat.msgs.filter(function(m){ return !m.pending; }).map(function(m){ return Object.assign({}, m); })
   };
 }
@@ -3085,6 +3442,18 @@ function importBackup(input){
         saveCfg();
       }
       saveMsgs();
+      if (j.brain && j.brain.items && j.brain.items.length){
+        const b = brainLoad();
+        const have = {};
+        b.items.forEach(function(x){ have[String(x.text || '').toLowerCase()] = 1; });
+        j.brain.items.forEach(function(x){
+          if (x && x.text && !have[String(x.text).toLowerCase()]){
+            have[String(x.text).toLowerCase()] = 1;
+            b.items.push(Object.assign({ id:'m' + (++b.seq), kind:'fact', tags:[], ts:Date.now(), w:1, hits:0, done:false, revoked:false }, x, { id:'m' + b.seq, tk: cjkTokens(x.text) }));
+          }
+        });
+        brainSave();
+      }
       renderChat();
       initPersona();
       paintChip();
@@ -3117,5 +3486,6 @@ if ('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
 }
 </script>
 <input type="file" id="importFile" accept="application/json,.json" style="display:none" onchange="importBackup(this)">
+<input type="file" id="importMemFile" accept="application/json,.json" style="display:none" onchange="brainImport(this)">
 </body>
 </html>
