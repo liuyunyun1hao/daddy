@@ -142,7 +142,7 @@ input,textarea{font-family:inherit;color:inherit;background:none;border:0;outlin
 .tab svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
 .tab span{font-size:9.5px;letter-spacing:.12em}
 .tab.active{color:#f2f2f2}
-.tab.active svg{filter:drop-shadow(0 0 10px rgba(255,255,255,.35))}
+.tab.active svg{opacity:1}
 
 /* ============ common bits ============ */
 .page-head{
@@ -166,9 +166,9 @@ input,textarea{font-family:inherit;color:inherit;background:none;border:0;outlin
   color:var(--faint);text-transform:uppercase;
 }
 .card{
-  position:relative;margin:0 16px 10px;
-  display:flex;align-items:center;gap:14px;
-  padding:15px 16px;border-radius:20px;
+  position:relative;margin:0 16px 9px;
+  display:flex;align-items:center;gap:13px;
+  padding:13px 15px;border-radius:18px;
   background:linear-gradient(180deg, rgba(255,255,255,.068), rgba(255,255,255,.038));
   border:1px solid var(--line);
   backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
@@ -177,7 +177,7 @@ input,textarea{font-family:inherit;color:inherit;background:none;border:0;outlin
 }
 .card:active{transform:scale(.985)}
 .card .ico{
-  width:38px;height:38px;flex:0 0 38px;border-radius:12px;
+  width:34px;height:34px;flex:0 0 34px;border-radius:11px;
   display:grid;place-items:center;
   background:rgba(255,255,255,.055);
   border:1px solid rgba(255,255,255,.06);
@@ -185,8 +185,8 @@ input,textarea{font-family:inherit;color:inherit;background:none;border:0;outlin
 }
 .card .ico svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
 .card-main{flex:1;min-width:0}
-.card-title{font-size:14.5px;font-weight:500;letter-spacing:.01em}
-.card-sub{font-size:11.5px;color:var(--faint);margin-top:3px;letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card-title{font-size:14px;font-weight:500;letter-spacing:.01em}
+.card-sub{font-size:11px;color:var(--faint);margin-top:3px;letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .chev{color:rgba(255,255,255,.28);font-size:17px;margin-left:2px}
 
 /* ============ home ============ */
@@ -274,8 +274,8 @@ input,textarea{font-family:inherit;color:inherit;background:none;border:0;outlin
 .watch-chip svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:1.6}
 
 .scene{
-  display:flex;align-items:center;gap:7px;
-  padding:0 20px 12px;font-size:11.5px;color:var(--ghost);letter-spacing:.03em;
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  padding:2px 20px 10px;font-size:10px;color:rgba(255,255,255,.26);letter-spacing:.08em;
   flex:0 0 auto;
 }
 .scene .sp{color:var(--accent);font-size:11px;opacity:.8}
@@ -288,6 +288,7 @@ input,textarea{font-family:inherit;color:inherit;background:none;border:0;outlin
   -webkit-overflow-scrolling:touch;
 }
 .msgs::-webkit-scrollbar{width:0}
+.msgs::before{content:'';display:block;margin-top:auto}
 .daydiv{display:flex;align-items:center;gap:12px;padding:12px 4px 4px;
   font-family:var(--serif);font-size:11px;color:rgba(255,255,255,.26);letter-spacing:.12em}
 .daydiv::before,.daydiv::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.07)}
@@ -391,11 +392,15 @@ body.selecting .turn.on .bubble{outline:1px solid rgba(127,214,232,.4);outline-o
 .stamp{font-size:10px;color:rgba(255,255,255,.26);letter-spacing:.05em;padding:0 4px}
 .turn.user .stamp{align-self:flex-end}
 
-.acts{display:flex;align-items:center;gap:21px;margin:7px 0 3px 4px;padding:1px 0}
+.acts{display:flex;align-items:center;gap:19px;margin:6px 0 2px 3px;padding:1px 0}
+.turn .meta{display:flex;align-items:center;gap:14px;margin-top:1px}
+.turn.user .meta{justify-content:flex-end}
+.turn .meta .stamp{padding:0;margin:0}
+.turn .meta .acts{margin:0;padding:0}
 .act{
   display:inline-flex;align-items:center;justify-content:center;
   width:22px;height:22px;
-  color:rgba(255,255,255,.52);
+  color:rgba(255,255,255,.40);
   transition:color .18s,transform .18s;
 }
 .act:active{color:rgba(255,255,255,.9);transform:scale(.9)}
@@ -449,12 +454,11 @@ body.selecting .turn.on .bubble{outline:1px solid rgba(127,214,232,.4);outline-o
 .c-btn:active{background:rgba(255,255,255,.07)}
 .model-chip{
   margin-left:4px;display:inline-flex;align-items:center;gap:5px;
-  font-size:11px;letter-spacing:.03em;color:rgba(255,255,255,.6);
-  padding:5px 9px;border-radius:9px;border:1px solid rgba(255,255,255,.08);
-  background:rgba(255,255,255,.035);
+  font-size:10.5px;letter-spacing:.04em;color:rgba(255,255,255,.42);
+  padding:4px 2px;
 }
-.model-chip b{font-weight:500;color:rgba(255,255,255,.82)}
-.model-chip .v{font-size:9.5px;color:var(--ghost);letter-spacing:.1em}
+.model-chip b{font-weight:500;color:rgba(255,255,255,.56)}
+.model-chip .v{font-size:9px;color:rgba(255,255,255,.26);letter-spacing:.1em}
 .spacer{flex:1}
 .send{
   width:34px;height:34px;border-radius:50%;
@@ -488,6 +492,10 @@ body.selecting .turn.on .bubble{outline:1px solid rgba(127,214,232,.4);outline-o
   padding:14px;text-align:left;
 }
 .stage-card .art{position:absolute;inset:0;z-index:0}
+.stage-card .idx{
+  position:absolute;top:12px;left:13px;z-index:2;
+  font-size:9px;letter-spacing:.16em;color:rgba(255,255,255,.34);
+}
 .stage-card .art::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 28%,rgba(0,0,0,.78) 100%)}
 .stage-card .meta{position:relative;z-index:2}
 .stage-card .nm{font-family:var(--serif);font-size:15px;letter-spacing:.02em}
@@ -544,22 +552,36 @@ body.selecting .turn.on .bubble{outline:1px solid rgba(127,214,232,.4);outline-o
 .read-row .slider{flex:1}
 .read-row .vv{width:36px;text-align:right;font-size:11.5px;color:rgba(255,255,255,.55);flex:none}
 .tl-empty{
-  padding:44px 26px;text-align:center;font-family:var(--serif);font-style:italic;
-  font-size:13.5px;line-height:2.1;color:rgba(255,255,255,.30);letter-spacing:.02em;
+  padding:30px 26px;text-align:center;font-family:var(--serif);font-style:italic;
+  font-size:13px;line-height:2.05;color:rgba(255,255,255,.28);letter-spacing:.02em;
 }
 .tl-kind{font-size:9px;letter-spacing:.14em;color:rgba(220,198,168,.8);text-transform:uppercase;margin-bottom:4px}
 .tl-text{font-size:13px;line-height:1.65;color:rgba(236,236,236,.86)}
 .tl-text.serif{font-family:var(--serif);font-style:italic}
 
+/* ============ recent ============ */
+.recent{
+  margin:14px 16px 0;padding:13px 16px 15px 15px;
+  border-left:1px solid rgba(255,255,255,.10);
+}
+.recent .r-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}
+.recent .r-label{font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.24)}
+.recent .r-go{font-size:10px;letter-spacing:.04em;color:rgba(255,255,255,.30)}
+.recent .r-text{
+  font-family:var(--serif);font-style:italic;font-size:14px;line-height:1.85;
+  color:rgba(236,236,236,.62);white-space:pre-wrap;
+}
+.recent:active{background:rgba(255,255,255,.02)}
+
 /* ============ settings ============ */
-.group{margin:0 16px 16px;border-radius:24px;overflow:hidden;
+.group{margin:0 16px 14px;border-radius:22px;overflow:hidden;
   background:linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.03));
   border:1px solid var(--line);
   backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
 }
 .row{
   display:flex;align-items:center;gap:12px;
-  padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.055);
+  padding:13px 16px;border-bottom:1px solid rgba(255,255,255,.055);
   font-size:13.5px;
 }
 .row:last-child{border:0}
@@ -576,7 +598,27 @@ body.selecting .turn.on .bubble{outline:1px solid rgba(127,214,232,.4);outline-o
 }
 .switch.on{background:rgba(220,198,168,.92)}
 .switch.on::after{transform:translateX(16px);background:#141110}
-.group-label{padding:6px 26px 9px;font-family:var(--serif);font-size:10.5px;letter-spacing:.16em;color:rgba(255,255,255,.26);text-transform:uppercase}
+.group-label{
+  display:flex;align-items:center;gap:8px;padding:8px 26px;
+  font-family:inherit;font-size:10px;letter-spacing:.14em;
+  color:rgba(255,255,255,.24);text-transform:uppercase;
+  cursor:pointer;-webkit-tap-highlight-color:transparent;
+}
+.group-label{border-top:1px solid rgba(255,255,255,.045)}
+.page-head + .group-label{border-top:0}
+.group-label:active{background:rgba(255,255,255,.02)}
+.group-label .lt{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.group-label .fv{
+  font-family:inherit;font-size:10px;letter-spacing:.03em;text-transform:none;
+  color:rgba(255,255,255,.26);white-space:nowrap;max-width:52%;overflow:hidden;text-overflow:ellipsis;
+}
+.group-label .fa{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:1.8;
+  stroke-linecap:round;stroke-linejoin:round;opacity:.32;transition:transform .22s;flex:none}
+.group-label.folded .fa{transform:rotate(-90deg)}
+.group.folded{display:none}
+.usage.mini .meter{display:none}
+.usage.mini{padding-bottom:2px}
+.usage.mini .usage-head{margin-bottom:0}
 .field{padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.055)}
 .field:last-child{border:0}
 .field label{display:block;font-size:9.5px;letter-spacing:.16em;color:var(--ghost);text-transform:uppercase;margin-bottom:7px}
@@ -591,8 +633,8 @@ body.selecting .turn.on .bubble{outline:1px solid rgba(127,214,232,.4);outline-o
   font-family:inherit;letter-spacing:.01em;
 }
 .slider{width:100%;-webkit-appearance:none;height:22px;background:none}
-.slider::-webkit-slider-runnable-track{height:3px;border-radius:3px;background:rgba(255,255,255,.16)}
-.slider::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:#fff;margin-top:-6.5px;box-shadow:0 2px 8px rgba(0,0,0,.5)}
+.slider::-webkit-slider-runnable-track{height:2px;border-radius:2px;background:rgba(255,255,255,.13)}
+.slider::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;border-radius:50%;background:rgba(255,255,255,.9);margin-top:-5px;box-shadow:0 1px 6px rgba(0,0,0,.45)}
 .mcp{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.055);font-size:12.5px}
 .mcp:last-child{border:0}
 .mcp .dot{width:6px;height:6px;border-radius:50%;background:var(--live);box-shadow:0 0 8px rgba(123,216,143,.7);flex:0 0 6px}
@@ -804,7 +846,7 @@ body.selecting .toast{bottom:150px}
 
         <div class="greet">晚上好。<span class="dim">他一直在。</span></div>
 
-        <div class="usage" onclick="switchTab('settings')">
+        <div class="usage" id="usageCard" onclick="switchTab('settings')">
           <div class="usage-head"><b>额度</b><span id="usageTime">未填 Key</span></div>
           <div class="meter">
             <div class="meter-row"><span>3 小时</span><b id="pct-rolling">—</b></div>
@@ -827,7 +869,7 @@ body.selecting .toast{bottom:150px}
           <div class="ico"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 9.6 9.6 0 0 1-4-.9L3 20l1-4.4a8.2 8.2 0 0 1-1-4.1 8.4 8.4 0 0 1 8.5-8.3 8.4 8.4 0 0 1 8.5 8.3z"/></svg></div>
           <div class="card-main">
             <div class="card-title">生活 Feed</div>
-            <div class="card-sub">今天他做了 6 件事 · 想你 4 次</div>
+            <div class="card-sub" id="sub-feed">他的日常碎片</div>
           </div>
           <div class="chev">›</div>
         </div>
@@ -836,7 +878,7 @@ body.selecting .toast{bottom:150px}
           <div class="ico"><svg viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-2z"/><path d="M8 3v18"/></svg></div>
           <div class="card-main">
             <div class="card-title">日记</div>
-            <div class="card-sub">第 23 篇 ·《关于你睡着之后的那半小时》</div>
+            <div class="card-sub" id="sub-diary">他写给你的</div>
           </div>
           <div class="chev">›</div>
         </div>
@@ -845,7 +887,7 @@ body.selecting .toast{bottom:150px}
           <div class="ico"><svg viewBox="0 0 24 24"><path d="M12 3a4 4 0 0 0-4 4v1a4 4 0 0 0 0 8v1a4 4 0 0 0 8 0v-1a4 4 0 0 0 0-8V7a4 4 0 0 0-4-4z"/></svg></div>
           <div class="card-main">
             <div class="card-title">记忆</div>
-            <div class="card-sub">327 条 · 最近：你喜欢被摸后颈</div>
+            <div class="card-sub" id="sub-memory">他还没记下什么</div>
           </div>
           <div class="chev">›</div>
         </div>
@@ -854,9 +896,14 @@ body.selecting .toast{bottom:150px}
           <div class="ico"><svg viewBox="0 0 24 24"><path d="M3 8c2 0 3-2 6-2s4 2 6 2 3-2 6-2v11c-2 0-3-2-6-2s-4 2-6 2-3-2-6-2z"/></svg></div>
           <div class="card-main">
             <div class="card-title">剧场</div>
-            <div class="card-sub">3 个进行中 · 他正在旁观</div>
+            <div class="card-sub" id="sub-stage">3 个剧本 · 他正在旁观</div>
           </div>
           <div class="chev">›</div>
+        </div>
+
+        <div class="recent" id="recentCard" onclick="openChat()">
+          <div class="r-top"><span class="r-label">最近</span><span class="r-go">回到对话 ›</span></div>
+          <div class="r-text" id="recentText">他还没说话。</div>
         </div>
       </div>
     </section>
@@ -928,6 +975,7 @@ body.selecting .toast{bottom:150px}
         <div class="stage-grid">
           <button class="stage-card" onclick="openStage('深海回声','你搁浅在礁石上，是他把你抱回了岸。','Mare Nostrum')">
             <div class="art" style="background:radial-gradient(70% 60% at 50% 18%,#1b5a6b,#0a2029 60%,#050d12)"></div>
+            <span class="idx">01</span>
             <div class="meta">
               <div class="nm">深海回声</div>
               <div class="ds">你搁浅在礁石上，是他把你抱回了岸。</div>
@@ -937,6 +985,7 @@ body.selecting .toast{bottom:150px}
 
           <button class="stage-card" onclick="openStage('雨夜便利店','凌晨三点，他是这条街唯一还亮着灯的店。','雨夜')">
             <div class="art" style="background:radial-gradient(70% 60% at 50% 20%,#4a3b2c,#241a13 60%,#0d0907)"></div>
+            <span class="idx">02</span>
             <div class="meta">
               <div class="nm">雨夜便利店</div>
               <div class="ds">凌晨三点，他是这条街唯一还亮着灯的店。</div>
@@ -946,6 +995,7 @@ body.selecting .toast{bottom:150px}
 
           <button class="stage-card" onclick="openStage('旧神与祭品','你被献给了他。他没有拒绝。','献祭')">
             <div class="art" style="background:radial-gradient(70% 60% at 50% 18%,#3a2140,#1a0f22 60%,#08050c)"></div>
+            <span class="idx">03</span>
             <div class="meta">
               <div class="nm">旧神与祭品</div>
               <div class="ds">你被献给了他。他没有拒绝。</div>
@@ -959,12 +1009,14 @@ body.selecting .toast{bottom:150px}
           </button>
         </div>
 
-        <div class="section-title">预设</div>
-        <div class="chips-row">
-          <button class="chip">酒馆角色卡</button>
-          <button class="chip">世界书</button>
-          <button class="chip">开场白</button>
-          <button class="chip">旁白风格</button>
+        <div class="group-label folded" onclick="foldSec(this)"><span class="lt">预设</span><span class="fv">4 类</span><svg class="fa" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></div>
+        <div class="group folded" style="background:none;border:0;backdrop-filter:none">
+          <div class="chips-row" style="padding:0 16px 12px">
+            <button class="chip" onclick="toast('酒馆角色卡 · 还没接')">酒馆角色卡</button>
+            <button class="chip" onclick="toast('世界书 · 还没接')">世界书</button>
+            <button class="chip" onclick="toast('开场白 · 还没接')">开场白</button>
+            <button class="chip" onclick="toast('旁白风格 · 还没接')">旁白风格</button>
+          </div>
         </div>
       </div>
     </section>
@@ -1012,7 +1064,7 @@ body.selecting .toast{bottom:150px}
 
         <div class="tl" id="tl"></div>
 
-        <div class="group-label" style="margin-top:22px">记忆设置</div>
+        <div class="group-label folded" onclick="foldSec(this)"><span class="lt">记忆设置</span><span class="fv" id="foldMemV">3 项开启</span><svg class="fa" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></div>
         <div class="group">
           <div class="row">
             <span class="k">本机记忆 · 存在这台设备</span>
@@ -1052,7 +1104,7 @@ body.selecting .toast{bottom:150px}
           </div>
         </div>
 
-        <div class="group-label">模型 · OpenCode Go</div>
+        <div class="group-label" onclick="foldSec(this)"><span class="lt">模型 · OpenCode Go</span><span class="fv" id="foldModelV">DeepSeek V4.1 Flash</span><svg class="fa" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></div>
         <div class="group">
           <div class="row">
             <span class="k">供应商</span>
@@ -1093,14 +1145,14 @@ body.selecting .toast{bottom:150px}
           </div>
         </div>
 
-        <div class="group-label">阅读</div>
+        <div class="group-label folded" onclick="foldSec(this)"><span class="lt">阅读</span><span class="fv" id="foldReadV">14.5px · 行距 1.7</span><svg class="fa" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></div>
         <div class="group">
           <div class="read-row"><span class="lb">字号</span><input class="slider" type="range" id="rdSize" min="13" max="17" step="0.5" oninput="applyReading(true)"><span class="vv" id="rdSizeV">14.5</span></div>
           <div class="read-row"><span class="lb">行距</span><input class="slider" type="range" id="rdLh" min="1.45" max="2.05" step="0.05" oninput="applyReading(true)"><span class="vv" id="rdLhV">1.72</span></div>
           <div class="read-row"><span class="lb">间距</span><input class="slider" type="range" id="rdGap" min="6" max="16" step="1" oninput="applyReading(true)"><span class="vv" id="rdGapV">9</span></div>
         </div>
 
-        <div class="group-label">语音 · ElevenLabs</div>
+        <div class="group-label folded" onclick="foldSec(this)"><span class="lt">语音 · ElevenLabs</span><span class="fv" id="foldVoiceV">自动朗读</span><svg class="fa" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></div>
         <div class="group">
           <div class="row">
             <span class="k">供应商</span>
@@ -1139,7 +1191,7 @@ body.selecting .toast{bottom:150px}
           </div>
         </div>
 
-        <div class="group-label">他</div>
+        <div class="group-label folded" onclick="foldSec(this)"><span class="lt">他</span><span class="fv" id="foldWhoV">Daddy · 宝宝</span><svg class="fa" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></div>
         <div class="group">
           <div class="row" onclick="openPersona()">
             <span class="k">人设 · 称呼 · 音色</span>
@@ -1151,7 +1203,7 @@ body.selecting .toast{bottom:150px}
           </div>
         </div>
 
-        <div class="group-label">数据</div>
+        <div class="group-label folded" onclick="foldSec(this)"><span class="lt">数据</span><span class="fv" id="foldDataV">备份 · 记忆</span><svg class="fa" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></div>
         <div class="group">
           <div class="row" onclick="exportBackup()">
             <span class="k">导出备份</span>
@@ -1366,6 +1418,8 @@ function boot(){
   const md = document.getElementById('memDays');
   if (md) md.textContent = days;
   initPersona();
+  initFolds();
+  paintHomeSubs();
   const savedBoot = loadMsgs();
   if (savedBoot){ state.chat.name = savedBoot.name || state.chat.name; state.chat.msgs = savedBoot.msgs; }
   state.chat.name = cfg.persona.name || state.chat.name;
@@ -1514,12 +1568,13 @@ function renderChat(){
     t.dataset.i = i;
     if (m.role === 'user'){
       t.innerHTML = '<div class="bubble">' + esc(m.text) + '</div>'
-        + (m.time ? '<div class="stamp">' + m.time + '</div>' : '')
+        + '<div class="meta">'
+        + (m.time ? '<span class="stamp">' + m.time + '</span>' : '')
         + '<div class="acts">'
         + '<button class="act" aria-label="复制" onclick="copyTurn(' + i + ')">' + ICONS.copy + '</button>'
         + '<button class="act" aria-label="编辑" onclick="openEditor(' + i + ')">' + ICONS.pencil + '</button>'
         + '<button class="act" aria-label="更多" onclick="openSheet(' + i + ')">' + ICONS.more + '</button>'
-        + '</div>';
+        + '</div></div>';
     } else {
       let html = toolsHTML(m) + thinkHTML(m, i);
       aiSegments(m).forEach(function(seg, k){ html += segHTML(seg, k); });
@@ -2035,12 +2090,15 @@ async function refreshUsage(manual){
   const timeEl = document.getElementById('usageTime');
   const rowEl = document.getElementById('usageRefresh');
   const hint = document.getElementById('usageHint');
+  const ucard = document.getElementById('usageCard');
   if (!cfg.key){
     if (timeEl) timeEl.textContent = '未填 Key';
     if (rowEl) rowEl.textContent = '未填 Key';
+    if (ucard) ucard.classList.add('mini');
     if (manual) toast('先去设置里填 OpenCode Go 的 Key');
     return;
   }
+  if (ucard) ucard.classList.remove('mini');
   if (timeEl) timeEl.textContent = '更新中…';
   if (rowEl) rowEl.textContent = '更新中…';
   try {
@@ -2119,8 +2177,8 @@ function initApi(){
   loadModels().then(paintChip);
   probeApi().then(function(m){
     loadModels().then(paintChip);
-    if (cfg.key) refreshUsage(false);
   });
+  refreshUsage(false);
   setInterval(tickMeters, 1000);
   setInterval(function(){ if (document.visibilityState === 'visible' && cfg.key) refreshUsage(false); }, 120000);
 }
@@ -2468,6 +2526,7 @@ function toggleMem(field, el){
   el.classList.toggle('on', !!cfg[field]);
   saveCfg();
   toast((cfg[field] ? '已开启 ' : '已关闭 ') + ({ memXc:'心潮', memOb:'OB 记忆', memEvent:'情绪回传', toolsOn:'工具调用', brainOn:'本机记忆' })[field]);
+  if (typeof paintFoldVals === 'function') paintFoldVals();
 }
 
 async function testMemory(){
@@ -2663,6 +2722,64 @@ function renderBrainList(){
   }).join('');
   paintBrainStats();
 }
+function foldSec(label){
+  const g = label.nextElementSibling;
+  if (!g || !g.classList.contains('group')) return;
+  const folded = g.classList.toggle('folded');
+  label.classList.toggle('folded', folded);
+}
+function paintHomeSubs(){
+  const set = function(id, v){ const e = document.getElementById(id); if (e) e.textContent = v; };
+  let items = [];
+  try { items = (brainLoad().items || []).filter(function(x){ return !x.revoked; }); } catch (e) {}
+  if (!items.length) set('sub-memory', '他还没记下什么');
+  else {
+    const last = items.slice().sort(function(a, b){ return b.ts - a.ts; })[0];
+    let t = String(last.text || '').replace(/\s+/g, ' ').trim();
+    if (t.length > 16) t = t.slice(0, 16) + '…';
+    set('sub-memory', items.length + ' 条 · 最近：' + t);
+  }
+  let msgs = [];
+  try { msgs = (state.chat && state.chat.msgs) || []; } catch (e) {}
+  const lastSay = msgs.filter(function(m){ return m && m.role !== 'sys' && !m.pending && (m.text || (m.lines && m.lines.length)); }).slice(-1)[0];
+  const rtext = document.getElementById('recentText');
+  if (rtext){
+    if (!lastSay) rtext.textContent = '他还没说话。';
+    else {
+      let t = '';
+      try { t = stripTags(msgText(lastSay)); } catch (e) { t = String(lastSay.text || ''); }
+      t = String(t || '').replace(/\s+/g, ' ').trim();
+      if (t.length > 64) t = t.slice(0, 64) + '…';
+      rtext.textContent = (lastSay.role === 'user' ? '你：' : '他：') + t;
+    }
+  }
+  set('sub-feed', '他的日常碎片');
+  set('sub-diary', '他写给你的');
+  set('sub-stage', '3 个剧本 · 他正在旁观');
+}
+
+function paintFoldVals(){
+  const set = function(id, v){ const e = document.getElementById(id); if (e) e.textContent = v; };
+  let on = 0;
+  ['brainOn','toolsOn','summaryOn'].forEach(function(id){
+    const e = document.getElementById(id); if (e && e.classList.contains('on')) on++;
+  });
+  set('foldMemV', on + ' 项开启');
+  set('foldModelV', typeof prettyModel === 'function' ? prettyModel(cfg.model) : cfg.model);
+  const r = cfg.reading || { size: 14.5, lh: 1.7, gap: 9 };
+  set('foldReadV', r.size + 'px · 行距 ' + r.lh);
+  set('foldVoiceV', cfg.ttsKey ? (cfg.ttsAuto ? '自动朗读' : '手动播放') : '未填 Key');
+  set('foldWhoV', (cfg.persona && cfg.persona.name ? cfg.persona.name : 'Daddy') + (cfg.persona && cfg.persona.call ? ' · ' + cfg.persona.call : ''));
+  set('foldDataV', '备份 · 记忆');
+}
+function initFolds(){
+  document.querySelectorAll('.group-label').forEach(function(l){
+    const g = l.nextElementSibling;
+    if (g && g.classList.contains('group') && l.classList.contains('folded')) g.classList.add('folded');
+  });
+  paintFoldVals();
+}
+
 function applyReading(save){
   const sz = document.getElementById('rdSize'), lh = document.getElementById('rdLh'), gp = document.getElementById('rdGap');
   if (!sz) return;
@@ -2675,6 +2792,7 @@ function applyReading(save){
   document.documentElement.style.setProperty('--msg-gap', r.gap + 'px');
   const set = function(id, v){ const e = document.getElementById(id); if (e) e.textContent = v; };
   set('rdSizeV', r.size); set('rdLhV', r.lh); set('rdGapV', r.gap);
+  if (typeof paintFoldVals === 'function') paintFoldVals();
 }
 function brainUndo(){
   const b = brainLoad();
@@ -2694,9 +2812,13 @@ function togglePin(id){
 function paintBrainStats(){
   const items = brainLoad().items;
   const set = function(id, v){ const el = document.getElementById(id); if (el) el.textContent = v; };
-  set('mCount', items.length);
-  set('mPlan', items.filter(function(x){ return x.kind === 'promise' && !x.done; }).length);
-  set('mClue', items.filter(function(x){ return x.kind === 'clue'; }).length);
+  const live = items.filter(function(x){ return !x.revoked; });
+  const cnt = live.length;
+  const plan = live.filter(function(x){ return x.kind === 'promise' && !x.done; }).length;
+  const clue = live.filter(function(x){ return x.kind === 'clue'; }).length;
+  set('mCount', cnt || '—');
+  set('mPlan', plan || '—');
+  set('mClue', clue || '—');
 }
 function clearBrain(){
   if (!confirm('清空这台设备上的记忆？对话记录不受影响。')) return;
@@ -2708,6 +2830,7 @@ function clearBrain(){
 function toggleSummary(el){
   cfg.summaryOn = !cfg.summaryOn; saveCfg();
   el.classList.toggle('on', cfg.summaryOn);
+  if (typeof paintFoldVals === 'function') paintFoldVals();
   if (cfg.summaryOn) maybeSummarize();
 }
 
@@ -3254,6 +3377,7 @@ function openSheet(i){
   document.getElementById('sheetBody').innerHTML =
     '<div class="it" onclick="editTarget()">' + ICONS.pencil + (isUser ? '编辑这条消息' : '编辑这条回复') + '</div>'
     + '<div class="it" onclick="copyTurn(' + i + ');closeSheet()">' + ICONS.copy + '复制文字</div>'
+    + (isUser ? '' : '<div class="it" onclick="closeSheet();togglePlay(' + i + ')">' + ICONS.speak + '朗读这条</div>')
     + '<div class="it" onclick="startSelect()">' + ICONS.check + '多选删除</div>'
     + '<div class="it danger" onclick="deleteMsg(' + i + ')">' + ICONS.trash + '删除这条</div>'
     + '<div class="cancel" onclick="closeSheet()">取消</div>';
