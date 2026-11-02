@@ -1162,6 +1162,10 @@ body.selecting .toast{bottom:150px}
             <span class="k">允许他写入新场景</span>
             <span class="switch on" id="sereinWrite" onclick="toggleMem('sereinWrite',this)"></span>
           </div>
+          <div class="row" onclick="sereinSyncAll(true)">
+            <span class="k">同步到 Serein</span>
+            <span class="v" id="sereinSyncN">检查中 ›</span>
+          </div>
           <div class="row" onclick="sereinPull()">
             <span class="k">从 Serein 拉取记忆</span>
             <span class="v" id="sereinPullN">读取 ›</span>
@@ -1971,7 +1975,7 @@ function initPersona(){
 }
 // 部署到静态托管（GitHub Pages）时没有 /api，默认走这台机器上的代理隧道。
 // 换隧道后改这一行即可（deploy 脚本会按 URL.txt 自动重写）。
-const DEFAULT_BASE = '__DEFAULT_BASE__';
+const DEFAULT_BASE = 'https://daddy-six-vert.vercel.app/api';
 function isLocalHost(){
   const h = location.hostname;
   return h === '127.0.0.1' || h === 'localhost' || h === '0.0.0.0' || h === '' || /^192\.168\.|^10\.|^172\.(1[6-9]|2\d|3[01])\./.test(h);
@@ -2370,6 +2374,7 @@ function initApi(){
   if (smOn) smOn.classList.toggle('on', !!cfg.summaryOn);
   paintVoiceName();
   if (cfg.ttsKey){ paintVoiceName(); }
+  if (typeof paintSereinSync === 'function') paintSereinSync();
 
   loadModels().then(paintChip);
   probeApi().then(function(m){
@@ -2495,6 +2500,16 @@ async function testSerein(){
 }
 
 var SEREIN_CACHE = null;
+const SEREIN_PATH = '/serein/mcp';
+function sereinBase(){
+  const custom = (cfg.sereinBase || '').trim();
+  if (custom) return custom.replace(/\/+$/, '');
+  const h = location.hostname;
+  const local = h === '127.0.0.1' || h === 'localhost' || h === '0.0.0.0' || h === ''
+    || /^192\.168\.|^10\.|^172\.(1[6-9]|2\d|3[01])\./.test(h);
+  return local ? '' : 'http://127.0.0.1:18080';
+}
+
 function sereinItem(x, kind){
   const id = x.item_id || x.id || x.document_id || ('s' + Math.random().toString(36).slice(2, 8));
   const body = x.body_md || x.content || x.text || x.body || x.summary || '';
@@ -2510,6 +2525,90 @@ function sereinItem(x, kind){
   };
 }
 
+const SEREIN_SENT_KEY = 'daddy.serein.sent.v1';
+function sereinSentLoad(){ try { return JSON.parse(localStorage.getItem(SEREIN_SENT_KEY) || '[]'); } catch (e) { return []; } }
+function sereinSentSave(a){ try { localStorage.setItem(SEREIN_SENT_KEY, JSON.stringify(a.slice(-800))); } catch (e) {} }
+function sereinKeyOf(x){
+  if (x.id) return String(x.id);
+  let h = 0; const t = String(x.text || '') + '|' + (x.ts || 0);
+  for (let i = 0; i < t.length; i++) h = (h * 31 + t.charCodeAt(i)) | 0;
+  return 'h' + Math.abs(h).toString(36);
+}
+function sereinCuesOf(x){
+  const cues = (x.tags || []).filter(Boolean).map(function(t){ return String(t).slice(0, 80); }).slice(0, 8);
+  if (cues.length) return cues;
+  const t = String(x.text || '').replace(/\s+/g, ' ').trim();
+  return [t ? t.slice(0, 60) : '那一刻'];
+}
+function sereinPending(){
+  const sent = sereinSentLoad();
+  return brainLoad().items.filter(function(x){
+    return !x.done && !x.revoked && !x.supersededBy && sent.indexOf(sereinKeyOf(x)) < 0;
+  });
+}
+function paintSereinSync(){
+  const el = document.getElementById('sereinSyncN');
+  if (!el) return;
+  if (!cfg.sereinOn){ el.textContent = '未开启 ›'; return; }
+  const n = sereinPending().length;
+  el.textContent = n ? (n + ' 条待写入 ›') : '已全部同步 ›';
+}
+async function sereinWriteItem(x){
+  if (!cfg.sereinOn || !cfg.sereinWrite) return false;
+  const k = sereinKeyOf(x);
+  if (sereinSentLoad().indexOf(k) >= 0) return false;
+  const d = new Date(x.ts || Date.now());
+  const day = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  try {
+    const args = {
+      content: String(x.text || ''),
+      cues: sereinCuesOf(x),
+      title: x.title || shortTitle(String(x.text || '')),
+      date: day
+    };
+    if (x.pin) args.favorite = true;   // 只有真的置顶才传，Serein 的 favorite 功能可能被禁用
+    const out = await withTimeout(sereinCall('write_scene', args), 20000);
+    const ok = /scene_id|已保存/.test(String(out || ''));
+    if (ok){ const list = sereinSentLoad(); list.push(k); sereinSentSave(list); }
+    return ok;
+  } catch (e) { return false; }
+}
+async function sereinSyncAll(manual){
+  if (!cfg.sereinOn){ if (manual) toast('先在设置里打开 Serein'); return 0; }
+  const list = sereinPending();
+  if (!list.length){ if (manual) toast('没有新的要写'); paintSereinSync(); return 0; }
+  let n = 0;
+  for (let i = 0; i < list.length; i += 3){
+    const batch = list.slice(i, i + 3);
+    const res = await Promise.all(batch.map(function(x){
+      return sereinWriteItem(x).catch(function(){ return false; });
+    }));
+    res.forEach(function(r){ if (r) n++; });
+    paintSereinSync();
+  }
+  if (manual) toast(n ? ('已写入 ' + n + ' 条到 Serein') : '写入失败 · 检查 Serein 连接');
+  return n;
+}
+function parseTypedMemories(text){
+  const out = [];
+  const re = /\[typed_memory ref=([^\]]+)\]([\s\S]*?)\[\/typed_memory\]/g;
+  let m;
+  while ((m = re.exec(String(text || '')))){
+    const body = m[2];
+    const title = ((/^title:\s*(.+)$/m.exec(body) || [])[1] || '').trim();
+    const date = ((/^date:\s*(.+)$/m.exec(body) || [])[1] || '').trim();
+    let tx = '';
+    const t = /\ntext:\s*\|?\s*\n([\s\S]*)$/.exec(body);
+    if (t) tx = t[1];
+    else tx = body.split('\n').filter(function(l){
+      return !/^(title|date|date_basis|可能是)/.test(l.trim());
+    }).join('\n');
+    tx = tx.replace(/\[memory_details[\s\S]*$/, '').trim();
+    if (tx) out.push({ ref: m[1].trim(), title: title, date: date, text: tx });
+  }
+  return out;
+}
+
 async function sereinPull(){
   const el = document.getElementById('sereinPullN');
   if (el) el.textContent = '读取中…';
@@ -2517,35 +2616,43 @@ async function sereinPull(){
   try {
     if (!SEREIN_TOOLS) SEREIN_TOOLS = await withTimeout(sereinTools(), 12000);
     const has = function(n){ return (SEREIN_TOOLS || []).some(function(t){ return t.name === n; }); };
-    if (has('read_favorites')){
-      try {
-        const t = await withTimeout(sereinCall('read_favorites', { limit: 30 }), 15000);
-        (Array.isArray(t) ? t : (t && (t.items || t.results)) || []).forEach(function(x){ out.push(sereinItem(x, 'scene')); });
-      } catch (e) {}
+    if (has('recall_memory')){
+      const seeds = [];
+      brainLoad().items.slice(-6).forEach(function(x){
+        const w = String((x.tags && x.tags[0]) || x.title || String(x.text || '').slice(0, 8)).trim();
+        if (w && seeds.indexOf(w) < 0) seeds.push(w);
+      });
+      if (!seeds.length) seeds.push('她');
+      const seen = {};
+      for (const q of seeds.slice(0, 4)){
+        try {
+          const t = await withTimeout(sereinCall('recall_memory', { query: q, mode: 'lookup', limit: 8, method: 'lexical' }), 12000);
+          parseTypedMemories(t).forEach(function(x){
+            if (seen[x.ref]) return;
+            seen[x.ref] = 1;
+            out.push(sereinItem({ id: x.ref.replace(/^scene:/, ''), content: x.text, title: x.title, date: x.date, tags: [], lifecycle: 'active' }, 'scene'));
+          });
+        } catch (e) {}
+      }
     }
     if (has('read_preferences')){
       try {
         const t = await withTimeout(sereinCall('read_preferences', {}), 15000);
-        (Array.isArray(t) ? t : (t && (t.items || t.preferences)) || []).forEach(function(x){ out.push(sereinItem(x, 'pref')); });
+        const arr = Array.isArray(t) ? t : (t && (t.items || t.preferences)) || [];
+        arr.forEach(function(x){ out.push(sereinItem(x, 'pref')); });
       } catch (e) {}
     }
     SEREIN_CACHE = out;
     if (el) el.textContent = out.length ? (out.length + ' 条 ›') : '没有读到 ›';
-    toast(out.length ? ('从 Serein 读到 ' + out.length + ' 条') : 'Serein 返回空');
+    toast(out.length ? ('从 Serein 读到 ' + out.length + ' 条') : 'Serein 里还没有记忆');
     if (typeof renderBrainList === 'function') renderBrainList();
+    paintSereinSync();
   } catch (e) {
     if (el) el.textContent = '读取失败 ›';
-    toast('Serein · ' + String(e && e.message || e).slice(0, 50));
+    toast('Serein · ' + String((e && e.message) || e).slice(0, 50));
   }
 }
 
-const SEREIN_PATH = '/serein/mcp';
-function sereinBase(){
-  const b = (cfg.sereinBase || '').trim();
-  if (b) return b.replace(/\/+$/, '');
-  if (location.protocol === 'http:' && /^(127\.0\.0\.1|localhost)$/.test(location.hostname)) return '';
-  return 'http://127.0.0.1:18080';
-}
 async function sereinTools(){
   const r = await mcpCall('serein', SEREIN_PATH, 'tools/list', {}, sereinBase());
   return (r && r.tools) || [];
@@ -3729,6 +3836,8 @@ async function execMcpTool(name, rawArgs){
       recentPush(a.text, 'remember');
       if (it.supersedes) recentPush('（更新）' + a.text, 'update');
       if (typeof renderBrainList === 'function') renderBrainList();
+      if (typeof paintSereinSync === 'function') paintSereinSync();
+      try { sereinWriteItem(it).then(function(){ if (typeof paintSereinSync === 'function') paintSereinSync(); }); } catch (e) {}
       return 'saved (' + (BRAIN_LABEL[it.kind] || it.kind) + ')' + (it.supersedes ? ', retired the older value' : '') + ': ' + it.text;
     }
     if (name === 'recall'){
