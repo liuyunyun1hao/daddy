@@ -40,7 +40,10 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 
 BRIDGE_PORT = int(os.environ.get('BRIDGE_PORT', '18080'))
 SEREIN_URL = os.environ.get('SEREIN_URL', 'http://127.0.0.1:18217').rstrip('/')
-API_UPSTREAM = os.environ.get('API_UPSTREAM', 'https://daddy-six-vert.vercel.app').rstrip('/')
+API_UPSTREAM = os.environ.get('API_UPSTREAM', 'http://127.0.0.1:9355/zen/go/v1').rstrip('/')
+FALLBACK_UPSTREAM = 'https://opencode.ai/zen/go/v1'
+BROWSER_UA = ('Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 '
+              '(KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36')
 APP_DIR = os.environ.get('APP_DIR', HERE)
 
 KEY_CANDIDATES = [
@@ -134,6 +137,11 @@ class Handler(SimpleHTTPRequestHandler):
                 continue
             headers[k] = v
         headers['Host'] = host if port in (80, 443) else '%s:%d' % (host, port)
+        if host == 'opencode.ai':
+            headers['User-Agent'] = BROWSER_UA
+            headers['Accept-Language'] = 'zh-CN,zh;q=0.9,en;q=0.8'
+            headers.pop('Host', None)
+            headers['Host'] = 'opencode.ai'
 
         # /serein/* 注入 Gateway Key；其它路径保留客户端自带 Authorization
         if path.startswith('/serein'):
@@ -225,6 +233,17 @@ class Handler(SimpleHTTPRequestHandler):
         self.send_header('Content-Length', '0')
         self.end_headers()
 
+    def _api_path(self):
+        """把 /api/proxy?p=/chat/completions 或 /api/models 还原成上游路径。"""
+        from urllib.parse import parse_qs, urlencode
+        p = urlparse(self.path)
+        path = p.path[len('/api'):] if p.path.startswith('/api') else p.path
+        q = parse_qs(p.query, keep_blank_values=True)
+        if path in ('/proxy', '/proxy/'):
+            path = q.pop('p', ['/models'])[0]
+        rest = urlencode({k: v[0] for k, v in q.items()})
+        return path + ('?' + rest if rest else '')
+
     def _body(self):
         n = int(self.headers.get('Content-Length') or 0)
         return self.rfile.read(n) if n else None
@@ -234,8 +253,11 @@ class Handler(SimpleHTTPRequestHandler):
         if path == '/health':
             self._json(200, {'ok': True, 'serein': SEREIN_URL, 'key': bool(KEY), 'app': APP_DIR})
             return
-        if path.startswith('/serein') or path.startswith('/api'):
-            self._relay(SEREIN_URL if path.startswith('/serein') else API_UPSTREAM, self.path, None)
+        if path.startswith('/serein'):
+            self._relay(SEREIN_URL, self.path, None)
+            return
+        if path.startswith('/api'):
+            self._relay(API_UPSTREAM, self._api_path(), None)
             return
         super().do_GET()
 
@@ -246,7 +268,7 @@ class Handler(SimpleHTTPRequestHandler):
             self._relay(SEREIN_URL, self.path, body)
             return
         if path.startswith('/api'):
-            self._relay(API_UPSTREAM, self.path, body)
+            self._relay(API_UPSTREAM, self._api_path(), body)
             return
         self._json(404, {'error': 'not found'})
 
@@ -275,6 +297,17 @@ def bind_any(start, tries=12):
 
 
 def main():
+    global API_UPSTREAM
+    if '127.0.0.1:9355' in API_UPSTREAM:
+        ok = False
+        try:
+            s_ = socket.create_connection(('127.0.0.1', 9355), timeout=1.5)
+            s_.close(); ok = True
+        except Exception:
+            pass
+        if not ok:
+            API_UPSTREAM = FALLBACK_UPSTREAM
+            log('oc proxy 9355 没开，先直连 opencode.ai（建议先跑 cs 把 oc 起来）')
     log('serein   =', SEREIN_URL)
     log('upstream =', API_UPSTREAM)
     log('app      =', APP_DIR)
