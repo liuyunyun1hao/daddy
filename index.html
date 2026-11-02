@@ -1907,7 +1907,7 @@ function initPersona(){
 const DEFAULT_BASE = 'https://daddy-six-vert.vercel.app/api';
 function isLocalHost(){
   const h = location.hostname;
-  return h === '127.0.0.1' || h === 'localhost' || h === '0.0.0.0' || h === '' || /^192\.168\.|^10\./.test(h);
+  return h === '127.0.0.1' || h === 'localhost' || h === '0.0.0.0' || h === '' || /^192\.168\.|^10\.|^172\.(1[6-9]|2\d|3[01])\./.test(h);
 }
 let apiMode = cfg.mode || (isLocalHost() ? 'direct' : 'query');
 function apiBase(){
