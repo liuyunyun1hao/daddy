@@ -306,8 +306,7 @@ def main():
         except Exception:
             pass
         if not ok:
-            API_UPSTREAM = FALLBACK_UPSTREAM
-            log('oc proxy 9355 没开，先直连 opencode.ai（建议先跑 cs 把 oc 起来）')
+            log('!! oc 代理 9355 没起来 —— /api 会 502。先跑 cs 把 oc 拉起来再重开桥')
     log('serein   =', SEREIN_URL)
     log('upstream =', API_UPSTREAM)
     log('app      =', APP_DIR)
