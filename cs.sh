@@ -21,10 +21,10 @@ if [ "${1:-}" = "stop" ]; then
 fi
 
 mkdir -p "$BR_DIR"
-echo "== 1/4 清理旧进程 =="
+echo "== 1/5 清理旧进程 =="
 stop_all
 
-echo "== 2/4 启动 oc 代理 =="
+echo "== 2/5 启动 oc 代理 =="
 if [ -f "$OC_DIR/opencode-go-proxy-for-trae.py" ]; then
   cd "$OC_DIR" || exit 1
   nohup python opencode-go-proxy-for-trae.py > "$HOME/oc.log" 2>&1 &
@@ -39,7 +39,30 @@ else
   echo "!! 没找到 $OC_DIR（先 git clone 那个仓库）"
 fi
 
-echo "== 3/4 启动本地桥 =="
+echo "== 3/4 检查 Serein =="
+SC=$(curl -s -o /dev/null -w "%{http_code}" -m 5 -X POST http://127.0.0.1:18217/serein/mcp \
+  -H "Content-Type: application/json" -H "Accept: application/json, text/event-stream" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}' 2>/dev/null)
+if [ "$SC" = "000" ]; then
+  echo "Serein 没起，尝试后台拉起…"
+  if [ -d "$HOME/Serein" ]; then
+    ( cd "$HOME/Serein" && PYTHONPATH=src setsid nohup python -m serein http --host 127.0.0.1 --port 18217 --live > "$HOME/serein.log" 2>&1 & )
+    sleep 6
+    SC=$(curl -s -o /dev/null -w "%{http_code}" -m 5 -X POST http://127.0.0.1:18217/serein/mcp \
+      -H "Content-Type: application/json" -H "Accept: application/json, text/event-stream" \
+      -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}' 2>/dev/null)
+  fi
+  if [ "$SC" = "000" ]; then
+    echo "  !! 没起来（看 ~/serein.log），请在另一个窗口跑 se → 4 → 启动"
+    tail -3 "$HOME/serein.log" 2>/dev/null
+  else
+    echo "  Serein 已拉起（$SC）"
+  fi
+else
+  echo "  Serein 在跑（$SC）"
+fi
+
+echo "== 4/5 启动本地桥 =="
 cd "$BR_DIR" || exit 1
 if [ ! -f serein-bridge.py ]; then
   curl -fsSL -o serein-bridge.py "https://liuyunyun1hao.github.io/daddy/serein-bridge.py" || {
@@ -51,15 +74,12 @@ SEREIN_KEY="$KEY" nohup python serein-bridge.py > bridge.log 2>&1 &
 sleep 3
 sed -n '1,6p' bridge.log 2>/dev/null
 
-echo "== 4/4 访问地址 =="
+echo "== 5/5 访问地址 =="
 IP=$(ifconfig 2>/dev/null | grep -oE 'inet (addr:)?[0-9.]+' | awk '{print $2}' | sed 's/addr://' | grep -v '^127\.' | head -1)
 echo "  本机      http://127.0.0.1:18080/"
 [ -n "${IP:-}" ] && echo "  局域网    http://$IP:18080/"
 [ -z "${IP:-}" ] && echo "  （没取到局域网 IP；开热点后一般是 192.168.43.1）"
 
-CODE=$(curl -s -o /dev/null -w "%{http_code}" -m 6 -X POST http://127.0.0.1:18217/serein/mcp \
-  -H "Content-Type: application/json" -H "Accept: application/json, text/event-stream" \
-  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}' 2>/dev/null)
-echo "  Serein    $CODE  $([ "$CODE" = "401" ] && echo '（在跑，正常）' || echo '（没起？另开窗口跑 se）')"
+echo "  Serein    $SC  $([ "$SC" = "401" ] && echo '（在跑，正常）' || echo '（没起，看 ~/serein.log）')"
 echo
 echo "停止：cs stop"
