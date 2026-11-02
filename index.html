@@ -2543,6 +2543,7 @@ function sereinCuesOf(x){
 function sereinPending(){
   const sent = sereinSentLoad();
   return brainLoad().items.filter(function(x){
+    if (x.kind === 'clue') return false;            // 线索只留在本机，避免每条对话都往 Serein 堆一条
     return !x.done && !x.revoked && !x.supersededBy && sent.indexOf(sereinKeyOf(x)) < 0;
   });
 }
@@ -2560,16 +2561,48 @@ async function sereinWriteItem(x){
   const d = new Date(x.ts || Date.now());
   const day = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
   try {
+    const body = String(x.text || '').replace(/\s+/g, ' ').trim();
+    // 写入前查重：Serein 里已有同一段内容就不再写一次
+    if (body.length > 12 && !(x.__skipDup)){
+      try {
+        const probe = await withTimeout(sereinCall('recall_memory', { query: body.slice(0, 30), mode: 'lookup', limit: 5 }), 12000);
+        const norm = function(t){ return String(t || '').replace(/\s+/g, '').slice(0, 40); };
+        if (norm(probe).indexOf(norm(body)) >= 0){
+          const list = sereinSentLoad(); if (list.indexOf(k) < 0) list.push(k); sereinSentSave(list);
+          return true;
+        }
+      } catch (e) {}
+    }
     const args = {
-      content: String(x.text || ''),
+      content: body,
       cues: sereinCuesOf(x),
-      title: x.title || shortTitle(String(x.text || '')),
+      title: x.title || shortTitle(body),
       date: day
     };
     if (x.pin) args.favorite = true;   // 只有真的置顶才传，Serein 的 favorite 功能可能被禁用
     const out = await withTimeout(sereinCall('write_scene', args), 20000);
     const ok = /scene_id|已保存/.test(String(out || ''));
-    if (ok){ const list = sereinSentLoad(); list.push(k); sereinSentSave(list); }
+    if (ok){
+      const list = sereinSentLoad(); list.push(k); sereinSentSave(list);
+      // 把本机的状态同步过去：已沉底/被取代的不要浮在 Serein 里
+      if (x.done || x.supersededBy){
+        const m = String(out).match(/scene_id[:\s]+(scene_[0-9a-f]+)/);
+        if (m){
+          try {
+            const rd = await withTimeout(sereinCall('read_memory', { identifier: m[1] }), 12000);
+            const rev = String(rd).match(/updated_at:\s*(\S+)/);
+            if (rev){
+              await withTimeout(sereinCall('set_memory_state', {
+                operation_id: 'cae-' + k + '-' + Date.now(),
+                document_id: m[1],
+                expected_revision: rev[1],
+                can_surface: false
+              }), 15000);
+            }
+          } catch (e) {}
+        }
+      }
+    }
     return ok;
   } catch (e) { return false; }
 }
