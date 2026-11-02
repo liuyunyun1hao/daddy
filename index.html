@@ -3113,10 +3113,18 @@ function sereinCuesOf(x){
 }
 function sereinPending(){
   const sent = sereinSentLoad();
-  return brainLoad().items.filter(function(x){
-    if (x.kind === 'clue') return false;            // 线索只留在本机，避免每条对话都往 Serein 堆一条
-    return !x.done && !x.revoked && !x.supersededBy && sent.indexOf(sereinKeyOf(x)) < 0;
+  const rest = [], byDay = {};
+  brainLoad().items.forEach(function(x){
+    if (x.revoked || x.supersededBy) return;
+    if (sent.indexOf(sereinKeyOf(x)) >= 0) return;
+    if (x.kind !== 'clue'){ rest.push(x); return; }
+    if (x.done){ rest.push(x); return; }   // 已沉底的历史断点：照原样归档
+    // 还在进行中的线索按天只取最新一条，避免每轮对话都往 Serein 堆一条
+    const d = new Date(x.ts || 0);
+    const k = d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
+    if (!byDay[k] || (x.ts || 0) > (byDay[k].ts || 0)) byDay[k] = x;
   });
+  return rest.concat(Object.keys(byDay).map(function(k){ return byDay[k]; }));
 }
 function paintSereinSync(){
   const el = document.getElementById('sereinSyncN');
@@ -3132,7 +3140,8 @@ async function sereinWriteItem(x){
   const d = new Date(x.ts || Date.now());
   const day = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
   try {
-    const body = String(x.text || '').replace(/\s+/g, ' ').trim();
+    const body = String(x.text || '').replace(/\s+/g, ' ').trim()
+      .replace(/^上次停在这里[：:]\s*/, '');
     // 写入前查重：Serein 里已有同一段内容就不再写一次
     if (body.length > 12 && !(x.__skipDup)){
       try {
@@ -3147,7 +3156,7 @@ async function sereinWriteItem(x){
     const args = {
       content: body,
       cues: sereinCuesOf(x),
-      title: x.title || shortTitle(body),
+      title: x.kind === 'clue' ? ('对话断点 · ' + day.slice(5)) : (x.title || shortTitle(body)),
       date: day
     };
     if (x.pin) args.favorite = true;   // 只有真的置顶才传，Serein 的 favorite 功能可能被禁用
