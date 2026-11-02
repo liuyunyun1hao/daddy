@@ -145,6 +145,7 @@ class Handler(SimpleHTTPRequestHandler):
             conn.request(self.command, path, body=body, headers=headers)
             resp = conn.getresponse()
         except Exception as e:
+            log('upstream failed:', self.command, path, '->', type(e).__name__, e)
             self._json(502, {'error': 'upstream unreachable', 'detail': str(e)})
             try:
                 conn.close()
