@@ -258,6 +258,18 @@ class Handler(SimpleHTTPRequestHandler):
         log(self.address_string(), fmt % args)
 
 
+def bind_any(start, tries=12):
+    """端口被占就往后找，别让人卡在 Errno 98 上。"""
+    for p in range(start, start + tries):
+        try:
+            return ThreadingHTTPServer(('0.0.0.0', p), Handler), p
+        except OSError as e:
+            if getattr(e, 'errno', None) not in (98, 48, 10048):
+                raise
+            log('port %d is busy, trying %d...' % (p, p + 1))
+    raise SystemExit('端口 %d-%d 都被占用了，用 BRIDGE_PORT=19000 python serein-bridge.py 换一个' % (start, start + tries - 1))
+
+
 def main():
     log('serein   =', SEREIN_URL)
     log('upstream =', API_UPSTREAM)
@@ -268,8 +280,8 @@ def main():
         log('key      = NOT FOUND — 请在 Termux 里确认 ~/Serein/deploy/secrets/api-token 存在')
     if not ensure_app():
         log('!! 没有 index.html，页面无法打开：检查网络，或手动把 index.html 放进', APP_DIR)
-    log('open     = http://127.0.0.1:%d/' % BRIDGE_PORT)
-    srv = ThreadingHTTPServer(('0.0.0.0', BRIDGE_PORT), Handler)
+    srv, port = bind_any(BRIDGE_PORT)
+    log('open     = http://127.0.0.1:%d/' % port)
     srv.daemon_threads = True
     try:
         srv.serve_forever()
