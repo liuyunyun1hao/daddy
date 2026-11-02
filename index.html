@@ -1310,6 +1310,10 @@ body.selecting .toast{bottom:150px}
 
         <div class="group-label folded" onclick="foldSec(this)"><span class="lt">数据</span><span class="fv" id="foldDataV">备份 · 记忆</span><svg class="fa" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></div>
         <div class="group">
+          <div class="row">
+            <span class="k">存档 · 聊天与记忆</span>
+            <span class="v" id="storeState">检查中…</span>
+          </div>
           <div class="row" onclick="exportBackup()">
             <span class="k">导出备份</span>
             <span class="v">JSON ›</span>
@@ -1488,12 +1492,74 @@ const DEFAULT_START = new Date(2026, 7, 4); // 2026.08.04
 
 /* 无开场：新对话从空白开始 */
 
+/* ---------- 服务端存档（桥的 /store，落盘到 Termux） ---------- */
+let STORE_OK = null;
+const _storeTimers = {};
+function storeGet(name){
+  return fetch('/store/' + name, { cache: 'no-store' }).then(function(r){
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  }).then(function(j){ STORE_OK = true; return (j && j.found === false) ? null : j; })
+    .catch(function(){ if (STORE_OK === null) STORE_OK = false; return null; });
+}
+function storePut(name, obj, delay){
+  const send = function(){
+    try {
+      fetch('/store/' + name, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(obj)
+      }).then(function(r){ STORE_OK = r.ok; }).catch(function(){ STORE_OK = false; });
+    } catch (e) {}
+  };
+  clearTimeout(_storeTimers[name]);
+  if (delay) _storeTimers[name] = setTimeout(send, delay);
+  else send();
+}
+function storeDel(name){
+  try { fetch('/store/' + name, { method: 'DELETE' }).catch(function(){}); } catch (e) {}
+}
+async function syncFromStore(){
+  const sChat = await storeGet('chat');
+  if (sChat && Object.prototype.toString.call(sChat.msgs) === '[object Array]' && sChat.msgs.length){
+    const local = loadMsgs();
+    const localAt = (local && local.updatedAt) || 0;
+    const srvAt = sChat.updatedAt || 0;
+    if (!local || srvAt > localAt){
+      const clean = sChat.msgs.filter(function(m){ return !m.pending; });
+      try { localStorage.setItem('daddy.chat.v1', JSON.stringify({ name: sChat.name, msgs: clean, updatedAt: srvAt })); } catch (e) {}
+      if (document.getElementById('screen-chat').classList.contains('active')){
+        state.chat.name = sChat.name || state.chat.name;
+        state.chat.msgs = clean;
+        renderChat();
+      }
+    }
+  }
+  const sBrain = await storeGet('brain');
+  if (sBrain && Object.prototype.toString.call(sBrain.items) === '[object Array]' && sBrain.items.length){
+    const local = brainLoad();
+    const srvAt = sBrain.updatedAt || 0;
+    if (!local.items.length || srvAt > BRAIN_AT){
+      BRAIN = { v:1, seq: sBrain.seq || local.seq || 0, items: sBrain.items.slice(-400) };
+      BRAIN_AT = srvAt;
+      try { localStorage.setItem(BRAIN_KEY, JSON.stringify({ v:1, seq: BRAIN.seq, items: BRAIN.items, updatedAt: srvAt })); } catch (e) {}
+      if (typeof renderBrainList === 'function') renderBrainList();
+    }
+  }
+  paintStoreState();
+}
+function paintStoreState(){
+  const el = document.getElementById('storeState');
+  if (!el) return;
+  el.textContent = STORE_OK === true ? '已同步 · 存在手机里' : (STORE_OK === false ? '仅本机浏览器' : '检查中…');
+}
+
 function saveMsgs(){
   if (state.chat.watch) return;
   if (!state.chat.msgs.length) return;
-  try {
-    localStorage.setItem('daddy.chat.v1', JSON.stringify({ name: state.chat.name, msgs: state.chat.msgs }));
-  } catch (e) {}
+  const payload = { name: state.chat.name, msgs: state.chat.msgs, updatedAt: Date.now() };
+  try { localStorage.setItem('daddy.chat.v1', JSON.stringify(payload)); } catch (e) {}
+  storePut('chat', payload, 700);
 }
 function loadMsgs(){
   try {
@@ -1529,6 +1595,7 @@ function boot(){
   if (savedBoot){ state.chat.name = savedBoot.name || state.chat.name; state.chat.msgs = savedBoot.msgs; }
   state.chat.name = cfg.persona.name || state.chat.name;
   renderChat();
+  syncFromStore();
   initApi();
   const target = new URLSearchParams(location.search).get('s');
   if (target) switchTab(target);
@@ -1904,7 +1971,7 @@ function initPersona(){
 }
 // 部署到静态托管（GitHub Pages）时没有 /api，默认走这台机器上的代理隧道。
 // 换隧道后改这一行即可（deploy 脚本会按 URL.txt 自动重写）。
-const DEFAULT_BASE = 'https://daddy-six-vert.vercel.app/api';
+const DEFAULT_BASE = '__DEFAULT_BASE__';
 function isLocalHost(){
   const h = location.hostname;
   return h === '127.0.0.1' || h === 'localhost' || h === '0.0.0.0' || h === '' || /^192\.168\.|^10\.|^172\.(1[6-9]|2\d|3[01])\./.test(h);
@@ -2518,11 +2585,16 @@ function brainLoad(){
   if (BRAIN) return BRAIN;
   try { BRAIN = JSON.parse(localStorage.getItem(BRAIN_KEY) || 'null'); } catch (e) { BRAIN = null; }
   if (!BRAIN || Object.prototype.toString.call(BRAIN.items) !== '[object Array]') BRAIN = { v:1, seq:0, items:[] };
+  if (BRAIN && typeof BRAIN.updatedAt === 'number') BRAIN_AT = BRAIN.updatedAt;
   return BRAIN;
 }
+let BRAIN_AT = 0;
 function brainSave(){
   const b = brainLoad();
-  try { localStorage.setItem(BRAIN_KEY, JSON.stringify({ v:1, seq:b.seq, items:b.items.slice(-400) })); } catch (e) {}
+  BRAIN_AT = Date.now();
+  const payload = { v:1, seq:b.seq, items:b.items.slice(-400), updatedAt: BRAIN_AT };
+  try { localStorage.setItem(BRAIN_KEY, JSON.stringify(payload)); } catch (e) {}
+  storePut('brain', payload, 700);
 }
 function cjkTokens(s){
   const out = [];
