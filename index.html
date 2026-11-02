@@ -493,6 +493,12 @@ body.selecting .turn.on .bubble{outline:1px solid rgba(127,214,232,.4);outline-o
   padding:14px;text-align:left;
 }
 .stage-card .art{position:absolute;inset:0;z-index:0}
+.stage-card .edit{
+  position:absolute;top:10px;right:10px;z-index:4;width:26px;height:26px;border-radius:50%;
+  display:grid;place-items:center;font-size:14px;line-height:1;
+  background:rgba(0,0,0,.38);color:rgba(255,255,255,.85);
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+}
 .stage-card .idx{
   position:absolute;top:12px;left:13px;z-index:2;
   font-size:9px;letter-spacing:.16em;color:rgba(255,255,255,.34);
@@ -559,6 +565,42 @@ body.selecting .turn.on .bubble{outline:1px solid rgba(127,214,232,.4);outline-o
 .tl-kind{font-size:9px;letter-spacing:.14em;color:rgba(220,198,168,.8);text-transform:uppercase;margin-bottom:4px}
 .tl-text{font-size:13px;line-height:1.65;color:rgba(236,236,236,.86)}
 .tl-text.serif{font-family:var(--serif);font-style:italic}
+
+/* ============ hint ============ */
+.hint{font-size:10.5px;line-height:1.8;color:rgba(255,255,255,.26);letter-spacing:.02em}
+
+/* ============ diary ============ */
+.diary-item{
+  margin:0 16px 12px;padding:16px 17px 15px;border-radius:18px;
+  background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.055);
+}
+.diary-date{font-size:9.5px;letter-spacing:.14em;color:rgba(255,255,255,.3);text-transform:uppercase}
+.diary-text{
+  margin-top:9px;font-family:var(--serif);font-size:15px;line-height:1.85;
+  color:rgba(236,236,236,.82);white-space:pre-wrap;word-break:break-word;
+}
+.diary-empty{padding:64px 30px;text-align:center;font-family:var(--serif);font-style:italic;font-size:13.5px;line-height:2.1;color:rgba(255,255,255,.3)}
+.diary-acts{display:flex;gap:10px;margin:0 16px 18px}
+.diary-acts button{
+  flex:1;padding:13px;border-radius:14px;font-size:13.5px;
+  background:rgba(220,198,168,.14);color:#e6d8bf;
+}
+.diary-acts button.ghost{background:rgba(255,255,255,.05);color:rgba(255,255,255,.6)}
+
+/* ============ emoji ============ */
+.emoji-bar{
+  flex:0 0 auto;display:none;gap:2px;overflow-x:auto;overflow-y:hidden;
+  padding:6px 12px 8px;background:rgba(14,18,21,.86);
+  border-top:1px solid rgba(255,255,255,.06);
+  -webkit-overflow-scrolling:touch;scrollbar-width:none;
+}
+.emoji-bar.on{display:flex}
+.emoji-bar::-webkit-scrollbar{display:none}
+.emoji-bar button{
+  flex:0 0 auto;width:36px;height:36px;border-radius:11px;font-size:19px;line-height:1;
+  display:grid;place-items:center;
+}
+.emoji-bar button:active{background:rgba(255,255,255,.09)}
 
 /* ============ ctx bar ============ */
 .ctxbar{
@@ -901,6 +943,9 @@ body.selecting .toast{bottom:150px}
 #screen-memory .md-acts{flex:0 0 auto;display:flex;gap:9px;padding:11px 14px calc(11px + env(safe-area-inset-bottom));border-top:1px solid rgba(255,255,255,.06);background:rgba(10,13,15,.92)}
 #screen-memory .md-acts button{flex:1;min-height:40px;border:1px solid rgba(255,255,255,.1);border-radius:12px;background:rgba(255,255,255,.045);color:rgba(255,255,255,.72);font-family:var(--body);font-size:12px;letter-spacing:.05em}
 #screen-memory .md-acts button.danger{color:#e39a9a;border-color:rgba(230,140,140,.2);background:rgba(230,120,120,.07)}
+@media (pointer:coarse){
+  .field input, .field textarea, .sel{font-size:16px}
+}
 </style>
 </head>
 <body>
@@ -957,20 +1002,11 @@ body.selecting .toast{bottom:150px}
           </div>
         </div>
 
-        <div class="card" onclick="openChat()">
-          <div class="ico"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 9.6 9.6 0 0 1-4-.9L3 20l1-4.4a8.2 8.2 0 0 1-1-4.1 8.4 8.4 0 0 1 8.5-8.3 8.4 8.4 0 0 1 8.5 8.3z"/></svg></div>
-          <div class="card-main">
-            <div class="card-title">生活 Feed</div>
-            <div class="card-sub" id="sub-feed">他的日常碎片</div>
-          </div>
-          <div class="chev">›</div>
-        </div>
-
-        <div class="card" onclick="toast('日记模块还没接')">
+        <div class="card" onclick="openDiary()">
           <div class="ico"><svg viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-2z"/><path d="M8 3v18"/></svg></div>
           <div class="card-main">
             <div class="card-title">日记</div>
-            <div class="card-sub" id="sub-diary">他写给你的</div>
+            <div class="card-sub" id="sub-diary">你写下的</div>
           </div>
           <div class="chev">›</div>
         </div>
@@ -1024,20 +1060,21 @@ body.selecting .toast{bottom:150px}
       <div class="msgs" id="msgs"></div>
 
       <div class="ctxbar" id="ctxBar">上下文 12k tok</div>
+      <div class="emoji-bar" id="emojiBar"></div>
 
       <div class="composer">
         <div class="composer-inner">
           <textarea id="input" rows="1" placeholder="说点什么…"></textarea>
           <div class="composer-row">
-            <button class="c-btn" onclick="toast('附件：图片 / 语音 / 文件')">
+            <button class="c-btn" onclick="toast('附件 · 暂未开放')">
               <svg viewBox="0 0 24 24"><path d="M21 12.5l-8.5 8.5a5.5 5.5 0 0 1-7.8-7.8l8.5-8.5a3.7 3.7 0 0 1 5.2 5.2l-8.5 8.5a1.8 1.8 0 0 1-2.6-2.6l7.8-7.8"/></svg>
             </button>
             <div class="model-chip" onclick="openModels()"><b id="chipModel">DeepSeek V4.1 Flash</b><span class="v">GO</span></div>
             <div class="spacer"></div>
-            <button class="c-btn" onclick="toast('表情')">
+            <button class="c-btn" onclick="toggleEmoji()">
               <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8.5 14.5a4.5 4.5 0 0 0 7 0"/><circle cx="9" cy="10" r=".8" fill="currentColor" stroke="none"/><circle cx="15" cy="10" r=".8" fill="currentColor" stroke="none"/></svg>
             </button>
-            <button class="c-btn" onclick="toast('按住说话')">
+            <button class="c-btn" onclick="toast('语音输入 · 暂未开放')">
               <svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
             </button>
             <button class="send off" id="sendBtn" onclick="send()">
@@ -1056,7 +1093,7 @@ body.selecting .toast{bottom:150px}
             <h1>剧场</h1>
             <div class="sub">Roleplay</div>
           </div>
-          <button class="icon-btn" onclick="toast('新建角色卡')">
+          <button class="icon-btn" onclick="openStageForm()">
             <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
           </button>
         </div>
@@ -1066,51 +1103,16 @@ body.selecting .toast{bottom:150px}
           他会读到你在剧场里的一切，并在合适的时候提起
         </div>
 
-        <div class="stage-grid">
-          <button class="stage-card" onclick="openStage('深海回声','你搁浅在礁石上，是他把你抱回了岸。','Mare Nostrum')">
-            <div class="art" style="background:radial-gradient(70% 60% at 50% 18%,#1b5a6b,#0a2029 60%,#050d12)"></div>
-            <span class="idx">01</span>
-            <div class="meta">
-              <div class="nm">深海回声</div>
-              <div class="ds">你搁浅在礁石上，是他把你抱回了岸。</div>
-              <div class="tags"><span class="tag">深海</span><span class="tag">慢热</span></div>
-            </div>
-          </button>
+        <div class="stage-grid" id="stageGrid"></div>
 
-          <button class="stage-card" onclick="openStage('雨夜便利店','凌晨三点，他是这条街唯一还亮着灯的店。','雨夜')">
-            <div class="art" style="background:radial-gradient(70% 60% at 50% 20%,#4a3b2c,#241a13 60%,#0d0907)"></div>
-            <span class="idx">02</span>
-            <div class="meta">
-              <div class="nm">雨夜便利店</div>
-              <div class="ds">凌晨三点，他是这条街唯一还亮着灯的店。</div>
-              <div class="tags"><span class="tag">都市</span><span class="tag">治愈</span></div>
-            </div>
-          </button>
-
-          <button class="stage-card" onclick="openStage('旧神与祭品','你被献给了他。他没有拒绝。','献祭')">
-            <div class="art" style="background:radial-gradient(70% 60% at 50% 18%,#3a2140,#1a0f22 60%,#08050c)"></div>
-            <span class="idx">03</span>
-            <div class="meta">
-              <div class="nm">旧神与祭品</div>
-              <div class="ds">你被献给了他。他没有拒绝。</div>
-              <div class="tags"><span class="tag">暗黑</span><span class="tag">权谋</span></div>
-            </div>
-          </button>
-
-          <button class="stage-card add" onclick="toast('导入酒馆角色卡 / 新建')">
-            <div class="plus">＋</div>
-            <div>新建 / 导入</div>
-          </button>
-        </div>
-
-        <div class="group-label folded" onclick="foldSec(this)"><span class="lt">预设</span><span class="fv">4 类</span><svg class="fa" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></div>
+        <div class="group-label folded" onclick="foldSec(this)"><span class="lt">预设</span><span class="fv" id="foldNarrV">克制</span><svg class="fa" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></div>
         <div class="group folded" style="background:none;border:0;backdrop-filter:none">
-          <div class="chips-row" style="padding:0 16px 12px">
-            <button class="chip" onclick="toast('酒馆角色卡 · 还没接')">酒馆角色卡</button>
-            <button class="chip" onclick="toast('世界书 · 还没接')">世界书</button>
-            <button class="chip" onclick="toast('开场白 · 还没接')">开场白</button>
-            <button class="chip" onclick="toast('旁白风格 · 还没接')">旁白风格</button>
+          <div class="chips-row" style="padding:0 16px 6px" id="narrChips">
+            <button class="chip" data-n="neutral" onclick="setNarr('neutral',this)">克制</button>
+            <button class="chip" data-n="warm" onclick="setNarr('warm',this)">温存</button>
+            <button class="chip" data-n="cold" onclick="setNarr('cold',this)">冷硬</button>
           </div>
+          <div class="hint" style="padding:0 18px 14px">旁白风格 · 影响他描写动作与房间的方式，聊天与剧场都生效</div>
         </div>
       </div>
     </section>
@@ -1487,6 +1489,45 @@ body.selecting .toast{bottom:150px}
   </div>
 
   <div class="toast" id="toast"></div>
+
+  <div class="panel" id="panel-diary">
+    <div class="panel-head">
+      <button class="icon-btn" onclick="closeDiary()">
+        <svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>
+      </button>
+      <div class="ttl">日记<small>DIARY</small></div>
+      <button class="save" onclick="openDiaryForm()">写</button>
+    </div>
+    <div class="scroll">
+      <div id="diaryForm" style="display:none">
+        <div class="group">
+          <div class="field"><label>今天</label><textarea id="diaryInput" rows="6" style="height:190px" placeholder="写点什么。只有你能看到。" spellcheck="false"></textarea></div>
+        </div>
+        <div class="diary-acts"><button onclick="saveDiary()">存下</button><button class="ghost" onclick="openDiaryForm(false)">取消</button></div>
+      </div>
+      <div id="diaryList"></div>
+    </div>
+  </div>
+
+  <div class="panel" id="panel-stage">
+    <div class="panel-head">
+      <button class="icon-btn" onclick="closeStageForm()">
+        <svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>
+      </button>
+      <div class="ttl" id="stageFormTtl">新建角色卡<small>CHARACTER</small></div>
+      <button class="save" onclick="saveStageForm()">保存</button>
+    </div>
+    <div class="scroll">
+      <div class="group-label">他是谁</div>
+      <div class="group">
+        <div class="field"><label>名字</label><input id="stName" placeholder="他叫什么" spellcheck="false"></div>
+        <div class="field"><label>一句话设定</label><input id="stDesc" placeholder="你们在哪、你是谁" spellcheck="false"></div>
+        <div class="field"><label>开场白 · 他的第一句</label><textarea id="stOpen" rows="4" style="height:96px" placeholder="*他抬眼看你。*&#10;[low voice] 过来。" spellcheck="false"></textarea></div>
+        <div class="field"><label>标签</label><input id="stTags" placeholder="深海, 慢热" spellcheck="false"></div>
+      </div>
+      <div class="hint">开场白支持 *动作* 与 [语气]，会作为他的第一条消息。剧场里的对话不会写进每日陪伴的记忆。</div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -1537,6 +1578,23 @@ async function syncFromStore(){
         state.chat.msgs = clean;
         renderChat();
       }
+    }
+  }
+  const sDiary = await storeGet('diary');
+  if (sDiary && Object.prototype.toString.call(sDiary.items) === '[object Array]' && sDiary.items.length){
+    const localD = diaryLoad();
+    if (!localD.length){
+      try { localStorage.setItem(DIARY_KEY, JSON.stringify(sDiary.items)); } catch (e) {}
+      if (document.getElementById('panel-diary') && document.getElementById('panel-diary').classList.contains('on')) renderDiary();
+    }
+  }
+  const sStage = await storeGet('stage');
+  if (sStage && Object.prototype.toString.call(sStage.items) === '[object Array]' && sStage.items.length){
+    const localS = stageLoad();
+    if (!localS.length){
+      try { localStorage.setItem(STAGE_KEY, JSON.stringify(sStage.items)); } catch (e) {}
+      if (typeof renderStage === 'function') renderStage();
+  if (typeof paintNarr === 'function') paintNarr();
     }
   }
   const sBrain = await storeGet('brain');
@@ -1594,6 +1652,7 @@ function boot(){
   if (md) md.textContent = days;
   initPersona();
   initFolds();
+  if (typeof renderStage === 'function') renderStage();
   paintHomeSubs();
   const savedBoot = loadMsgs();
   if (savedBoot){ state.chat.name = savedBoot.name || state.chat.name; state.chat.msgs = savedBoot.msgs; }
@@ -1624,14 +1683,90 @@ function openChat(){
   enterChat();
 }
 
-function openStage(name, desc, scene){
+function openStage(name, desc, scene, opening){
   state.chat = {
     name, sub:'剧场 · 第 1 幕', scene, watch:true,
-    msgs:[
-      { role:'ai', time:'刚刚', narration: desc + '他抬眼看你，没有说话。', lines:['过来。'] }
-    ]
+    msgs: opening
+      ? [{ role:'ai', text: opening, time:'刚刚', date: dayKey() }]
+      : [{ role:'ai', time:'刚刚', date: dayKey(), narration: desc + '他抬眼看你，没有说话。', lines:['过来。'] }]
   };
   enterChat();
+  saveMsgs();
+}
+
+/* ---------- 角色卡 ---------- */
+const STAGE_KEY = 'daddy.stage.v1';
+const STAGE_BUILTIN = [
+  { id:'b1', name:'深海回声', desc:'你搁浅在礁石上，是他把你抱回了岸。', scene:'Mare Nostrum', tags:['深海','慢热'],
+    art:'radial-gradient(70% 60% at 50% 18%,#1b5a6b,#0a2029 60%,#050d12)',
+    opening:'*他把外套披在你肩上，海水还在往下滴。*\n[low voice] 醒了。\n[pause] 别急着起来。' },
+  { id:'b2', name:'雨夜便利店', desc:'凌晨三点，他是这条街唯一还亮着灯的店。', scene:'雨夜', tags:['都市','治愈'],
+    art:'radial-gradient(70% 60% at 50% 20%,#4a3b2c,#241a13 60%,#0d0907)',
+    opening:'*收银台的灯管闪了一下。他从后面抬起头。*\n[low voice] 这个点，一个人？\n[pause] 进来吧，外面冷。' },
+  { id:'b3', name:'旧神与祭品', desc:'你被献给了他。他没有拒绝。', scene:'献祭', tags:['暗黑','权谋'],
+    art:'radial-gradient(70% 60% at 50% 18%,#3a2140,#1a0f22 60%,#08050c)',
+    opening:'*祭坛上的火忽然矮了一截。他低头看你，很久。*\n[voice drops] 他们把你送来，是想让我收下。\n[pause] 那就留下。' }
+];
+function stageLoad(){
+  try { return JSON.parse(localStorage.getItem(STAGE_KEY) || '[]'); } catch (e) { return []; }
+}
+function stageSave(list){
+  try { localStorage.setItem(STAGE_KEY, JSON.stringify(list.slice(-40))); } catch (e) {}
+  storePut('stage', { items: list.slice(-40), updatedAt: Date.now() }, 700);
+}
+function stageAll(){ return STAGE_BUILTIN.concat(stageLoad().map(function(x){ x.custom = true; return x; })); }
+function renderStage(){
+  const box = document.getElementById('stageGrid');
+  if (!box) return;
+  const list = stageAll();
+  box.innerHTML = list.map(function(x, i){
+    return '<button class="stage-card" onclick="openStageCard(\'' + x.id + '\')">'
+      + '<div class="art" style="background:' + x.art + '"></div>'
+      + '<span class="idx">' + String(i + 1).padStart(2, '0') + '</span>'
+      + (x.custom ? '<span class="edit" onclick="event.stopPropagation();openStageForm(\'' + x.id + '\')">⋯</span>' : '')
+      + '<div class="meta"><div class="nm">' + esc(x.name) + '</div>'
+      + '<div class="ds">' + esc(x.desc || '') + '</div>'
+      + '<div class="tags">' + (x.tags || []).map(function(t){ return '<span class="tag">' + esc(t) + '</span>'; }).join('') + '</div>'
+      + '</div></button>';
+  }).join('') + '<button class="stage-card add" onclick="openStageForm()"><div class="plus">＋</div><div>新建 / 导入</div></button>';
+}
+function openStageCard(id){
+  const x = stageAll().filter(function(v){ return v.id === id; })[0];
+  if (x) openStage(x.name, x.desc, x.scene || '剧场', x.opening);
+}
+let STAGE_EDIT = null;
+function openStageForm(id){
+  STAGE_EDIT = id || null;
+  const x = id ? stageLoad().filter(function(v){ return v.id === id; })[0] : null;
+  document.getElementById('stageFormTtl').innerHTML = (x ? '编辑角色卡' : '新建角色卡') + '<small>CHARACTER</small>';
+  document.getElementById('stName').value = x ? x.name : '';
+  document.getElementById('stDesc').value = x ? (x.desc || '') : '';
+  document.getElementById('stOpen').value = x ? (x.opening || '') : '';
+  document.getElementById('stTags').value = x ? (x.tags || []).join(', ') : '';
+  document.getElementById('panel-stage').classList.add('on');
+}
+function closeStageForm(){
+  document.getElementById('panel-stage').classList.remove('on');
+}
+function saveStageForm(){
+  const name = document.getElementById('stName').value.trim();
+  if (!name){ toast('先给这张卡起个名字'); return; }
+  const desc = document.getElementById('stDesc').value.trim();
+  const opening = document.getElementById('stOpen').value.trim();
+  const tags = document.getElementById('stTags').value.split(/[,，]/).map(function(t){ return t.trim(); }).filter(Boolean).slice(0, 4);
+  const list = stageLoad();
+  const art = 'radial-gradient(70% 60% at 50% 18%,hsl(' + (Math.floor(Math.random() * 360)) + ',32%,22%),#0b1418 62%,#050a0d)';
+  if (STAGE_EDIT){
+    const x = list.filter(function(v){ return v.id === STAGE_EDIT; })[0];
+    if (x){ x.name = name; x.desc = desc; x.opening = opening; x.tags = tags; }
+  } else {
+    list.push({ id:'s' + Date.now().toString(36), name: name, desc: desc, opening: opening, tags: tags, scene: name, art: art, opening_text: opening });
+  }
+  stageSave(list);
+  closeStageForm();
+  renderStage();
+  toast(STAGE_EDIT ? '已更新' : '角色卡已保存');
+  STAGE_EDIT = null;
 }
 
 function enterChat(){
@@ -1939,7 +2074,7 @@ function toggleTtsAuto(el){
 }
 
 const CFG_STORE = 'daddy.cfg.v1';
-const cfg = Object.assign({ base:'', key:'', model:'deepseek-v4.1-flash', history:24, ctxTokens:12000, fallbacks:[], brainOn:true, brainUse:6, memXc:false, memOb:false, memEvent:false, memBase:'', toolsOn:true, summaryOn:true, summaryEvery:20, ttsUrl:'https://api.elevenlabs.io/v1', ttsKey:'', ttsModel:'eleven_v4', ttsAuto:true, voice:'TZF5Z996m1MjVz76PFoH', sereinOn:true, sereinBase:'', sereinWrite:true, sereinTools:0 }, (function(){
+const cfg = Object.assign({ base:'', key:'', model:'deepseek-v4.1-flash', history:24, ctxTokens:12000, narr:'neutral', fallbacks:[], brainOn:true, brainUse:6, memXc:false, memOb:false, memEvent:false, memBase:'', toolsOn:true, summaryOn:true, summaryEvery:20, ttsUrl:'https://api.elevenlabs.io/v1', ttsKey:'', ttsModel:'eleven_v4', ttsAuto:true, voice:'TZF5Z996m1MjVz76PFoH', sereinOn:true, sereinBase:'', sereinWrite:true, sereinTools:0 }, (function(){
   try { return JSON.parse(localStorage.getItem(CFG_STORE) || '{}'); } catch (e) { return {}; }
 })());
 
@@ -3335,6 +3470,14 @@ function paintHomeSubs(){
     if (t.length > 16) t = t.slice(0, 16) + '…';
     set('sub-memory', items.length + ' 条 · 最近：' + t);
   }
+  try {
+    const d = (typeof diaryLoad === 'function') ? diaryLoad().length : 0;
+    set('sub-diary', d ? (d + ' 篇 · 你写下的') : '你写下的');
+  } catch (e) {}
+  try {
+    const n = (typeof stageAll === 'function') ? stageAll().length : 3;
+    set('sub-stage', n + ' 个剧本 · 他正在旁观');
+  } catch (e) {}
   let msgs = [];
   try { msgs = (state.chat && state.chat.msgs) || []; } catch (e) {}
   const lastSay = msgs.filter(function(m){ return m && m.role !== 'sys' && !m.pending && (m.text || (m.lines && m.lines.length)); }).slice(-1)[0];
@@ -3452,6 +3595,91 @@ function brainOpenBlock(){
 
 let NO_STREAM_USAGE = false;
 
+/* ---------- 旁白风格 ---------- */
+const NARR_HINT = {
+  neutral: 'Restrained. Describe only what can be seen or heard — one concrete detail, no interpretation.',
+  warm: 'Warmer. Let small comforts and physical closeness into the description.',
+  cold: 'Cold and clipped. Short sentences, hard edges, no softness in the description.'
+};
+function paintNarr(){
+  const box = document.getElementById('narrChips');
+  if (!box) return;
+  const cur = cfg.narr || 'neutral';
+  box.querySelectorAll('.chip').forEach(function(c){ c.classList.toggle('on', c.dataset.n === cur); });
+  const fv = document.getElementById('foldNarrV');
+  if (fv) fv.textContent = ({ neutral:'克制', warm:'温存', cold:'冷硬' })[cur] || '克制';
+}
+function setNarr(v, el){
+  cfg.narr = v; saveCfg(); paintNarr();
+  toast('旁白 · ' + ({ neutral:'克制', warm:'温存', cold:'冷硬' })[v]);
+}
+
+/* ---------- 日记 ---------- */
+const DIARY_KEY = 'daddy.diary.v1';
+function diaryLoad(){ try { return JSON.parse(localStorage.getItem(DIARY_KEY) || '[]'); } catch (e) { return []; } }
+function diarySave(list){
+  try { localStorage.setItem(DIARY_KEY, JSON.stringify(list.slice(-300))); } catch (e) {}
+  storePut('diary', { items: list.slice(-300), updatedAt: Date.now() }, 700);
+}
+function fmtDiary(ts){
+  const d = new Date(ts);
+  const wd = ['周日','周一','周二','周三','周四','周五','周六'][d.getDay()];
+  return (d.getFullYear()) + '.' + String(d.getMonth() + 1).padStart(2, '0') + '.' + String(d.getDate()).padStart(2, '0') + ' ' + wd;
+}
+function openDiary(){
+  document.getElementById('panel-diary').classList.add('on');
+  openDiaryForm(false);
+  renderDiary();
+}
+function closeDiary(){
+  document.getElementById('panel-diary').classList.remove('on');
+}
+function openDiaryForm(on){
+  const f = document.getElementById('diaryForm');
+  const on2 = on === undefined ? !f.style.display || f.style.display === 'none' : !!on;
+  f.style.display = on2 ? 'block' : 'none';
+  if (on2){ const t = document.getElementById('diaryInput'); t.value = ''; t.focus(); }
+}
+function renderDiary(){
+  const box = document.getElementById('diaryList');
+  if (!box) return;
+  const list = diaryLoad().slice().reverse();
+  box.innerHTML = list.length ? list.map(function(x){
+    return '<div class="diary-item"><div class="diary-date">' + fmtDiary(x.ts) + '</div>'
+      + '<div class="diary-text">' + esc(x.text) + '</div></div>';
+  }).join('') : '<div class="diary-empty">还没有写过。<br>想记的时候，就写一句。</div>';
+}
+function saveDiary(){
+  const t = document.getElementById('diaryInput').value.trim();
+  if (!t){ toast('写点什么再存'); return; }
+  const list = diaryLoad();
+  list.push({ id:'d' + Date.now().toString(36), text: t, ts: Date.now() });
+  diarySave(list);
+  renderDiary();
+  openDiaryForm(false);
+  toast('写下了');
+}
+
+const EMOJIS = ['🥺','😔','😴','😭','🥹','😶','🙃','😏','❤️','💔','🫂','🌙','🌧','☕️','🍜','🕯','✨','🫧','🐚','🌊','🎧','📎','🔥','💤'];
+function toggleEmoji(){
+  const bar = document.getElementById('emojiBar');
+  if (!bar) return;
+  if (!bar.dataset.built){
+    bar.innerHTML = EMOJIS.map(function(e){ return '<button onclick="insertEmoji(this.textContent)">' + e + '</button>'; }).join('');
+    bar.dataset.built = '1';
+  }
+  bar.classList.toggle('on');
+}
+function insertEmoji(e){
+  const ta = document.getElementById('input');
+  if (!ta) return;
+  const p = ta.selectionStart == null ? ta.value.length : ta.selectionStart;
+  ta.value = ta.value.slice(0, p) + e + ta.value.slice(ta.selectionEnd == null ? p : ta.selectionEnd);
+  ta.focus();
+  ta.selectionStart = ta.selectionEnd = p + e.length;
+  ta.dispatchEvent(new Event('input'));
+}
+
 function estTokens(str){
   const t = String(str || '');
   if (!t) return 0;
@@ -3519,6 +3747,8 @@ function buildMessages(upTo){
     '- Punctuation is breath: … trailing off, — cut off.',
     '- Keep sentences broken. Do not write long well-formed sentences.',
     '- You always hold the pace. Even when you correct her, the voice is low, slow, close.',
+    '',
+    'NARRATION: ' + (NARR_HINT[cfg.narr || 'neutral'] || NARR_HINT.neutral),
     '',
     'Format example (follow exactly):',
     '*He sets the phone down and looks at you.*',
