@@ -137,8 +137,11 @@ class Handler(SimpleHTTPRequestHandler):
 
         # /serein/* 注入 Gateway Key；其它路径保留客户端自带 Authorization
         if path.startswith('/serein'):
-            if KEY:
-                headers['Authorization'] = 'Bearer ' + KEY
+            if not KEY:
+                self._json(500, {'error': 'bridge has no gateway key',
+                                 'hint': '把 Serein 的 Gateway Key 放进 ~/Serein/deploy/secrets/api-token，或用 SEREIN_KEY=... 启动桥'})
+                return
+            headers['Authorization'] = 'Bearer ' + KEY
 
         conn = cls(host, port, timeout=180)
         try:
@@ -276,7 +279,8 @@ def main():
     log('upstream =', API_UPSTREAM)
     log('app      =', APP_DIR)
     if KEY:
-        log('key      = loaded (%d chars)' % len(KEY))
+        fp = (KEY[:4] + '…' + KEY[-4:]) if len(KEY) > 10 else '(short)'
+        log('key      = loaded %d chars  %s' % (len(KEY), fp))
     else:
         log('key      = NOT FOUND — 请在 Termux 里确认 ~/Serein/deploy/secrets/api-token 存在')
     if not ensure_app():
