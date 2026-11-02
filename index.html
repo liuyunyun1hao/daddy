@@ -2285,7 +2285,18 @@ function initApi(){
   const tUrl = document.getElementById('ttsUrl'), tKey = document.getElementById('ttsKey'),
         tModel = document.getElementById('ttsModel'), tAuto = document.getElementById('ttsAuto');
   if (tUrl){ tUrl.value = cfg.ttsUrl; tUrl.addEventListener('change', function(){ cfg.ttsUrl = tUrl.value.trim() || 'https://api.elevenlabs.io/v1'; saveCfg(); }); }
-  if (tKey){ tKey.value = cfg.ttsKey; tKey.addEventListener('change', function(){ cfg.ttsKey = tKey.value.trim(); saveCfg(); paintVoiceName(); }); }
+  if (tKey){
+    tKey.value = cfg.ttsKey;
+    var applyTtsKey = function(save){
+      cfg.ttsKey = tKey.value.trim();
+      if (save) saveCfg();
+      paintVoiceName();
+      if (typeof paintFoldVals === 'function') paintFoldVals();
+    };
+    tKey.addEventListener('input', function(){ applyTtsKey(false); });
+    tKey.addEventListener('change', function(){ applyTtsKey(true); });
+    tKey.addEventListener('blur', function(){ applyTtsKey(true); });
+  }
   if (tModel){ tModel.value = cfg.ttsModel; tModel.addEventListener('change', function(){ cfg.ttsModel = tModel.value; saveCfg(); }); }
   if (tAuto) tAuto.classList.toggle('on', !!cfg.ttsAuto);
   const smOn = document.getElementById('summaryOn');
