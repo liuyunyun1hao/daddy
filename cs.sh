@@ -102,6 +102,8 @@ FALLBACK_UPSTREAM = 'https://opencode.ai/zen/go/v1'
 BROWSER_UA = ('Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 '
               '(KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36')
 APP_DIR = os.environ.get('APP_DIR', HERE)
+STORE_DIR = os.environ.get('STORE_DIR', os.path.join(HERE, 'store'))
+STORE_MAX = 8 * 1024 * 1024
 
 KEY_CANDIDATES = [
     os.environ.get('SEREIN_KEY_FILE', ''),
@@ -224,7 +226,7 @@ class Handler(SimpleHTTPRequestHandler):
     # ---------- helpers ----------
     def _cors(self):
         self.send_header('Access-Control-Allow-Origin', '*')
-        self.send_header('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
         self.send_header('Access-Control-Allow-Headers',
                          'Content-Type, Authorization, Accept, Mcp-Session-Id, Last-Event-ID, X-Serein-Window-ID')
         self.send_header('Access-Control-Expose-Headers', 'Mcp-Session-Id')
@@ -336,6 +338,82 @@ class Handler(SimpleHTTPRequestHandler):
         except Exception:
             pass
 
+    def _raw(self, code, data):
+        self.send_response(code)
+        self._cors()
+        self.send_header('Content-Type', 'application/json; charset=utf-8')
+        self.send_header('Content-Length', str(len(data)))
+        self.send_header('Cache-Control', 'no-store')
+        self.end_headers()
+        try:
+            self.wfile.write(data)
+        except Exception:
+            pass
+
+    # ---------- server-side store（聊天记录 / 记忆落盘） ----------
+    def _store_file(self, name):
+        import re as _re
+        if not _re.match(r'^[A-Za-z0-9_-]{1,32}$', name or ''):
+            return None
+        os.makedirs(STORE_DIR, exist_ok=True)
+        return os.path.join(STORE_DIR, name + '.json')
+
+    def _store_get(self, name):
+        f = self._store_file(name)
+        if not f:
+            return self._json(400, {'error': 'bad store name'})
+        if not os.path.isfile(f):
+            return self._json(200, {'found': False})
+        try:
+            with open(f, 'rb') as fh:
+                raw = fh.read()
+            return self._raw(200, raw)
+        except Exception as e:
+            return self._json(500, {'error': str(e)})
+
+    def _store_put(self, name, body):
+        f = self._store_file(name)
+        if not f:
+            return self._json(400, {'error': 'bad store name'})
+        if not body:
+            return self._json(400, {'error': 'empty body'})
+        if len(body) > STORE_MAX:
+            return self._json(413, {'error': 'too large'})
+        try:
+            json.loads(body.decode('utf-8'))
+        except Exception:
+            return self._json(400, {'error': 'body must be json'})
+        try:
+            if os.path.isfile(f):
+                try:
+                    import shutil as _sh
+                    _sh.copyfile(f, f + '.bak')
+                except Exception:
+                    pass
+            tmp = f + '.tmp'
+            with open(tmp, 'wb') as fh:
+                fh.write(body)
+                fh.flush()
+                os.fsync(fh.fileno())
+            os.replace(tmp, f)
+            return self._json(200, {'ok': True, 'bytes': len(body)})
+        except Exception as e:
+            return self._json(500, {'error': str(e)})
+
+    def _store_del(self, name):
+        f = self._store_file(name)
+        if not f:
+            return self._json(400, {'error': 'bad store name'})
+        try:
+            if os.path.isfile(f):
+                if os.path.isfile(f + '.bak'):
+                    os.replace(f, f + '.bak')
+                else:
+                    os.rename(f, f + '.bak')
+            return self._json(200, {'ok': True})
+        except Exception as e:
+            return self._json(500, {'error': str(e)})
+
     # ---------- verbs ----------
     def do_OPTIONS(self):
         self.send_response(204)
@@ -361,7 +439,10 @@ class Handler(SimpleHTTPRequestHandler):
     def do_GET(self):
         path = urlparse(self.path).path
         if path == '/health':
-            self._json(200, {'ok': True, 'serein': SEREIN_URL, 'key': bool(KEY), 'app': APP_DIR})
+            self._json(200, {'ok': True, 'serein': SEREIN_URL, 'key': bool(KEY), 'app': APP_DIR, 'store': STORE_DIR})
+            return
+        if path.startswith('/store/'):
+            self._store_get(path[len('/store/'):])
             return
         if path.startswith('/serein'):
             self._relay(SEREIN_URL, self.path, None)
@@ -382,9 +463,20 @@ class Handler(SimpleHTTPRequestHandler):
             return
         self._json(404, {'error': 'not found'})
 
+    def do_PUT(self):
+        path = urlparse(self.path).path
+        body = self._body()
+        if path.startswith('/store/'):
+            self._store_put(path[len('/store/'):], body)
+            return
+        self._json(404, {'error': 'not found'})
+
     def do_DELETE(self):
         path = urlparse(self.path).path
         body = self._body()
+        if path.startswith('/store/'):
+            self._store_del(path[len('/store/'):])
+            return
         if path.startswith('/serein'):
             self._relay(SEREIN_URL, self.path, body)
             return
@@ -424,12 +516,15 @@ def main():
     log('serein   =', SEREIN_URL)
     log('upstream =', API_UPSTREAM)
     log('app      =', APP_DIR)
+    log('store    =', STORE_DIR)
     if KEY:
         fp = (KEY[:4] + '…' + KEY[-4:]) if len(KEY) > 10 else '(short)'
         log('key      = loaded %d chars  %s' % (len(KEY), fp))
     else:
         log('key      = NOT FOUND — 请在 Termux 里确认 ~/Serein/deploy/secrets/api-token 存在')
-    if not ensure_app():
+    if os.environ.get('NO_APP_SYNC') == '1':
+        log('app sync = off (NO_APP_SYNC=1)')
+    elif not ensure_app():
         log('!! 没有 index.html，页面无法打开：检查网络，或手动把 index.html 放进', APP_DIR)
     srv, port = bind_any(BRIDGE_PORT)
     log('open     = http://127.0.0.1:%d/' % port)
@@ -442,6 +537,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 BRIDGE_EOF
 echo "  bridge written ($(wc -c < serein-bridge.py) bytes)"
 KEY=""
