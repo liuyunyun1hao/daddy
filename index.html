@@ -664,6 +664,24 @@ body.selecting .turn.on .bubble{outline:1px solid rgba(127,214,232,.4);outline-o
 }
 .stg-addrow:active{background:rgba(255,255,255,.04)}
 
+
+.mem-addbtn{
+  display:block;width:100%;margin:13px 0 4px;padding:12px;
+  border-radius:13px;border:1px dashed rgba(255,255,255,.14);
+  font-size:12.5px;color:rgba(255,255,255,.45);text-align:center;
+}
+.mf-input,.mf-area{
+  width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);
+  border-radius:11px;padding:11px 13px;font-size:13px;color:#eee;font-family:inherit;
+  margin-bottom:9px;outline:none;
+}
+.mf-area{height:110px;resize:none;line-height:1.8}
+.mf-input::placeholder,.mf-area::placeholder{color:rgba(255,255,255,.24)}
+.mf-acts{display:flex;gap:9px;margin-top:4px}
+.mf-acts button{flex:1;padding:12px;border-radius:12px;font-size:13px}
+.mf-acts button.ghost{background:rgba(255,255,255,.07);color:rgba(255,255,255,.7)}
+.mf-acts button.acc{background:rgba(255,255,255,.92);color:#0b0e11;font-weight:500}
+
 /* ============ hint ============ */
 .hint{font-size:10.5px;line-height:1.8;color:rgba(255,255,255,.26);letter-spacing:.02em}
 
@@ -1262,6 +1280,7 @@ body.selecting .toast{bottom:150px}
         </label>
 
         <div class="mem-chips" id="memChips"></div>
+        <button class="mem-addbtn" onclick="openMemForm()" id="memAddBtn">+ 记一条</button>
         <div class="mem-stream" id="tl"></div>
         </div>
 
@@ -1607,6 +1626,19 @@ body.selecting .toast{bottom:150px}
     </div>
   </div>
 
+  <div class="sheet-mask" id="memSheetMask" onclick="closeMemForm()"></div>
+  <div class="sheet" id="memSheet" style="padding-bottom:calc(18px + env(safe-area-inset-bottom))">
+    <div class="handle"></div>
+    <div style="padding:2px 22px 0">
+      <div style="font-size:15px;margin-bottom:6px">记一条</div>
+      <div class="hint" style="margin-bottom:12px">先写进 Serein，成功后才出现在列表里</div>
+      <input id="mfTitle" class="mf-input" placeholder="标题（可空）" autocomplete="off">
+      <textarea id="mfBody" class="mf-area" placeholder="这一刻发生了什么…"></textarea>
+      <input id="mfCues" class="mf-input" placeholder="线索，用逗号分隔（可空）" autocomplete="off">
+      <div class="mf-acts"><button class="ghost" onclick="closeMemForm()">取消</button><button class="acc" onclick="saveMemManual()">写进 Serein</button></div>
+    </div>
+  </div>
+
   <div class="toast" id="toast"></div>
 
   <div class="panel" id="panel-diary">
@@ -1713,8 +1745,6 @@ async function syncFromStore(){
     if (!localS.length){
       try { localStorage.setItem(STAGE_KEY, JSON.stringify(sStage.items)); } catch (e) {}
       if (typeof renderStage === 'function') renderStage();
-  if (typeof paintNarr === 'function') paintNarr();
-  if (typeof renderStagePane === 'function') renderStagePane();
     }
   }
   const sBrain = await storeGet('brain');
@@ -1781,6 +1811,11 @@ function boot(){
   syncFromStore();
   initApi();
   const target = new URLSearchParams(location.search).get('s');
+  if (typeof renderStagePane === 'function') renderStagePane();
+  if (typeof sereinAuto === 'function'){
+    setTimeout(sereinAuto, 900);
+    setInterval(function(){ if (document.visibilityState === 'visible') sereinAuto(); }, 90000);
+  }
   if (target) switchTab(target);
   if (location.hash === '#persona') openPersona();
 }
@@ -2912,6 +2947,73 @@ function mcpText(result){
 
 /* ============ Serein · 记忆服务（Termux 里的 MCP） ============ */
 var SEREIN_TOOLS = null;
+/* ============ 手动写一条（直通 Serein） ============ */
+function openMemForm(){
+  document.getElementById('memSheetMask').classList.add('on');
+  document.getElementById('memSheet').classList.add('on');
+  ['mfTitle','mfBody','mfCues'].forEach(function(id){ const el=document.getElementById(id); if (el) el.value=''; });
+  setTimeout(function(){ const b=document.getElementById('mfBody'); if (b) b.focus(); }, 120);
+}
+function closeMemForm(){
+  document.getElementById('memSheetMask').classList.remove('on');
+  document.getElementById('memSheet').classList.remove('on');
+}
+async function saveMemManual(){
+  const title = (document.getElementById('mfTitle').value || '').trim();
+  const body = (document.getElementById('mfBody').value || '').trim();
+  const cuesRaw = (document.getElementById('mfCues').value || '').trim();
+  if (!body){ toast('写点什么'); return; }
+  const cues = cuesRaw ? cuesRaw.split(/[,，、]/).map(function(t){ return t.trim(); }).filter(Boolean).slice(0, 8) : [];
+  const d = new Date();
+  const day = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  const btn = document.querySelector('#memSheet .mf-acts .acc');
+  if (btn){ btn.textContent = '写入中…'; btn.disabled = true; }
+  try {
+    if (!cfg.sereinOn) throw new Error('Serein 没开');
+    if (!SEREIN_TOOLS || !SEREIN_TOOLS.length) SEREIN_TOOLS = await withTimeout(sereinTools(), 12000);
+    const out = await withTimeout(sereinCall('write_scene', {
+      content: body, cues: cues.length ? cues : [body.slice(0, 60)], title: title || undefined, date: day
+    }), 20000);
+    const txt = String(out || '');
+    if (!/scene_id|已保存|saved/i.test(txt)) throw new Error('Serein 没返回 scene_id');
+    // 成功后进本机缓存与索引
+    const m = txt.match(/scene_id[\s:"]+(scene_[0-9a-fA-F]+)/);
+    const sceneId = m ? m[1] : ('m' + Date.now().toString(36));
+    brainAdd('event', body, cues, 7, title || sceneId);
+    if (SEREIN_CACHE){
+      SEREIN_CACHE.unshift({ id: sceneId, kind:'event', text: body, title: title, tags: cues,
+        topic: sceneId, ts: Date.now(), w:7, hits:0, done:false, revoked:false, pin:false, src:'serein' });
+    }
+    closeMemForm();
+    renderBrainList();
+    paintSereinSync();
+    toast('写进 Serein 了');
+  } catch (e) {
+    toast('没写进 Serein · ' + String((e && e.message) || e).slice(0, 40));
+  } finally {
+    if (btn){ btn.textContent = '写进 Serein'; btn.disabled = false; }
+  }
+}
+
+/* ============ Serein 自动连接 ============ */
+let SEREIN_AUTOING = false;
+async function sereinAuto(){
+  if (!cfg.sereinOn || SEREIN_AUTOING) return;
+  if (SEREIN_TOOLS && SEREIN_TOOLS.length) return;
+  SEREIN_AUTOING = true;
+  try {
+    SEREIN_TOOLS = await withTimeout(sereinTools(), 12000);
+    cfg.sereinTools = SEREIN_TOOLS.length; saveCfg();
+    const el = document.getElementById('sereinState');
+    if (el) el.textContent = '已连接 · ' + SEREIN_TOOLS.length + ' 个工具';
+    if (typeof paintFoldVals === 'function') paintFoldVals();
+    sereinPull(true);
+  } catch (e) {
+    const el = document.getElementById('sereinState');
+    if (el) el.textContent = '未连接 · 自动重试';
+  } finally { SEREIN_AUTOING = false; }
+}
+
 async function testSerein(){
   const el = document.getElementById('sereinState');
   const old = el ? el.textContent : '';
@@ -3030,12 +3132,12 @@ async function sereinWriteItem(x){
         if (m){
           try {
             const rd = await withTimeout(sereinCall('read_memory', { identifier: m[1] }), 12000);
-            const rev = String(rd).match(/updated_at:\s*(\S+)/);
+            const rev = String(rd).match(/^revision:\s*(\d+)/m);
             if (rev){
               await withTimeout(sereinCall('set_memory_state', {
                 operation_id: 'cae-' + k + '-' + Date.now(),
                 document_id: m[1],
-                expected_revision: rev[1],
+                expected_revision: Number(rev[1]),
                 can_surface: false
               }), 15000);
             }
@@ -3046,6 +3148,22 @@ async function sereinWriteItem(x){
     return ok;
   } catch (e) { return false; }
 }
+async function sereinStateOf(x, patch){
+  if (!cfg.sereinOn || !x || x.src !== 'serein') return false;
+  const raw = String(x.id || '').replace(/^(scene|event):/, '');
+  if (!raw || /^event_/.test(raw)) return false;
+  try {
+    const out = await withTimeout(sereinCall('set_memory_state', Object.assign({
+      operation_id: 'cae-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+      document_id: raw,
+      expected_revision: Number(x.rev || 1)
+    }, patch)), 15000);
+    const bad = /missing or its revision changed|error/i.test(String(out || ''));
+    if (!bad){ x.rev = Number(x.rev || 1) + 1; return true; }
+    return false;
+  } catch (e) { return false; }
+}
+
 async function sereinSyncAll(manual){
   if (!cfg.sereinOn){ if (manual) toast('先在设置里打开 Serein'); return 0; }
   const list = sereinPending();
@@ -3082,7 +3200,7 @@ function parseTypedMemories(text){
   return out;
 }
 
-async function sereinPull(){
+async function sereinPull(silent){
   const el = document.getElementById('sereinPullN');
   if (el) el.textContent = '读取中…';
   const out = [];
@@ -3108,6 +3226,14 @@ async function sereinPull(){
         } catch (e) {}
       }
     }
+    if (has('read_favorites')){
+      try {
+        const t = await withTimeout(sereinCall('read_favorites', { limit: 40, include_archived: true }), 15000);
+        parseTypedMemories(t).forEach(function(x){
+          out.push(sereinItem({ id: x.ref.replace(/^scene:/, '').replace(/^event:/, ''), content: x.text, title: x.title, date: x.date, lifecycle: 'active', favorite: true }, x.ref.indexOf('event:') === 0 ? 'event' : 'scene'));
+        });
+      } catch (e) {}
+    }
     if (has('read_preferences')){
       try {
         const t = await withTimeout(sereinCall('read_preferences', {}), 15000);
@@ -3117,7 +3243,7 @@ async function sereinPull(){
     }
     SEREIN_CACHE = out;
     if (el) el.textContent = out.length ? (out.length + ' 条 ›') : '没有读到 ›';
-    toast(out.length ? ('从 Serein 读到 ' + out.length + ' 条') : 'Serein 里还没有记忆');
+    if (!silent) toast(out.length ? ('从 Serein 读到 ' + out.length + ' 条') : 'Serein 里还没有记忆');
     if (typeof renderBrainList === 'function') renderBrainList();
     paintSereinSync();
   } catch (e) {
@@ -3567,11 +3693,17 @@ function memKindOf(x){
 }
 function memLive(){
   const local = brainLoad().items.filter(function(x){ return !x.revoked; });
-  const extra = (typeof SEREIN_CACHE !== 'undefined' && SEREIN_CACHE) ? SEREIN_CACHE : null;
-  if (!cfg.sereinOn || !extra || !extra.length) return local;
+  if (!cfg.sereinOn) return local;
+  const extra = (typeof SEREIN_CACHE !== 'undefined' && SEREIN_CACHE) ? SEREIN_CACHE : [];
+  const sent = sereinSentLoad();
+  // 只有真的写进过 Serein 的本机条目才显示；线索（对话断点）只在本机
+  const keep = local.filter(function(x){
+    if (x.kind === 'clue') return true;
+    return sent.indexOf(sereinKeyOf(x)) >= 0;
+  }).map(function(x){ return Object.assign({}, x, { src: 'local' }); });
   const seen = {};
-  local.forEach(function(x){ seen[x.id] = 1; });
-  return extra.filter(function(x){ return !seen[x.id]; }).concat(local);
+  keep.forEach(function(x){ seen[x.id] = 1; });
+  return extra.filter(function(x){ return !seen[x.id]; }).concat(keep);
 }
 function memStatus(x){
   if (x.supersededBy) return '已被更新';
@@ -3726,20 +3858,36 @@ function memToggleFav(){
   openMemDetail(it.id); renderBrainList();
   toast(it.pin ? '收进舍不得丢的' : '已移出');
 }
-function memToggleSink(){
+async function memToggleSink(){
   if (!memCur) return;
   const b = brainLoad(); const it = b.items.filter(function(x){ return x.id === memCur.id; })[0];
-  if (!it) return;
-  it.done = !it.done; brainSave();
-  openMemDetail(it.id); renderBrainList();
-  toast(it.done ? '已沉底 · 不再自动浮现' : '已恢复可浮现');
+  const target = it || memCur;
+  if (!target) return;
+  target.done = !target.done;
+  if (it) brainSave();
+  else (SEREIN_CACHE || []).forEach(function(x){ if (x.id === target.id) x.done = target.done; });
+  openMemDetail(target.id); renderBrainList();
+  toast(target.done ? '已沉底 · 不再自动浮现' : '已恢复可浮现');
+  if (target.src === 'serein'){
+    const ok = await sereinStateOf(target, { can_surface: !target.done });
+    if (!ok) toast('Serein 没同步 · 只改了这边');
+  }
 }
-function memDelete(){
+async function memDelete(){
   if (!memCur) return;
   if (!confirm('删掉这条记忆？')) return;
+  const cur = memCur;
   const b = brainLoad();
-  b.items = b.items.filter(function(x){ return x.id !== memCur.id; });
-  brainSave(); closeMemDetail(); renderBrainList(); toast('已删除');
+  b.items = b.items.filter(function(x){ return x.id !== cur.id; });
+  brainSave();
+  if (cur.src === 'serein'){
+    SEREIN_CACHE = (SEREIN_CACHE || []).filter(function(x){ return x.id !== cur.id; });
+    const ok = await sereinStateOf(cur, { lifecycle: 'deleted' });
+    closeMemDetail(); renderBrainList();
+    toast(ok ? '已从 Serein 删除' : '已从这边删除 · Serein 没同步');
+    return;
+  }
+  closeMemDetail(); renderBrainList(); toast('已删除');
 }
 function memAddCue(){
   if (!memCur) return;
@@ -3954,15 +4102,32 @@ function renderDiary(){
       + '<div class="diary-text">' + esc(x.text) + '</div></div>';
   }).join('') : '<div class="diary-empty">还没有写过。<br>想记的时候，就写一句。</div>';
 }
-function saveDiary(){
+async function saveDiary(){
   const t = document.getElementById('diaryInput').value.trim();
   if (!t){ toast('写点什么再存'); return; }
+  const btn = document.querySelector('#diaryForm .diary-acts button');
+  if (cfg.sereinOn){
+    if (btn){ btn.textContent = '写入中…'; btn.disabled = true; }
+    try {
+      if (!SEREIN_TOOLS || !SEREIN_TOOLS.length) SEREIN_TOOLS = await withTimeout(sereinTools(), 12000);
+      const d = new Date();
+      const day = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+      const out = await withTimeout(sereinCall('write_diary', { content: t, date: day }), 20000);
+      if (/error|失败/i.test(String(out || ''))) throw new Error(String(out).slice(0, 40));
+    } catch (e) {
+      if (btn){ btn.textContent = '存下'; btn.disabled = false; }
+      toast('没写进 Serein · ' + String((e && e.message) || e).slice(0, 40));
+      return;
+    } finally {
+      if (btn){ btn.textContent = '存下'; btn.disabled = false; }
+    }
+  }
   const list = diaryLoad();
   list.push({ id:'d' + Date.now().toString(36), text: t, ts: Date.now() });
   diarySave(list);
   renderDiary();
   openDiaryForm(false);
-  toast('写下了');
+  toast(cfg.sereinOn ? '写进 Serein 了' : '写下了');
 }
 
 const EMOJIS = ['🥺','😔','😴','😭','🥹','😶','🙃','😏','❤️','💔','🫂','🌙','🌧','☕️','🍜','🕯','✨','🫧','🐚','🌊','🎧','📎','🔥','💤'];
