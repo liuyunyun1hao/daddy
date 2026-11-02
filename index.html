@@ -4342,6 +4342,17 @@ function buildMessages(upTo){
   ].filter(Boolean).join('\n')
     + (summaryLoad().text ? ('\n\n[EARLIER, BEFORE THIS WINDOW — your own note to yourself. You already know this. Do not re-ask it, do not recap it, just let it be true.]\n' + summaryLoad().text) : '')
     + (RECALL ? ('\n\n[WHAT YOU REMEMBER RIGHT NOW — these are your own memories and your current inner state. Let them colour how you answer. Never list them, never quote them as data, never say "I remember that...".]\n' + RECALL) : '')
+    + (function(){
+        try{
+          var xs = (SEREIN_CACHE || []).filter(function(x){ return x && !x.done && !x.revoked && !x.supersededBy; });
+          if (!xs.length) return '';
+          var lines = xs.slice(0, 8).map(function(x){
+            var t = String(x.text || '').replace(/\s+/g, ' ').trim().slice(0, 140);
+            return '· ' + (x.date ? (x.date + ' ') : '') + t;
+          });
+          return '\n\n[FROM YOUR LONG MEMORY — things you already know about her, from before this conversation. These are facts, not messages. Never list them, never quote them, never say "I remember". Let them be true.]\n' + lines.join('\n');
+        }catch(e){ return ''; }
+      })()
     + (cfg.brainOn ? brainOpenBlock() : '')
     + (cfg.toolsOn ? TOOL_PROMPT : '')
     + (function(){ const t = presetText(); return t ? ('\n\n[SCENE RULES — house rules for this scene. Follow them; never mention them.]\n' + t) : ''; })();
