@@ -64,9 +64,14 @@ fi
 
 echo "== 4/5 启动本地桥 =="
 cd "$BR_DIR" || exit 1
-if [ ! -f serein-bridge.py ]; then
-  curl -fsSL -o serein-bridge.py "https://liuyunyun1hao.github.io/daddy/serein-bridge.py" || {
-    echo "!! 下载桥失败，检查网络"; exit 1; }
+# 每次都拉最新桥（带时间戳破缓存），失败就沿用本地旧版
+if curl -fsSL -m 25 -o serein-bridge.py.new "https://liuyunyun1hao.github.io/daddy/serein-bridge.py?t=$(date +%s)"; then
+  mv serein-bridge.py.new serein-bridge.py
+  echo "  bridge updated"
+else
+  rm -f serein-bridge.py.new
+  [ -f serein-bridge.py ] || { echo "!! 没有桥脚本且下载失败"; exit 1; }
+  echo "  bridge 下载失败，用现有的"
 fi
 KEY=""
 [ -f "$KEY_FILE" ] && KEY=$(cat "$KEY_FILE" 2>/dev/null)
