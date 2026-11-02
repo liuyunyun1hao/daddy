@@ -3,11 +3,17 @@
 set -u
 D="$HOME/caeruleus"
 BASE="https://liuyunyun1hao.github.io/daddy"
+MIRROR="https://cdn.jsdelivr.net/gh/liuyunyun1hao/daddy@main"
 mkdir -p "$D/app"
 
 echo "[1/4] 下载服务端与页面…"
-curl -fsSL -m 90 "$BASE/caeruleus.py" -o "$D/caeruleus.py" || { echo "!! 服务端下载失败"; exit 1; }
-curl -fsSL -m 90 "$BASE/index.html" -o "$D/app/index.html" || { echo "!! 页面下载失败"; exit 1; }
+get() {  # get <remote-name> <local-path>
+  if curl -fsSL -m 90 "$BASE/$1" -o "$2" 2>/dev/null && [ -s "$2" ]; then return 0; fi
+  echo "      primary failed, trying mirror…"
+  curl -fsSL -m 90 "$MIRROR/$1" -o "$2" 2>/dev/null && [ -s "$2" ]
+}
+get caeruleus.py "$D/caeruleus.py" || { echo "!! 服务端下载失败（两个源都不通）"; exit 1; }
+get index.html "$D/app/index.html" || { echo "!! 页面下载失败"; exit 1; }
 echo "      服务端 $(wc -c < "$D/caeruleus.py") 字节，页面 $(wc -c < "$D/app/index.html") 字节"
 
 echo "[2/4] 停止旧进程…"
