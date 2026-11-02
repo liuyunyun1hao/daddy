@@ -566,6 +566,104 @@ body.selecting .turn.on .bubble{outline:1px solid rgba(127,214,232,.4);outline-o
 .tl-text{font-size:13px;line-height:1.65;color:rgba(236,236,236,.86)}
 .tl-text.serif{font-family:var(--serif);font-style:italic}
 
+
+
+#presetSearchBar{
+  margin:0 16px 12px;display:flex;align-items:center;gap:8px;
+  padding:11px 13px;border-radius:12px;
+  background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.07);
+}
+#presetSearch{
+  flex:1;min-width:0;background:none;border:0;outline:none;
+  font-size:13px;color:#eee;font-family:inherit;
+}
+#presetSearch::placeholder{color:rgba(255,255,255,.26)}
+.pentry .ph .switch{flex:0 0 38px;margin-top:1px}
+
+/* ============ 剧场三段 ============ */
+.stg-seg{
+  display:flex;gap:5px;margin:0 16px 14px;padding:3px;
+  border-radius:12px;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.06);
+}
+.stg-seg span{
+  flex:1;text-align:center;padding:9px 0;border-radius:9px;
+  font-size:12.5px;color:rgba(255,255,255,.52);letter-spacing:.02em;transition:background .2s,color .2s;
+}
+.stg-seg span.on{background:rgba(255,255,255,.9);color:#0b0e11;font-weight:500}
+.stg-pane{display:none}
+.stg-pane.on{display:block}
+
+.char-hero{
+  margin:0 16px 14px;padding:24px 18px 20px;border-radius:22px;
+  background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.07);
+  display:flex;flex-direction:column;align-items:center;gap:12px;
+}
+.char-av{
+  width:88px;height:88px;border-radius:26px;display:grid;place-items:center;
+  font-family:var(--serif);font-size:36px;color:rgba(255,255,255,.92);
+  background:linear-gradient(160deg,#2c4b56,#131f26);border:1px solid rgba(255,255,255,.14);
+  box-shadow:0 10px 30px rgba(0,0,0,.45);
+}
+.char-nm{font-family:var(--serif);font-size:22px;letter-spacing:.01em;margin-top:2px}
+.char-desc{
+  font-size:12px;line-height:1.9;color:rgba(255,255,255,.46);text-align:center;
+  display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;
+}
+.char-acts{display:flex;gap:9px;margin-top:4px}
+.char-acts button{padding:10px 24px;border-radius:12px;font-size:13px;background:rgba(255,255,255,.9);color:#0b0e11;font-weight:500}
+.char-acts button.ghost{background:rgba(255,255,255,.07);color:rgba(255,255,255,.82);font-weight:400}
+.char-acts button:active{transform:scale(.97)}
+
+.stg-listhead{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:4px 22px 10px;font-family:var(--serif);font-size:11px;
+  letter-spacing:.14em;color:rgba(255,255,255,.3);text-transform:uppercase;
+}
+.char-row{
+  display:flex;align-items:center;gap:12px;margin:0 16px 9px;padding:11px 13px;
+  border-radius:16px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.055);
+}
+.char-row.on{border-color:rgba(127,214,232,.35);background:rgba(127,214,232,.06)}
+.char-row .av{
+  width:42px;height:42px;border-radius:12px;display:grid;place-items:center;flex:none;
+  font-family:var(--serif);font-size:17px;background:rgba(255,255,255,.07);color:rgba(255,255,255,.8);
+}
+.char-row .cm{flex:1;min-width:0}
+.char-row .cn{font-size:14px;color:rgba(255,255,255,.88)}
+.char-row .cd{font-size:11px;color:rgba(255,255,255,.36);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.char-row .cx{font-size:11px;color:rgba(255,255,255,.3);padding:6px 4px}
+
+.pentry{
+  margin:0 16px 9px;padding:13px 14px;border-radius:16px;
+  background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.055);
+}
+.pentry.off{opacity:.5}
+.pentry .ph{display:flex;align-items:flex-start;gap:11px}
+.pentry .pm{flex:1;min-width:0}
+.pentry .pt{font-size:13.5px;color:rgba(255,255,255,.86);margin-bottom:4px}
+.pentry .ps{
+  font-size:11px;line-height:1.7;color:rgba(255,255,255,.36);
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+}
+.pentry .pdel{font-size:15px;color:rgba(255,255,255,.24);padding:0 2px}
+.pedit{margin-top:11px;border-top:1px solid rgba(255,255,255,.06);padding-top:11px}
+.pedit input,.pedit textarea{
+  width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+  border-radius:10px;padding:9px 11px;font-size:12.5px;line-height:1.7;color:#eee;
+  font-family:inherit;resize:none;
+}
+.pedit textarea{height:96px;margin-top:8px}
+.pedit .pk{display:flex;justify-content:flex-end;gap:8px;margin-top:9px}
+.pedit .pk span{font-size:12px;padding:7px 14px;border-radius:9px;background:rgba(255,255,255,.08);color:rgba(255,255,255,.8)}
+.pedit .pk span.acc{background:rgba(127,214,232,.16);color:#a9e8f4}
+
+.stg-addrow{
+  display:block;width:calc(100% - 32px);margin:4px 16px 10px;padding:13px;
+  border-radius:14px;border:1px dashed rgba(255,255,255,.14);
+  font-size:12.5px;color:rgba(255,255,255,.45);text-align:center;
+}
+.stg-addrow:active{background:rgba(255,255,255,.04)}
+
 /* ============ hint ============ */
 .hint{font-size:10.5px;line-height:1.8;color:rgba(255,255,255,.26);letter-spacing:.02em}
 
@@ -1093,26 +1191,47 @@ body.selecting .toast{bottom:150px}
             <h1>剧场</h1>
             <div class="sub">Roleplay</div>
           </div>
-          <button class="icon-btn" onclick="openStageForm()">
+          <button class="icon-btn" id="stageAddBtn" onclick="stageAddAction()">
             <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
           </button>
         </div>
 
-        <div class="notice">
-          <svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="2.6"/></svg>
-          他会读到你在剧场里的一切，并在合适的时候提起
+        <div class="stg-seg" id="stgSeg">
+          <span data-p="play" class="on" onclick="setStagePane('play')">剧场</span>
+          <span data-p="chars" onclick="setStagePane('chars')">角色卡</span>
+          <span data-p="presets" onclick="setStagePane('presets')">预设</span>
         </div>
 
-        <div class="stage-grid" id="stageGrid"></div>
-
-        <div class="group-label folded" onclick="foldSec(this)"><span class="lt">预设</span><span class="fv" id="foldNarrV">克制</span><svg class="fa" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></div>
-        <div class="group folded" style="background:none;border:0;backdrop-filter:none">
-          <div class="chips-row" style="padding:0 16px 6px" id="narrChips">
-            <button class="chip" data-n="neutral" onclick="setNarr('neutral',this)">克制</button>
-            <button class="chip" data-n="warm" onclick="setNarr('warm',this)">温存</button>
-            <button class="chip" data-n="cold" onclick="setNarr('cold',this)">冷硬</button>
+        <div class="stg-pane on" id="pane-play">
+          <div class="notice">
+            <svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="2.6"/></svg>
+            他会读到你在剧场里的一切，并在合适的时候提起
           </div>
-          <div class="hint" style="padding:0 18px 14px">旁白风格 · 影响他描写动作与房间的方式，聊天与剧场都生效</div>
+          <div class="stage-grid" id="stageGrid"></div>
+          <div class="group-label folded" onclick="foldSec(this)"><span class="lt">旁白风格</span><span class="fv" id="foldNarrV">克制</span><svg class="fa" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></div>
+          <div class="group folded" style="background:none;border:0;backdrop-filter:none">
+            <div class="chips-row" style="padding:0 16px 6px" id="narrChips">
+              <button class="chip" data-n="neutral" onclick="setNarr('neutral',this)">克制</button>
+              <button class="chip" data-n="warm" onclick="setNarr('warm',this)">温存</button>
+              <button class="chip" data-n="cold" onclick="setNarr('cold',this)">冷硬</button>
+            </div>
+            <div class="hint" style="padding:0 18px 14px">影响他描写动作与房间的方式，聊天与剧场都生效</div>
+          </div>
+        </div>
+
+        <div class="stg-pane" id="pane-chars">
+          <div id="curCharBox"></div>
+          <div class="stg-listhead"><span>全部角色</span><span id="charCount">0 张</span></div>
+          <div id="charList"></div>
+        </div>
+
+        <div class="stg-pane" id="pane-presets">
+          <div class="hint" style="padding:0 18px 12px">这里的条目会拼进他的系统提示 · 支持 {{user}} 和 {{char}}</div>
+          <div class="mem-search2" id="presetSearchBar" style="display:flex">
+            <input id="presetSearch" placeholder="搜索条目…" oninput="presetQuery=this.value.trim(); renderPresets()">
+          </div>
+          <div id="presetList"></div>
+          <button class="stg-addrow" onclick="addPresetEntry()">+ 新增条目</button>
         </div>
       </div>
     </section>
@@ -1595,6 +1714,7 @@ async function syncFromStore(){
       try { localStorage.setItem(STAGE_KEY, JSON.stringify(sStage.items)); } catch (e) {}
       if (typeof renderStage === 'function') renderStage();
   if (typeof paintNarr === 'function') paintNarr();
+  if (typeof renderStagePane === 'function') renderStagePane();
     }
   }
   const sBrain = await storeGet('brain');
@@ -1715,6 +1835,185 @@ function stageSave(list){
   storePut('stage', { items: list.slice(-40), updatedAt: Date.now() }, 700);
 }
 function stageAll(){ return STAGE_BUILTIN.concat(stageLoad().map(function(x){ x.custom = true; return x; })); }
+
+/* ============ 剧场：三段（剧场 / 角色卡 / 预设） ============ */
+let stagePane = 'play';
+let presetQuery = '';
+let editingEntry = '';
+const PRESET_KEY = 'daddy.presets.v1';
+const PRESET_DEF = { entries: [
+  { id:'e1', title:'称呼', enabled:true,
+    content:'你叫她「{{user}}」。不要叫全名，不要用「宝贝」「亲爱的」这类通用称呼。' },
+  { id:'e2', title:'叙事视角', enabled:true,
+    content:'写他的动作和房间用第三人称，台词用第一人称。动作单独成段，用 *星号* 包住，不要和台词挤在一行。' },
+  { id:'e3', title:'尺度', enabled:true,
+    content:'亲密场景写得克制：写呼吸、停顿、手上的力道和房间里的声音，不写器官，不堆形容词。' }
+] };
+
+function presetLoad(){
+  try {
+    const o = JSON.parse(localStorage.getItem(PRESET_KEY) || 'null');
+    if (o && Array.isArray(o.entries) && o.entries.length) return o;
+  } catch (e) {}
+  return JSON.parse(JSON.stringify(PRESET_DEF));
+}
+let PRESETS = presetLoad();
+function presetSave(){
+  try { localStorage.setItem(PRESET_KEY, JSON.stringify(PRESETS)); } catch (e) {}
+  storePut('presets', { data: PRESETS, updatedAt: Date.now() }, 700);
+}
+function presetText(){
+  const u = cfg.persona.call || '宝宝';
+  const c = cfg.persona.name || 'Daddy';
+  return (PRESETS.entries || []).filter(function(e){ return e.enabled; })
+    .map(function(e){ return String(e.content || '').replace(/\{\{user\}\}/g, u).replace(/\{\{char\}\}/g, c).trim(); })
+    .filter(Boolean).join('\n\n');
+}
+
+function setStagePane(pane){
+  stagePane = pane;
+  document.querySelectorAll('#stgSeg span').forEach(function(el){ el.classList.toggle('on', el.dataset.p === pane); });
+  ['play','chars','presets'].forEach(function(k){
+    const el = document.getElementById('pane-' + k);
+    if (el) el.classList.toggle('on', k === pane);
+  });
+  if (pane === 'chars') renderChars();
+  if (pane === 'presets') renderPresets();
+}
+function stageAddAction(){
+  if (stagePane === 'presets') addPresetEntry();
+  else openStageForm();
+}
+
+/* --- 角色卡 --- */
+function curCharId(){
+  const list = stageAll();
+  const saved = cfg.activeStage;
+  if (saved && list.some(function(x){ return x.id === saved; })) return saved;
+  return list.length ? list[0].id : '';
+}
+function charOf(id){ return stageAll().filter(function(x){ return x.id === id; })[0]; }
+function renderChars(){
+  const list = stageAll();
+  const cur = charOf(curCharId()) || list[0];
+  const box = document.getElementById('curCharBox');
+  if (box){
+    box.innerHTML = cur ? (
+      '<div class="char-hero">'
+      + '<div class="char-av">' + esc(String(cur.name || '?').slice(0, 1)) + '</div>'
+      + '<div class="char-nm">' + esc(cur.name) + '</div>'
+      + '<div class="char-desc">' + esc(cur.desc || '') + '</div>'
+      + '<div class="char-acts">'
+      + '<button onclick="openStageCard(\'' + cur.id + '\')">进入</button>'
+      + '<button class="ghost" onclick="openStageForm(\'' + cur.id + '\')">' + (cur.custom ? '编辑' : '另存') + '</button>'
+      + '</div></div>'
+    ) : '<div class="hint" style="padding:20px">还没有角色卡</div>';
+  }
+  const cnt = document.getElementById('charCount');
+  if (cnt) cnt.textContent = list.length + ' 张';
+  const listBox = document.getElementById('charList');
+  if (!listBox) return;
+  listBox.innerHTML = list.map(function(x){
+    const on = cur && x.id === cur.id ? ' on' : '';
+    return '<div class="char-row' + on + '" onclick="pickStageChar(\'' + x.id + '\')">'
+      + '<div class="av">' + esc(String(x.name || '?').slice(0, 1)) + '</div>'
+      + '<div class="cm"><div class="cn">' + esc(x.name) + '</div>'
+      + '<div class="cd">' + esc(x.desc || x.scene || '') + '</div></div>'
+      + (x.custom ? '<span class="cx" onclick="event.stopPropagation();openStageForm(\'' + x.id + '\')">⋯</span>' : '')
+      + '</div>';
+  }).join('') || '<div class="hint" style="padding:16px 22px">点右上角 + 新建一张</div>';
+}
+function pickStageChar(id){
+  cfg.activeStage = id; saveCfg(); renderChars();
+  toast('已选中 · ' + (charOf(id) || {}).name);
+}
+
+/* --- 预设条目 --- */
+function renderPresets(){
+  const box = document.getElementById('presetList');
+  if (!box) return;
+  const q = presetQuery.toLowerCase();
+  const list = (PRESETS.entries || []).filter(function(e){
+    if (!q) return true;
+    return (e.title + ' ' + e.content).toLowerCase().indexOf(q) >= 0;
+  });
+  if (!list.length){
+    box.innerHTML = '<div class="hint" style="padding:20px 22px">' + (q ? '没有匹配的条目。' : '还没有条目，点下面新增。') + '</div>';
+    return;
+  }
+  box.innerHTML = list.map(function(e){
+    const off = e.enabled ? '' : ' off';
+    const open = editingEntry === e.id;
+    const sum = String(e.content || '').replace(/\s+/g, ' ').trim();
+    let h = '<div class="pentry' + off + '">'
+      + '<div class="ph">'
+      + '<span class="switch' + (e.enabled ? ' on' : '') + '" onclick="togglePresetEntry(\'' + e.id + '\',this)"></span>'
+      + '<div class="pm" onclick="togglePresetEdit(\'' + e.id + '\')">'
+      + '<div class="pt">' + esc(e.title || '未命名') + '</div>'
+      + '<div class="ps">' + esc(sum || '（还没有内容）') + '</div></div>'
+      + '<span class="pdel" onclick="delPresetEntry(\'' + e.id + '\')">×</span>'
+      + '</div>';
+    if (open){
+      h += '<div class="pedit">'
+        + '<input value="' + esc(e.title || '') + '" placeholder="条目标题" oninput="patchPresetEntry(\'' + e.id + '\',\'title\',this.value)">'
+        + '<textarea placeholder="写规则… 支持 {{user}} / {{char}}" oninput="patchPresetEntry(\'' + e.id + '\',\'content\',this.value)">' + esc(e.content || '') + '</textarea>'
+        + '<div class="pk"><span onclick="movePresetEntry(\'' + e.id + '\',-1)">↑</span><span onclick="movePresetEntry(\'' + e.id + '\',1)">↓</span><span onclick="togglePresetEdit(\'\')">收起</span></div>'
+        + '</div>';
+    }
+    return h + '</div>';
+  }).join('');
+}
+function togglePresetEdit(id){ editingEntry = (editingEntry === id) ? '' : id; renderPresets(); }
+function togglePresetEntry(id, el){
+  const e = PRESETS.entries.filter(function(x){ return x.id === id; })[0];
+  if (!e) return;
+  e.enabled = !e.enabled;
+  if (el) el.classList.toggle('on', e.enabled);
+  const row = el && el.closest('.pentry');
+  if (row) row.classList.toggle('off', !e.enabled);
+  presetSave();
+}
+let presetTimer = null;
+function patchPresetEntry(id, field, value){
+  const e = PRESETS.entries.filter(function(x){ return x.id === id; })[0];
+  if (!e) return;
+  e[field] = value;
+  clearTimeout(presetTimer);
+  presetTimer = setTimeout(presetSave, 500);
+}
+function addPresetEntry(){
+  const id = 'e' + Date.now().toString(36);
+  PRESETS.entries.push({ id: id, title: '新条目', content: '', enabled: true });
+  presetSave();
+  editingEntry = id;
+  setStagePane('presets');
+  setTimeout(function(){
+    const el = document.querySelector('.pentry .pedit input');
+    if (el) el.focus();
+  }, 80);
+}
+function movePresetEntry(id, dir){
+  const arr = PRESETS.entries;
+  const i = arr.findIndex(function(x){ return x.id === id; });
+  const j = i + dir;
+  if (i < 0 || j < 0 || j >= arr.length) return;
+  const t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+  presetSave(); renderPresets();
+}
+function delPresetEntry(id){
+  PRESETS.entries = PRESETS.entries.filter(function(x){ return x.id !== id; });
+  presetSave();
+  if (editingEntry === id) editingEntry = '';
+  renderPresets();
+  toast('已删除');
+}
+function renderStagePane(){
+  setStagePane(stagePane);
+  renderStage();
+  paintNarr();
+}
+
+
 function renderStage(){
   const box = document.getElementById('stageGrid');
   if (!box) return;
@@ -1737,8 +2036,11 @@ function openStageCard(id){
 let STAGE_EDIT = null;
 function openStageForm(id){
   STAGE_EDIT = id || null;
-  const x = id ? stageLoad().filter(function(v){ return v.id === id; })[0] : null;
-  document.getElementById('stageFormTtl').innerHTML = (x ? '编辑角色卡' : '新建角色卡') + '<small>CHARACTER</small>';
+  const custom = id ? stageLoad().filter(function(v){ return v.id === id; })[0] : null;
+  const builtin = id ? STAGE_BUILTIN.filter(function(v){ return v.id === id; })[0] : null;
+  const x = custom || builtin;
+  const isCopy = !!(builtin && !custom);
+  document.getElementById('stageFormTtl').innerHTML = (isCopy ? '另存为新的角色卡' : (custom ? '编辑角色卡' : '新建角色卡')) + '<small>CHARACTER</small>';
   document.getElementById('stName').value = x ? x.name : '';
   document.getElementById('stDesc').value = x ? (x.desc || '') : '';
   document.getElementById('stOpen').value = x ? (x.opening || '') : '';
@@ -1759,6 +2061,9 @@ function saveStageForm(){
   if (STAGE_EDIT){
     const x = list.filter(function(v){ return v.id === STAGE_EDIT; })[0];
     if (x){ x.name = name; x.desc = desc; x.opening = opening; x.tags = tags; }
+    else {
+      list.push({ id:'s' + Date.now().toString(36), name: name, desc: desc, opening: opening, tags: tags, scene: name, art: art, opening_text: opening });
+    }
   } else {
     list.push({ id:'s' + Date.now().toString(36), name: name, desc: desc, opening: opening, tags: tags, scene: name, art: art, opening_text: opening });
   }
@@ -3760,7 +4065,8 @@ function buildMessages(upTo){
     + (summaryLoad().text ? ('\n\n[EARLIER, BEFORE THIS WINDOW — your own note to yourself. You already know this. Do not re-ask it, do not recap it, just let it be true.]\n' + summaryLoad().text) : '')
     + (RECALL ? ('\n\n[WHAT YOU REMEMBER RIGHT NOW — these are your own memories and your current inner state. Let them colour how you answer. Never list them, never quote them as data, never say "I remember that...".]\n' + RECALL) : '')
     + (cfg.brainOn ? brainOpenBlock() : '')
-    + (cfg.toolsOn ? TOOL_PROMPT : '');
+    + (cfg.toolsOn ? TOOL_PROMPT : '')
+    + (function(){ const t = presetText(); return t ? ('\n\n[SCENE RULES — house rules for this scene. Follow them; never mention them.]\n' + t) : ''; })();
   const budget = Math.max(2000, Number(cfg.ctxTokens) || 12000);
   let used = estTokens(sys);
   const picked = [];
