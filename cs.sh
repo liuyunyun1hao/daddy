@@ -141,13 +141,54 @@ APP_UPSTREAM = os.environ.get('APP_UPSTREAM', 'https://liuyunyun1hao.github.io/d
 APP_FILES = ['index.html', 'manifest.webmanifest', 'sw.js', 'icon-192.png', 'icon-512.png']
 
 
+def _head_meta(name):
+    url = APP_UPSTREAM.rstrip('/') + '/' + name
+    req = urllib.request.Request(url, method='HEAD',
+                                 headers={'User-Agent': 'CaeruleusBridge/1.0'})
+    with urllib.request.urlopen(req, timeout=10) as r:
+        n = r.headers.get('Content-Length') or '0'
+        return {'len': int(n) if n.isdigit() else 0,
+                'etag': r.headers.get('ETag') or r.headers.get('Last-Modified') or ''}
+
+
+def _page_stale(dst):
+    """判断 index.html 是否需要更新：比对远端 ETag（离线时不动本地）。"""
+    tag_path = dst + '.tag'
+    try:
+        remote = _head_meta('index.html')
+    except Exception:
+        return False
+    if not remote['etag']:
+        return False
+    try:
+        with open(tag_path, encoding='utf-8') as f:
+            local_tag = f.read().strip()
+    except Exception:
+        local_tag = ''
+    if remote['etag'] == local_tag:
+        return False
+    size = os.path.getsize(dst) if os.path.isfile(dst) else 0
+    if remote['len'] and remote['len'] == size:
+        try:
+            with open(tag_path, 'w', encoding='utf-8') as f:
+                f.write(remote['etag'])
+        except Exception:
+            pass
+        return False
+    return True
+
+
 def ensure_app(force=False):
-    """页面文件不在本地时，从线上仓库拉一份下来（终端里不用再 cp 一堆文件）。"""
+    """页面文件缺失、或线上有新版本时，从仓库拉一份下来（终端里不用再 cp 一堆文件）。"""
     got = 0
     for name in APP_FILES:
         dst = os.path.join(APP_DIR, name)
         if not force and os.path.isfile(dst) and os.path.getsize(dst) > 200:
-            continue
+            if name != 'index.html':
+                continue
+            if not _page_stale(dst):
+                continue
+            log('page changed on upstream, refreshing index.html')
         url = APP_UPSTREAM.rstrip('/') + '/' + name
         try:
             req = urllib.request.Request(url, headers={'User-Agent': 'CaeruleusBridge/1.0'})
@@ -158,6 +199,14 @@ def ensure_app(force=False):
                     f.write(data)
                 got += 1
                 log('fetched', name, len(data), 'bytes')
+                if name == 'index.html':
+                    try:
+                        meta = _head_meta(name)
+                        if meta['etag']:
+                            with open(dst + '.tag', 'w', encoding='utf-8') as f:
+                                f.write(meta['etag'])
+                    except Exception:
+                        pass
         except Exception as e:
             log('fetch failed', name, ':', e)
     if not got:
@@ -357,8 +406,12 @@ def bind_any(start, tries=12):
     raise SystemExit('端口 %d-%d 都被占用了，用 BRIDGE_PORT=19000 python serein-bridge.py 换一个' % (start, start + tries - 1))
 
 
+BUILD = '2026-11-02.2'   # /api 前缀修复 + 页面自动更新
+
+
 def main():
     global API_UPSTREAM
+    log('bridge   = build', BUILD)
     if '127.0.0.1:9355' in API_UPSTREAM:
         ok = False
         try:
@@ -395,7 +448,7 @@ KEY=""
 [ -f "$KEY_FILE" ] && KEY=$(cat "$KEY_FILE" 2>/dev/null)
 SEREIN_KEY="$KEY" nohup python serein-bridge.py > bridge.log 2>&1 &
 sleep 3
-sed -n '1,6p' bridge.log 2>/dev/null
+sed -n '1,9p' bridge.log 2>/dev/null
 
 echo "== 5/5 访问地址 =="
 IP=$(ifconfig 2>/dev/null | grep -oE 'inet (addr:)?[0-9.]+' | awk '{print $2}' | sed 's/addr://' | grep -v '^127\.' | head -1)
