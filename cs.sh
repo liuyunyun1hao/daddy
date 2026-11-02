@@ -39,39 +39,46 @@ else
   echo "!! 没找到 $OC_DIR（先 git clone 那个仓库）"
 fi
 
-echo "== 3/4 检查 Serein =="
+echo "== 3/5 检查 Serein =="
 SC=$(curl -s -o /dev/null -w "%{http_code}" -m 5 -X POST http://127.0.0.1:18217/serein/mcp \
   -H "Content-Type: application/json" -H "Accept: application/json, text/event-stream" \
   -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}' 2>/dev/null)
 if [ "$SC" = "000" ]; then
-  echo "Serein 没起，尝试后台拉起…"
-  if [ -d "$HOME/Serein" ]; then
-    ( cd "$HOME/Serein" && PYTHONPATH=src setsid nohup python -m serein http --host 127.0.0.1 --port 18217 --live > "$HOME/serein.log" 2>&1 & )
-    sleep 6
-    SC=$(curl -s -o /dev/null -w "%{http_code}" -m 5 -X POST http://127.0.0.1:18217/serein/mcp \
-      -H "Content-Type: application/json" -H "Accept: application/json, text/event-stream" \
-      -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}' 2>/dev/null)
-  fi
-  if [ "$SC" = "000" ]; then
-    echo "  !! 没起来（看 ~/serein.log），请在另一个窗口跑 se → 4 → 启动"
-    tail -3 "$HOME/serein.log" 2>/dev/null
-  else
-    echo "  Serein 已拉起（$SC）"
-  fi
+  echo "  Serein 没起。它缺依赖（PyYAML 等），用 se 菜单启动最稳："
+  echo "    se  →  4  →  启动"
+  echo "  （若想修依赖： pip install pyyaml jieba fastapi uvicorn mcp）"
+  SC="000"
 else
   echo "  Serein 在跑（$SC）"
 fi
 
 echo "== 4/5 启动本地桥 =="
-cd "$BR_DIR" || exit 1
-# 每次都拉最新桥（带时间戳破缓存），失败就沿用本地旧版
-if curl -fsSL -m 25 -o serein-bridge.py.new "https://liuyunyun1hao.github.io/daddy/serein-bridge.py?t=$(date +%s)"; then
-  mv serein-bridge.py.new serein-bridge.py
-  echo "  bridge updated"
-else
+NEW_OK=0
+for SRC in "$HOME/storage/downloads/Daddy/serein-bridge.py" "/sdcard/Download/Daddy/serein-bridge.py"; do
+  if [ -f "$SRC" ] && grep -q "127.0.0.1:9355" "$SRC" 2>/dev/null; then
+    cp "$SRC" serein-bridge.py
+    NEW_OK=1
+    echo "  bridge ← $SRC"
+    break
+  fi
+done
+if [ "$NEW_OK" = "0" ]; then
+  i=0
+  while [ $i -lt 3 ]; do
+    i=$((i+1))
+    if curl -fsSL -m 20 -o serein-bridge.py.new "https://liuyunyun1hao.github.io/daddy/serein-bridge.py?t=$(date +%s)-$i" \
+       && grep -q "127.0.0.1:9355" serein-bridge.py.new 2>/dev/null; then
+      mv serein-bridge.py.new serein-bridge.py
+      NEW_OK=1
+      echo "  bridge ← pages"
+      break
+    fi
+    sleep 2
+  done
   rm -f serein-bridge.py.new
-  [ -f serein-bridge.py ] || { echo "!! 没有桥脚本且下载失败"; exit 1; }
-  echo "  bridge 下载失败，用现有的"
+fi
+if [ "$NEW_OK" = "0" ]; then
+  echo "  !! 拿不到新版桥，继续用现有的（可能仍走 vercel，/api 会卡）"
 fi
 KEY=""
 [ -f "$KEY_FILE" ] && KEY=$(cat "$KEY_FILE" 2>/dev/null)
