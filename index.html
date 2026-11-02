@@ -2407,6 +2407,7 @@ async function testSerein(){
     else if (/401/.test(msg)) hint = '未授权 · 桥没读到 Key';
     else if (/403/.test(msg)) hint = '被拒 · 来源不对';
     else if (/404/.test(msg)) hint = '没找到 · 地址错了';
+    else if (/502/.test(msg)) hint = '桥连不上 Serein · 18217 没服务';
     else hint = msg.replace(/\s*\{.*$/,'').slice(0, 26) || '失败';
     if (el) el.textContent = hint;
     toast('Serein · ' + hint + (old ? '' : ''));
