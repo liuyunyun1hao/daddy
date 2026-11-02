@@ -2979,6 +2979,7 @@ async function saveMemManual(){
     // 成功后进本机缓存与索引
     const m = txt.match(/scene_id[\s:"]+(scene_[0-9a-fA-F]+)/);
     const sceneId = m ? m[1] : ('m' + Date.now().toString(36));
+    sereinSceneAdd(sceneId);
     brainAdd('event', body, cues, 7, title || sceneId);
     if (SEREIN_CACHE){
       SEREIN_CACHE.unshift({ id: sceneId, kind:'event', text: body, title: title, tags: cues,
@@ -3068,6 +3069,34 @@ function sereinItem(x, kind){
 }
 
 const SEREIN_SENT_KEY = 'daddy.serein.sent.v1';
+const SEREIN_SCENE_KEY = 'daddy.serein.scenes.v1';
+function sereinSceneLoad(){ try { return JSON.parse(localStorage.getItem(SEREIN_SCENE_KEY) || '[]'); } catch (e) { return []; } }
+function sereinSceneSave(a){ try { localStorage.setItem(SEREIN_SCENE_KEY, JSON.stringify(a.slice(-400))); } catch (e) {} }
+function sereinSceneAdd(id){
+  if (!id) return;
+  const a = sereinSceneLoad().filter(function(x){ return x.id !== id; });
+  a.push({ id: id, at: Date.now() });
+  sereinSceneSave(a);
+}
+function parseSereinScene(text, fallbackId){
+  const s = String(text || '');
+  if (!s) return null;
+  const pick = function(k){ const m = new RegExp('^' + k + ':\\s*(.+)$', 'm').exec(s); return m ? m[1].trim() : ''; };
+  const stat = pick('status');
+  if (stat === 'deleted') return null;
+  const rawId = pick('id').replace(/^scene:/, '') || fallbackId;
+  const bi = s.indexOf('\nbody:');
+  let body = bi >= 0 ? s.slice(bi + 6) : '';
+  const ci = body.indexOf('\ncomments:');
+  if (ci >= 0) body = body.slice(0, ci);
+  return {
+    id: rawId, kind: 'scene', text: body.trim().slice(0, 600),
+    title: pick('title'), tags: [], topic: rawId,
+    ts: Date.parse(pick('date')) || Date.now(), w: 7, hits: 0,
+    done: stat === 'archived', revoked: false, pin: false,
+    status: stat, rev: Number(pick('revision')) || 1, src: 'serein'
+  };
+}
 function sereinSentLoad(){ try { return JSON.parse(localStorage.getItem(SEREIN_SENT_KEY) || '[]'); } catch (e) { return []; } }
 function sereinSentSave(a){ try { localStorage.setItem(SEREIN_SENT_KEY, JSON.stringify(a.slice(-800))); } catch (e) {} }
 function sereinKeyOf(x){
@@ -3126,6 +3155,8 @@ async function sereinWriteItem(x){
     const ok = /scene_id|已保存/.test(String(out || ''));
     if (ok){
       const list = sereinSentLoad(); list.push(k); sereinSentSave(list);
+      const sm = String(out).match(/scene_id[:\s"]+(scene_[0-9a-fA-F]+)/);
+      if (sm) sereinSceneAdd(sm[1]);
       // 把本机的状态同步过去：已沉底/被取代的不要浮在 Serein 里
       if (x.done || x.supersededBy){
         const m = String(out).match(/scene_id[:\s]+(scene_[0-9a-f]+)/);
@@ -3207,6 +3238,20 @@ async function sereinPull(silent){
   try {
     if (!SEREIN_TOOLS) SEREIN_TOOLS = await withTimeout(sereinTools(), 12000);
     const has = function(n){ return (SEREIN_TOOLS || []).some(function(t){ return t.name === n; }); };
+    // 先按记录下来的 scene_id 直读：必然拿得到，不依赖检索命中
+    if (has('read_memory')){
+      const recs = sereinSceneLoad().slice(-40).reverse();
+      const seenScene = {};
+      for (let i = 0; i < recs.length; i += 4){
+        const batch = recs.slice(i, i + 4);
+        const res = await Promise.all(batch.map(function(r){
+          return withTimeout(sereinCall('read_memory', { identifier: r.id }), 12000)
+            .then(function(t){ return parseSereinScene(t, r.id); })
+            .catch(function(){ return null; });
+        }));
+        res.forEach(function(it){ if (it && !seenScene[it.id]){ seenScene[it.id] = 1; out.push(it); } });
+      }
+    }
     if (has('recall_memory')){
       const seeds = [];
       brainLoad().items.slice(-6).forEach(function(x){
