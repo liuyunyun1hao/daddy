@@ -1715,6 +1715,36 @@ function storePut(name, obj, delay){
 function storeDel(name){
   try { fetch('/store/' + name, { method: 'DELETE' }).catch(function(){}); } catch (e) {}
 }
+// 多设备合并：按 id 去重（同一 id 取 ts 更新的那份），正文相同的只留一条。
+// 这样手机/电脑/不同浏览器各自往里记，最后都能汇成同一份。
+function brainMergeLists(lists){
+  const byId = {}, byText = {}, out = [];
+  let seq = 0;
+  lists.forEach(function(list){
+    (list || []).forEach(function(x){
+      if (!x || !x.id) return;
+      const n = parseInt(String(x.id).replace(/^m/, ''), 10);
+      if (n && n < 1000000) seq = Math.max(seq, n);
+      const t = String(x.text || '').replace(/\s+/g, ' ').trim();
+      const prev = byId[x.id];
+      if (prev){
+        if ((x.ts || 0) >= (prev.ts || 0)) Object.assign(prev, x);
+        return;
+      }
+      if (t && byText[t]){
+        const keep = byText[t];
+        if ((x.ts || 0) >= (keep.ts || 0)) Object.assign(keep, x);
+        return;
+      }
+      const copy = Object.assign({}, x);
+      byId[copy.id] = copy;
+      if (t) byText[t] = copy;
+      out.push(copy);
+    });
+  });
+  return { items: out, seq: seq };
+}
+
 async function syncFromStore(){
   const sChat = await storeGet('chat');
   if (sChat && Object.prototype.toString.call(sChat.msgs) === '[object Array]' && sChat.msgs.length){
@@ -1748,14 +1778,21 @@ async function syncFromStore(){
     }
   }
   const sBrain = await storeGet('brain');
-  if (sBrain && Object.prototype.toString.call(sBrain.items) === '[object Array]' && sBrain.items.length){
-    const local = brainLoad();
-    const srvAt = sBrain.updatedAt || 0;
-    if (!local.items.length || srvAt > BRAIN_AT){
-      BRAIN = { v:1, seq: sBrain.seq || local.seq || 0, items: sBrain.items.slice(-400) };
-      BRAIN_AT = srvAt;
-      try { localStorage.setItem(BRAIN_KEY, JSON.stringify({ v:1, seq: BRAIN.seq, items: BRAIN.items, updatedAt: srvAt })); } catch (e) {}
+  const localB = brainLoad();
+  const srvItems = (sBrain && Object.prototype.toString.call(sBrain.items) === '[object Array]') ? sBrain.items : [];
+  const srvAt = (sBrain && sBrain.updatedAt) || 0;
+  if (srvItems.length || localB.items.length){
+    const merged = brainMergeLists([srvItems, localB.items]);
+    const changed = merged.items.length !== localB.items.length ||
+                    merged.items.length !== srvItems.length ||
+                    srvAt > BRAIN_AT ||
+                    (srvItems.length === 0 && localB.items.length > 0);
+    if (changed){
+      BRAIN = { v:1, seq: Math.max(merged.seq, localB.seq || 0), items: merged.items.slice(-400) };
+      BRAIN_AT = Date.now();
+      try { localStorage.setItem(BRAIN_KEY, JSON.stringify({ v:1, seq: BRAIN.seq, items: BRAIN.items, updatedAt: BRAIN_AT })); } catch (e) {}
       if (typeof renderBrainList === 'function') renderBrainList();
+      storePut('brain', { v:1, seq: BRAIN.seq, items: BRAIN.items, updatedAt: BRAIN_AT }, 300);
     }
   }
   paintStoreState();
@@ -3401,7 +3438,9 @@ function brainAdd(kind, text, tags, weight, topic){
       if (x.topic === tp && !x.done && !x.revoked && !x.supersededBy){ prev = x; break; }
     }
   }
-  const it = { id:'m' + (++b.seq), kind: BRAIN_LABEL[kind] ? kind : 'fact', text:t, tags: tags || [],
+  b.seq = (b.seq || 0) + 1;
+  // 时间戳 + 随机后缀：多设备各自新增时 id 不会撞车
+  const it = { id:'m' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), kind: BRAIN_LABEL[kind] ? kind : 'fact', text:t, tags: tags || [],
     topic: tp, ts: Date.now(), w: Number(weight) || 1, hits:0, done:false, revoked:false, tk: cjkTokens(t) };
   if (prev){ it.supersedes = prev.id; it.supersededFrom = prev.text; prev.supersededBy = it.id; prev.done = true; }
   b.items.push(it);
