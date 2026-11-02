@@ -186,6 +186,10 @@ class Handler(SimpleHTTPRequestHandler):
         host = u.hostname or '127.0.0.1'
         port = u.port or (443 if u.scheme == 'https' else 80)
         cls = http.client.HTTPSConnection if u.scheme == 'https' else http.client.HTTPConnection
+        # origin 自带的路径前缀不能丢（oc 代理是 http://127.0.0.1:9355/zen/go/v1，
+        # 少了 /zen/go/v1 会打到它的根路径，回一张 HTML 404 页）
+        prefix = u.path.rstrip('/')
+        target = prefix + path if prefix else path
 
         headers = {}
         for k, v in self.headers.items():
@@ -210,10 +214,10 @@ class Handler(SimpleHTTPRequestHandler):
 
         conn = cls(host, port, timeout=180)
         try:
-            conn.request(self.command, path, body=body, headers=headers)
+            conn.request(self.command, target, body=body, headers=headers)
             resp = conn.getresponse()
         except Exception as e:
-            log('upstream failed:', self.command, path, '->', type(e).__name__, e)
+            log('upstream failed:', self.command, target, '->', type(e).__name__, e)
             self._json(502, {'error': 'upstream unreachable', 'detail': str(e)})
             try:
                 conn.close()
@@ -385,7 +389,6 @@ def main():
 
 if __name__ == '__main__':
     main()
-
 BRIDGE_EOF
 echo "  bridge written ($(wc -c < serein-bridge.py) bytes)"
 KEY=""
