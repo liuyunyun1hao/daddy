@@ -191,6 +191,9 @@ class Handler(SimpleHTTPRequestHandler):
             if not rec:
                 return self._json(404, {"ok": False, "error": "not found"})
             return self._json(200, rec["data"])
+        if p.startswith("/api/"):
+            # 页面在本地/局域网时 apiBase='' 前缀就是 /api，这里统一转到 oc 代理
+            return self._proxy(OC_ORIGIN, "/zen/go/v1" + p[4:], "GET")
         return super().do_GET()
 
     def do_POST(self):
@@ -215,6 +218,8 @@ class Handler(SimpleHTTPRequestHandler):
             return self._proxy(OC_ORIGIN, p[7:] or "/", "POST")
         if p.startswith("/serein") or p.startswith("/mcp"):
             return self._proxy_serein(p, "POST")
+        if p.startswith("/api/"):
+            return self._proxy(OC_ORIGIN, "/zen/go/v1" + p[4:], "POST")
         return self._json(404, {"ok": False, "error": "no route"})
 
     def do_PUT(self):
@@ -239,6 +244,8 @@ class Handler(SimpleHTTPRequestHandler):
             return self._json(200, {"ok": True})
         if p.startswith("/api/oc"):
             return self._proxy(OC_ORIGIN, p[7:] or "/", "DELETE")
+        if p.startswith("/api/"):
+            return self._proxy(OC_ORIGIN, "/zen/go/v1" + p[4:], "DELETE")
         return self._json(404, {"ok": False, "error": "no route"})
 
     # -- proxies
