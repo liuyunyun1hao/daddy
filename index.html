@@ -3384,6 +3384,7 @@ function paintBrainStats(){
   set('mClue', clue || '—');
   set('memDaysTop', '第 ' + days + ' 天');
   set('memEntryCount', live.length + ' 条 ›');
+  if (typeof paintSereinSync === 'function') paintSereinSync();
 }
 function clearBrain(){
   if (!confirm('清空这台设备上的记忆？对话记录不受影响。')) return;
