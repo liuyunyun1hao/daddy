@@ -2998,9 +2998,20 @@ async function saveMemManual(){
 
 /* ============ Serein 自动连接 ============ */
 let SEREIN_AUTOING = false;
+let SEREIN_SYNC_AT = 0;
 async function sereinAuto(){
   if (!cfg.sereinOn || SEREIN_AUTOING) return;
-  if (SEREIN_TOOLS && SEREIN_TOOLS.length) return;
+  if (SEREIN_TOOLS && SEREIN_TOOLS.length){
+    // 已连接：隔一会儿看看有没有积压，有就静默补推，不用人点
+    if (Date.now() - SEREIN_SYNC_AT > 300000 &&
+        typeof sereinPending === 'function' && sereinPending().length){
+      SEREIN_AUTOING = true;
+      try { await sereinSyncAll(false); SEREIN_SYNC_AT = Date.now(); }
+      catch (e) {}
+      finally { SEREIN_AUTOING = false; }
+    }
+    return;
+  }
   SEREIN_AUTOING = true;
   try {
     SEREIN_TOOLS = await withTimeout(sereinTools(), 12000);
@@ -3008,7 +3019,16 @@ async function sereinAuto(){
     const el = document.getElementById('sereinState');
     if (el) el.textContent = '已连接 · ' + SEREIN_TOOLS.length + ' 个工具';
     if (typeof paintFoldVals === 'function') paintFoldVals();
-    sereinPull(true);
+    // 连上就自动把还没写进 Serein 的条目推过去，不用手点
+    if (typeof sereinPending === 'function' && sereinPending().length){
+      sereinSyncAll(false).then(function(n){
+        SEREIN_SYNC_AT = Date.now();
+        if (n) toast('已自动写进 Serein · ' + n + ' 条');
+        sereinPull(true);
+      }, function(){ sereinPull(true); });
+    } else {
+      sereinPull(true);
+    }
   } catch (e) {
     const el = document.getElementById('sereinState');
     if (el) el.textContent = '未连接 · 自动重试';
