@@ -400,13 +400,19 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(data)
         return True
 
-    def proxy_api(self, p):
+    def proxy_api(self, p, q=""):
         if not PROXY_BASE:
             return False
-        url = PROXY_BASE.rstrip("/") + p[len("/api"):]
+        if p == "/api/proxy":
+            from urllib.parse import parse_qs
+            sub = (parse_qs(q).get("p") or ["/"])[0]
+            url = PROXY_BASE.rstrip("/") + sub
+        else:
+            url = PROXY_BASE.rstrip("/") + p[len("/api"):]
         n = int(self.headers.get("Content-Length") or 0)
         body = self.rfile.read(n) if n else None
         req = urllib.request.Request(url, data=body, method=self.command)
+        req.add_header("User-Agent", "Mozilla/5.0 (Linux; Android 14; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Mobile Safari/537.36")
         for h in ("Content-Type", "Authorization", "Accept", "x-opencode-session"):
             v = self.headers.get(h)
             if v:
@@ -453,6 +459,9 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         u = urlparse(self.path)
         p = u.path
+        if p.startswith("/api/"):
+            if self.proxy_api(p, u.query):
+                return
         if p == "/health":
             return self.send_json({"ok": True, "service": "latent-memory", "records": len(state()["records"])})
         if p == "/state":
@@ -478,7 +487,7 @@ class Handler(BaseHTTPRequestHandler):
         u = urlparse(self.path)
         p = u.path
         if p.startswith("/api/"):
-            if self.proxy_api(p):
+            if self.proxy_api(p, u.query):
                 return
         body = self.read_json()
         try:
