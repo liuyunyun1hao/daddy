@@ -28,4 +28,4 @@ echo "数据目录：$DATA"
 echo "按 Ctrl+C 停止。"
 exec python3 latent-server.py --host "$HOST" --port "$PORT" --data "$DATA" \
   --static "$(pwd)" \
-  --proxy "${DADDY_API:-https://opencode.ai/zen/go/v1}"
+  --proxy "${DADDY_API:-http://127.0.0.1:9355/zen/go/v1}"
