@@ -140,7 +140,7 @@ def log(*a):
 
 
 APP_UPSTREAM = os.environ.get('APP_UPSTREAM', 'https://liuyunyun1hao.github.io/daddy')
-APP_FILES = ['index.html', 'manifest.webmanifest', 'sw.js', 'icon-192.png', 'icon-512.png']
+APP_FILES = ['index.html', 'mem-local.js', 'mem-latent.js', 'manifest.webmanifest', 'sw.js', 'icon-192.png', 'icon-512.png']
 
 
 def _head_meta(name):

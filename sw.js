@@ -1,6 +1,6 @@
 /* Caeruleus PWA · 页面网络优先，静态资源缓存优先 */
-const CACHE = 'caeruleus-v1';
-const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
+const CACHE = 'caeruleus-v3';
+const ASSETS = ['./', './index.html', './mem-local.js', './mem-latent.js', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(ASSETS); }).then(function () { return self.skipWaiting(); }));

@@ -877,10 +877,9 @@ body.selecting .turn.on .bubble{outline:1px solid rgba(127,214,232,.4);outline-o
 }
 .think.open .tb{display:block}
 #screen-memory .mem-search{
-  display:none;align-items:center;gap:9px;margin:0 16px 12px;padding:10px 14px;
+  display:flex;align-items:center;gap:9px;margin:0 16px 12px;padding:10px 14px;
   border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);
 }
-#screen-memory .mem-search.on{display:flex}
 #screen-memory .mem-search svg{width:14px;height:14px;stroke:rgba(255,255,255,.4);fill:none;stroke-width:1.7;flex:none}
 #screen-memory .mem-search input{
   flex:1;font-size:13px;background:none;border:0;color:#eee;padding:1px 0;
@@ -1062,6 +1061,56 @@ body.selecting .toast{bottom:150px}
 @media (pointer:coarse){
   .field input, .field textarea, .sel{font-size:16px}
 }
+.mem-blank{padding:56px 22px;text-align:center}
+.mem-blank .t{font-family:var(--serif);font-size:18px;letter-spacing:.03em;color:var(--text)}
+.mem-blank .d{margin-top:12px;font-size:12.5px;line-height:2;color:var(--faint)}
+.mem-blank{padding:56px 22px;text-align:center}
+.mem-blank .t{font-family:var(--serif);font-size:18px;letter-spacing:.03em;color:var(--text)}
+.mem-blank .d{margin-top:12px;font-size:12.5px;line-height:2;color:var(--faint)}
+.mem-conn{display:flex;align-items:center;gap:8px;padding:2px 18px 10px;font-size:11.5px;color:var(--faint)}
+.mem-conn .dot{width:6px;height:6px;border-radius:50%;background:var(--ghost)}
+.mem-conn .dot.live{background:var(--live);box-shadow:0 0 8px rgba(123,216,143,.5)}
+.mem-conn-btn{margin-left:auto;background:none;border:1px solid var(--line);color:var(--dim);font-size:11px;padding:4px 10px;border-radius:9px;font-family:var(--sans)}
+.mem-tabs{display:flex;gap:6px;padding:0 18px 12px}
+.mem-tab{flex:1;background:none;border:1px solid var(--line);color:var(--faint);font-size:12px;padding:8px 0;border-radius:10px;font-family:var(--sans)}
+.mem-tab.on{color:var(--text);border-color:rgba(220,198,168,.45);background:rgba(220,198,168,.06)}
+.mem-search{display:flex;gap:8px;padding:0 18px 12px}
+.mem-search input{flex:1;background:rgba(255,255,255,.045);border:1px solid var(--line);border-radius:10px;color:var(--text);padding:9px 12px;font-size:13px;font-family:var(--sans);outline:none}
+.mem-search button{background:rgba(220,198,168,.12);border:1px solid rgba(220,198,168,.35);color:var(--accent);border-radius:10px;padding:0 14px;font-size:12px;font-family:var(--sans)}
+.mem-addbtn{display:block;width:calc(100% - 36px);margin:0 18px 14px;background:none;border:1px dashed rgba(220,198,168,.35);color:var(--accent);border-radius:12px;padding:11px;font-size:12.5px;font-family:var(--sans)}
+.mem-sec{padding:4px 18px 8px;font-size:11px;color:var(--faint);letter-spacing:.08em}
+.mem-card{margin:0 18px 10px;padding:13px 14px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.028)}
+.mem-card.dim{opacity:.55}
+.mem-card-top{display:flex;align-items:center;gap:8px;font-size:10.5px;color:var(--faint)}
+.mem-st{margin-left:auto;padding:2px 7px;border-radius:6px;font-size:10px}
+.mem-st.active{color:var(--accent);background:rgba(220,198,168,.08)}
+.mem-st.superseded{color:var(--dim);background:rgba(255,255,255,.05)}
+.mem-st.retracted{color:#c98a8a;background:rgba(201,138,138,.08)}
+.mem-score{color:var(--faint)}
+.mem-text{margin-top:8px;font-size:14px;line-height:1.75;color:var(--text)}
+.mem-cur{margin-top:6px;font-size:12.5px;line-height:1.7;color:var(--dim)}
+.mem-meta{margin-top:6px;font-size:10.5px;color:var(--faint)}
+.mem-chain{margin-right:10px}
+.mem-acts{display:flex;gap:8px;margin-top:10px}
+.mem-acts button{background:none;border:1px solid var(--line);color:var(--faint);font-size:10.5px;padding:4px 10px;border-radius:8px;font-family:var(--sans)}
+.mem-empty{padding:40px 22px;text-align:center;color:var(--faint);font-size:12.5px;line-height:1.9}
+.mem-empty b{display:block;color:var(--dim);font-weight:400;font-size:13.5px;margin-bottom:6px}
+.mem-persona{width:calc(100% - 36px);margin:0 18px 12px;min-height:300px;background:rgba(255,255,255,.035);border:1px solid var(--line);border-radius:14px;color:var(--text);padding:14px;font-size:13px;line-height:1.9;resize:vertical;font-family:var(--sans);outline:none}
+.mem-detail-body{padding:6px 24px calc(22px + env(safe-area-inset-bottom));max-height:68vh;overflow:auto}
+.mem-detail-acts{display:flex;gap:10px;margin-top:18px}
+.mem-detail-acts button{flex:1;padding:11px;border-radius:12px;border:1px solid var(--line);background:none;color:var(--dim);font-size:12.5px;font-family:var(--sans)}
+.mem-detail-acts button:last-child{color:var(--accent);border-color:rgba(220,198,168,.35)}
+.mem-detail-day{font-size:10.5px;color:var(--faint);letter-spacing:.06em}
+.mem-detail-text{margin-top:10px;font-size:14.5px;line-height:1.9;color:var(--text)}
+.mem-detail-cur{margin-top:10px;font-size:12.5px;line-height:1.8;color:var(--dim)}
+.mem-detail-chain{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
+.mem-chain-row{font-size:12px;line-height:1.8;color:var(--faint);margin-bottom:8px}
+.mem-sheet-t{font-size:15px;margin:4px 0 12px;color:var(--text)}
+.mem-sheet-area{width:100%;min-height:130px;background:rgba(255,255,255,.045);border:1px solid var(--line);border-radius:12px;color:var(--text);padding:12px;font-size:13.5px;line-height:1.8;font-family:var(--sans);outline:none;resize:none}
+.mem-sheet-input{width:100%;margin-top:10px;background:rgba(255,255,255,.045);border:1px solid var(--line);border-radius:12px;color:var(--text);padding:11px 12px;font-size:13px;font-family:var(--sans);outline:none}
+.mem-sheet-acts{display:flex;gap:10px;margin-top:14px}
+.mem-sheet-acts button{flex:1;padding:12px;border-radius:12px;border:1px solid var(--line);background:none;color:var(--dim);font-size:13px;font-family:var(--sans)}
+.mem-sheet-acts button.acc{background:rgba(220,198,168,.14);border-color:rgba(220,198,168,.4);color:var(--accent)}
 </style>
 </head>
 <body>
@@ -1258,97 +1307,49 @@ body.selecting .toast{bottom:150px}
     <section class="screen" id="screen-memory">
       <div class="scroll">
         <div class="mem-wrap">
-        <div class="mem-head">
-          <div class="mem-kicker">
-            <span class="num">[ 02 ]</span><span>Memory</span><span class="r" id="memDaysTop">第 91 天</span>
+          <div class="mem-head">
+            <div class="mem-kicker">
+              <span class="num">[ 02 ]</span><span>Memory</span><span class="r" id="memDaysTop">第 91 天</span>
+            </div>
+            <h1 class="mem-h1">记忆库</h1>
+            <div class="mem-sub" id="memSub">换窗口、换客户端，还是同一份记忆。</div>
           </div>
-          <h1 class="mem-h1">记忆库</h1>
-          <div class="mem-sub" id="memSub">Scene 按发生时间排列，保留它们原来的语气。</div>
-          <div class="mem-counts" id="memCounts"></div>
-        </div>
 
-        <div class="mem-seg" id="memSeg">
-          <button data-t="scene" class="on" onclick="setMemType('scene')">场景</button>
-          <button data-t="event" onclick="setMemType('event')">事件</button>
-          <button data-t="pref" onclick="setMemType('pref')">喜好</button>
-        </div>
+          <div class="mem-conn">
+            <span class="dot" id="memConnDot"></span>
+            <span id="memConnTxt">本地模式</span>
+            <button class="mem-conn-btn" onclick="memConnOpen()">连接</button>
+          </div>
 
-        <label class="mem-search2" id="memSearchBar">
-          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5L21 21"/></svg>
-          <input id="memSearch" placeholder="搜索 Scene…" autocomplete="off" oninput="memQuery=this.value.trim();document.getElementById('memSearchBar').classList.toggle('has',!!memQuery);renderBrainList()">
-          <button type="button" onclick="memQuery='';document.getElementById('memSearch').value='';document.getElementById('memSearchBar').classList.remove('has');renderBrainList()">×</button>
-        </label>
+          <div class="mem-tabs">
+            <button class="mem-tab on" data-tab="memory" onclick="memTab('memory')">记忆</button>
+            <button class="mem-tab" data-tab="unresolved" onclick="memTab('unresolved')">未解决</button>
+            <button class="mem-tab" data-tab="threads" onclick="memTab('threads')">线索</button>
+            <button class="mem-tab" data-tab="persona" onclick="memTab('persona')">人格</button>
+          </div>
 
-        <div class="mem-chips" id="memChips"></div>
-        <button class="mem-addbtn" onclick="openMemForm()" id="memAddBtn">+ 记一条</button>
-        <div class="mem-stream" id="tl"></div>
-        </div>
+          <div class="mem-pane" id="pane-memory">
+            <div class="mem-search">
+              <input id="memQ" placeholder="查一个人、一个地方、一件事" onkeydown="if(event.key==='Enter')memSearch()">
+              <button onclick="memSearch()">查</button>
+            </div>
+            <button class="mem-addbtn" onclick="memAddOpen()">+ 记一件事</button>
+            <div id="memList"></div>
+          </div>
 
-        <div class="group-label folded" onclick="foldSec(this)"><span class="lt">记忆设置</span><span class="fv" id="foldMemV">3 项开启</span><svg class="fa" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></div>
-        <div class="group">
-          <div class="row">
-            <span class="k">Serein · 记忆服务</span>
-            <span class="switch on" id="sereinOn" onclick="toggleMem('sereinOn',this)"></span>
+          <div class="mem-pane" id="pane-unresolved" hidden>
+            <div id="memUnresolved"></div>
           </div>
-          <div class="field">
-            <label>服务地址 · 留空走同源</label>
-            <input id="sereinBase" placeholder="http://127.0.0.1:18080" spellcheck="false" autocomplete="off">
+
+          <div class="mem-pane" id="pane-threads" hidden>
+            <div id="memThreads"></div>
           </div>
-          <div class="row" onclick="testSerein()">
-            <span class="k">测试连接</span>
-            <span class="v" id="sereinState">未连接 ›</span>
-          </div>
-          <div class="row">
-            <span class="k">允许他写入新场景</span>
-            <span class="switch on" id="sereinWrite" onclick="toggleMem('sereinWrite',this)"></span>
-          </div>
-          <div class="row" onclick="sereinSyncAll(true)">
-            <span class="k">同步到 Serein</span>
-            <span class="v" id="sereinSyncN">检查中 ›</span>
-          </div>
-          <div class="row" onclick="sereinPull()">
-            <span class="k">从 Serein 拉取记忆</span>
-            <span class="v" id="sereinPullN">读取 ›</span>
-          </div>
-          <div class="row">
-            <span class="k">本机记忆 · 断线兜底</span>
-            <span class="switch on" id="brainOn" onclick="toggleMem('brainOn',this)"></span>
-          </div>
-          <div class="row">
-            <span class="k">工具调用 · 他自己查与记</span>
-            <span class="switch on" id="toolsOn" onclick="toggleMem('toolsOn',this)"></span>
-          </div>
-          <div class="row">
-            <span class="k">滚动摘要 · 每 20 轮</span>
-            <span class="switch on" id="summaryOn" onclick="toggleSummary(this)"></span>
-          </div>
-          <div class="row" onclick="clearBrain()">
-            <span class="k">清空本机记忆</span>
-            <span class="v">不影响对话 ›</span>
-          </div>
-          <div class="row" onclick="brainExport()">
-            <span class="k">导出记忆</span>
-            <span class="v">JSON ›</span>
-          </div>
-          <div class="row" onclick="document.getElementById('importMemFile').click()">
-            <span class="k">导入记忆</span>
-            <span class="v">选择文件 ›</span>
+
+          <div class="mem-pane" id="pane-persona" hidden>
+            <textarea id="memPersona" class="mem-persona" placeholder="人格文件：你是谁、相处的原则、说到过去要先查记忆。"></textarea>
+            <button class="mem-addbtn" onclick="memSavePersona()">保存人格</button>
           </div>
         </div>
-      </div>
-
-      <div class="mem-detail" id="memDetail">
-        <div class="md-head">
-          <button class="back" onclick="closeMemDetail()" aria-label="返回">
-            <svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>
-          </button>
-          <div class="kind" id="mdKind">Scene · 场景</div>
-          <button class="fav" id="mdFav" onclick="memToggleFav()" aria-label="舍不得丢">
-            <svg viewBox="0 0 24 24"><path d="M12 4.6l2.3 4.7 5.2.8-3.8 3.7.9 5.2-4.6-2.4-4.6 2.4.9-5.2L4.5 10l5.2-.8z"/></svg>
-          </button>
-        </div>
-        <div class="md-body" id="mdBody"></div>
-        <div class="md-acts" id="mdActs"></div>
       </div>
     </section>
 
@@ -1626,17 +1627,21 @@ body.selecting .toast{bottom:150px}
     </div>
   </div>
 
-  <div class="sheet-mask" id="memSheetMask" onclick="closeMemForm()"></div>
-  <div class="sheet" id="memSheet" style="padding-bottom:calc(18px + env(safe-area-inset-bottom))">
+  <div class="sheet-mask" id="memAddMask" onclick="memAddClose()"></div>
+  <div class="sheet" id="memAddSheet" style="padding-bottom:calc(18px + env(safe-area-inset-bottom))">
     <div class="handle"></div>
     <div style="padding:2px 22px 0">
-      <div style="font-size:15px;margin-bottom:6px">记一条</div>
-      <div class="hint" style="margin-bottom:12px">先写进 Serein，成功后才出现在列表里</div>
-      <input id="mfTitle" class="mf-input" placeholder="标题（可空）" autocomplete="off">
-      <textarea id="mfBody" class="mf-area" placeholder="这一刻发生了什么…"></textarea>
-      <input id="mfCues" class="mf-input" placeholder="线索，用逗号分隔（可空）" autocomplete="off">
-      <div class="mf-acts"><button class="ghost" onclick="closeMemForm()">取消</button><button class="acc" onclick="saveMemManual()">写进 Serein</button></div>
+      <div class="mem-sheet-t">记一件事</div>
+      <textarea id="maText" class="mem-sheet-area" placeholder="发生了什么…"></textarea>
+      <input id="maState" class="mem-sheet-input" placeholder="现在是什么状态（可空）" autocomplete="off">
+      <div class="mem-sheet-acts"><button onclick="memAddClose()">取消</button><button class="acc" onclick="memAddSave()">写入</button></div>
     </div>
+  </div>
+
+  <div class="sheet-mask" id="memDetailMask" onclick="memDetailClose()"></div>
+  <div class="sheet" id="memDetailSheet" style="padding-bottom:calc(18px + env(safe-area-inset-bottom))">
+    <div class="handle"></div>
+    <div class="mem-detail-body" id="memDetailBody"></div>
   </div>
 
   <div class="toast" id="toast"></div>
@@ -1681,6 +1686,8 @@ body.selecting .toast{bottom:150px}
   </div>
 </div>
 
+<script src="mem-local.js"></script>
+<script src="mem-latent.js"></script>
 <script>
 window.addEventListener('error', e => { document.title = 'ERR: ' + e.message + ' @' + (e.lineno||''); });
 /* ================= state ================= */
@@ -1715,36 +1722,6 @@ function storePut(name, obj, delay){
 function storeDel(name){
   try { fetch('/store/' + name, { method: 'DELETE' }).catch(function(){}); } catch (e) {}
 }
-// 多设备合并：按 id 去重（同一 id 取 ts 更新的那份），正文相同的只留一条。
-// 这样手机/电脑/不同浏览器各自往里记，最后都能汇成同一份。
-function brainMergeLists(lists){
-  const byId = {}, byText = {}, out = [];
-  let seq = 0;
-  lists.forEach(function(list){
-    (list || []).forEach(function(x){
-      if (!x || !x.id) return;
-      const n = parseInt(String(x.id).replace(/^m/, ''), 10);
-      if (n && n < 1000000) seq = Math.max(seq, n);
-      const t = String(x.text || '').replace(/\s+/g, ' ').trim();
-      const prev = byId[x.id];
-      if (prev){
-        if ((x.ts || 0) >= (prev.ts || 0)) Object.assign(prev, x);
-        return;
-      }
-      if (t && byText[t]){
-        const keep = byText[t];
-        if ((x.ts || 0) >= (keep.ts || 0)) Object.assign(keep, x);
-        return;
-      }
-      const copy = Object.assign({}, x);
-      byId[copy.id] = copy;
-      if (t) byText[t] = copy;
-      out.push(copy);
-    });
-  });
-  return { items: out, seq: seq };
-}
-
 async function syncFromStore(){
   const sChat = await storeGet('chat');
   if (sChat && Object.prototype.toString.call(sChat.msgs) === '[object Array]' && sChat.msgs.length){
@@ -1778,21 +1755,25 @@ async function syncFromStore(){
     }
   }
   const sBrain = await storeGet('brain');
-  const localB = brainLoad();
-  const srvItems = (sBrain && Object.prototype.toString.call(sBrain.items) === '[object Array]') ? sBrain.items : [];
-  const srvAt = (sBrain && sBrain.updatedAt) || 0;
-  if (srvItems.length || localB.items.length){
-    const merged = brainMergeLists([srvItems, localB.items]);
-    const changed = merged.items.length !== localB.items.length ||
-                    merged.items.length !== srvItems.length ||
-                    srvAt > BRAIN_AT ||
-                    (srvItems.length === 0 && localB.items.length > 0);
-    if (changed){
-      BRAIN = { v:1, seq: Math.max(merged.seq, localB.seq || 0), items: merged.items.slice(-400) };
-      BRAIN_AT = Date.now();
-      try { localStorage.setItem(BRAIN_KEY, JSON.stringify({ v:1, seq: BRAIN.seq, items: BRAIN.items, updatedAt: BRAIN_AT })); } catch (e) {}
+  if (sBrain && Object.prototype.toString.call(sBrain.items) === '[object Array]' && sBrain.items.length){
+    const local = brainLoad();
+    const srvAt = sBrain.updatedAt || 0;
+    if (!local.items.length || srvAt > BRAIN_AT){
+      const byId = {};
+      (local.items || []).forEach(function(x){ byId[x.id] = x; });
+      sBrain.items.forEach(function(x){
+        const cur = byId[x.id];
+        if (!cur) { byId[x.id] = x; return; }
+        if (!cur.vec && x.vec) cur.vec = x.vec;
+      });
+      const items = Object.keys(byId).map(function(k){ return byId[k]; })
+        .sort(function(a, c){ return (a.ts || 0) - (c.ts || 0); });
+      const strip = function(x){ if (!x.vec) return x; const c = Object.assign({}, x); delete c.vec; return c; };
+      BRAIN = { v:1, seq: Math.max(sBrain.seq || 0, local.seq || 0), items: items };
+      BRAIN_AT = srvAt;
+      try { localStorage.setItem(BRAIN_KEY, JSON.stringify({ v:1, seq: BRAIN.seq, items: items.slice(-600).map(strip), updatedAt: srvAt })); } catch (e) {}
+      if (window.memOnSave) memOnSave(BRAIN);
       if (typeof renderBrainList === 'function') renderBrainList();
-      storePut('brain', { v:1, seq: BRAIN.seq, items: BRAIN.items, updatedAt: BRAIN_AT }, 300);
     }
   }
   paintStoreState();
@@ -1846,13 +1827,13 @@ function boot(){
   state.chat.name = cfg.persona.name || state.chat.name;
   renderChat();
   syncFromStore();
+  if (window.memInitUI) memInitUI();
+  if (window.memBoot) memBoot();
+  if (window.memLatentBoot) memLatentBoot();
   initApi();
   const target = new URLSearchParams(location.search).get('s');
   if (typeof renderStagePane === 'function') renderStagePane();
-  if (typeof sereinAuto === 'function'){
-    setTimeout(sereinAuto, 900);
-    setInterval(function(){ if (document.visibilityState === 'visible') sereinAuto(); }, 90000);
-  }
+  /* Serein 自动同步已停用：记忆页重做中，先不连外部记忆服务。 */
   if (target) switchTab(target);
   if (location.hash === '#persona') openPersona();
 }
@@ -2469,6 +2450,7 @@ const PERSONA_DEF = {
 cfg.persona = Object.assign({}, PERSONA_DEF, cfg.persona || {});
 // 外部记忆服务（心潮 / Ombre Brain）已从界面移除：不再读取、不再连接。
 cfg.memXc = false; cfg.memOb = false; cfg.memEvent = false; cfg.memBase = '';
+cfg.sereinOn = false; cfg.sereinWrite = false;
 
 function saveCfg(){
   try { localStorage.setItem(CFG_STORE, JSON.stringify(cfg)); } catch (e) {}
@@ -2986,16 +2968,19 @@ function mcpText(result){
 var SEREIN_TOOLS = null;
 /* ============ 手动写一条（直通 Serein） ============ */
 function openMemForm(){
+  if (!document.getElementById('memSheet')) return;
   document.getElementById('memSheetMask').classList.add('on');
   document.getElementById('memSheet').classList.add('on');
   ['mfTitle','mfBody','mfCues'].forEach(function(id){ const el=document.getElementById(id); if (el) el.value=''; });
   setTimeout(function(){ const b=document.getElementById('mfBody'); if (b) b.focus(); }, 120);
 }
 function closeMemForm(){
+  if (!document.getElementById('memSheet')) return;
   document.getElementById('memSheetMask').classList.remove('on');
   document.getElementById('memSheet').classList.remove('on');
 }
 async function saveMemManual(){
+  if (!document.getElementById('memSheet')) return;
   const title = (document.getElementById('mfTitle').value || '').trim();
   const body = (document.getElementById('mfBody').value || '').trim();
   const cuesRaw = (document.getElementById('mfCues').value || '').trim();
@@ -3035,20 +3020,9 @@ async function saveMemManual(){
 
 /* ============ Serein 自动连接 ============ */
 let SEREIN_AUTOING = false;
-let SEREIN_SYNC_AT = 0;
 async function sereinAuto(){
   if (!cfg.sereinOn || SEREIN_AUTOING) return;
-  if (SEREIN_TOOLS && SEREIN_TOOLS.length){
-    // 已连接：隔一会儿看看有没有积压，有就静默补推，不用人点
-    if (Date.now() - SEREIN_SYNC_AT > 300000 &&
-        typeof sereinPending === 'function' && sereinPending().length){
-      SEREIN_AUTOING = true;
-      try { await sereinSyncAll(false); SEREIN_SYNC_AT = Date.now(); }
-      catch (e) {}
-      finally { SEREIN_AUTOING = false; }
-    }
-    return;
-  }
+  if (SEREIN_TOOLS && SEREIN_TOOLS.length) return;
   SEREIN_AUTOING = true;
   try {
     SEREIN_TOOLS = await withTimeout(sereinTools(), 12000);
@@ -3056,16 +3030,7 @@ async function sereinAuto(){
     const el = document.getElementById('sereinState');
     if (el) el.textContent = '已连接 · ' + SEREIN_TOOLS.length + ' 个工具';
     if (typeof paintFoldVals === 'function') paintFoldVals();
-    // 连上就自动把还没写进 Serein 的条目推过去，不用手点
-    if (typeof sereinPending === 'function' && sereinPending().length){
-      sereinSyncAll(false).then(function(n){
-        SEREIN_SYNC_AT = Date.now();
-        if (n) toast('已自动写进 Serein · ' + n + ' 条');
-        sereinPull(true);
-      }, function(){ sereinPull(true); });
-    } else {
-      sereinPull(true);
-    }
+    sereinPull(true);
   } catch (e) {
     const el = document.getElementById('sereinState');
     if (el) el.textContent = '未连接 · 自动重试';
@@ -3170,18 +3135,10 @@ function sereinCuesOf(x){
 }
 function sereinPending(){
   const sent = sereinSentLoad();
-  const rest = [], byDay = {};
-  brainLoad().items.forEach(function(x){
-    if (x.revoked || x.supersededBy) return;
-    if (sent.indexOf(sereinKeyOf(x)) >= 0) return;
-    if (x.kind !== 'clue'){ rest.push(x); return; }
-    if (x.done){ rest.push(x); return; }   // 已沉底的历史断点：照原样归档
-    // 还在进行中的线索按天只取最新一条，避免每轮对话都往 Serein 堆一条
-    const d = new Date(x.ts || 0);
-    const k = d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
-    if (!byDay[k] || (x.ts || 0) > (byDay[k].ts || 0)) byDay[k] = x;
+  return brainLoad().items.filter(function(x){
+    if (x.kind === 'clue') return false;            // 线索只留在本机，避免每条对话都往 Serein 堆一条
+    return !x.done && !x.revoked && !x.supersededBy && sent.indexOf(sereinKeyOf(x)) < 0;
   });
-  return rest.concat(Object.keys(byDay).map(function(k){ return byDay[k]; }));
 }
 function paintSereinSync(){
   const el = document.getElementById('sereinSyncN');
@@ -3197,8 +3154,7 @@ async function sereinWriteItem(x){
   const d = new Date(x.ts || Date.now());
   const day = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
   try {
-    const body = String(x.text || '').replace(/\s+/g, ' ').trim()
-      .replace(/^上次停在这里[：:]\s*/, '');
+    const body = String(x.text || '').replace(/\s+/g, ' ').trim();
     // 写入前查重：Serein 里已有同一段内容就不再写一次
     if (body.length > 12 && !(x.__skipDup)){
       try {
@@ -3213,7 +3169,7 @@ async function sereinWriteItem(x){
     const args = {
       content: body,
       cues: sereinCuesOf(x),
-      title: x.kind === 'clue' ? ('对话断点 · ' + day.slice(5)) : (x.title || shortTitle(body)),
+      title: x.title || shortTitle(body),
       date: day
     };
     if (x.pin) args.favorite = true;   // 只有真的置顶才传，Serein 的 favorite 功能可能被禁用
@@ -3409,9 +3365,16 @@ let BRAIN_AT = 0;
 function brainSave(){
   const b = brainLoad();
   BRAIN_AT = Date.now();
-  const payload = { v:1, seq:b.seq, items:b.items.slice(-400), updatedAt: BRAIN_AT };
-  try { localStorage.setItem(BRAIN_KEY, JSON.stringify(payload)); } catch (e) {}
-  storePut('brain', payload, 700);
+  const strip = function(x){
+    if (!x.vec) return x;
+    const c = Object.assign({}, x); delete c.vec; return c;
+  };
+  /* IndexedDB 存全量；localStorage 只留最近 600 条做冷启动（避免 5MB 爆） */
+  const cache = b.items.slice(-600).map(strip);
+  const upstream = b.items.slice(-1200).map(strip);
+  try { localStorage.setItem(BRAIN_KEY, JSON.stringify({ v:1, seq:b.seq, items: cache, updatedAt: BRAIN_AT })); } catch (e) {}
+  storePut('brain', { v:1, seq:b.seq, items: upstream, updatedAt: BRAIN_AT }, 700);
+  if (window.memOnSave) memOnSave(b);
 }
 function cjkTokens(s){
   const out = [];
@@ -3438,9 +3401,7 @@ function brainAdd(kind, text, tags, weight, topic){
       if (x.topic === tp && !x.done && !x.revoked && !x.supersededBy){ prev = x; break; }
     }
   }
-  b.seq = (b.seq || 0) + 1;
-  // 时间戳 + 随机后缀：多设备各自新增时 id 不会撞车
-  const it = { id:'m' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), kind: BRAIN_LABEL[kind] ? kind : 'fact', text:t, tags: tags || [],
+  const it = { id:'m' + (++b.seq), kind: BRAIN_LABEL[kind] ? kind : 'fact', text:t, tags: tags || [],
     topic: tp, ts: Date.now(), w: Number(weight) || 1, hits:0, done:false, revoked:false, tk: cjkTokens(t) };
   if (prev){ it.supersedes = prev.id; it.supersededFrom = prev.text; prev.supersededBy = it.id; prev.done = true; }
   b.items.push(it);
@@ -3457,7 +3418,17 @@ function brainSearch(q, k){
   if (!qt.length) return brainRecent(k);
   const N = items.length;
   let dlSum = 0;
-  items.forEach(function(x){ dlSum += (x.tk || []).length || 1; });
+  const df = {};
+  qt.forEach(function(t){ df[t] = 0; });
+  items.forEach(function(x){
+    const toks = x.tk || [];
+    dlSum += toks.length || 1;
+    const seen = {};
+    for (let i = 0; i < toks.length; i++){
+      const t = toks[i];
+      if (df[t] !== undefined && !seen[t]){ seen[t] = 1; df[t]++; }
+    }
+  });
   const avgdl = dlSum / N || 1;
   const now = Date.now();
   const scored = [];
@@ -3469,9 +3440,9 @@ function brainSearch(q, k){
       let f = 0;
       for (let i = 0; i < toks.length; i++) if (toks[i] === t) f++;
       if (!f) return;
-      let df = 0;
-      items.forEach(function(y){ if ((y.tk || []).indexOf(t) >= 0) df++; });
-      const idf = Math.log(1 + (N - df + 0.5) / (df + 0.5));
+      const d = df[t] || 0;
+      if (!d) return;
+      const idf = Math.log(1 + (N - d + 0.5) / (d + 0.5));
       sc += idf * (f * 2.2) / (f + 1.2 * (1 - 0.75 + 0.75 * dl / avgdl));
     });
     if (sc <= 0) return;
@@ -3527,7 +3498,7 @@ function brainClueGet(){
   return c ? c.text : '';
 }
 function brainExport(){
-  const data = JSON.stringify({ app:'Caeruleus', v:1, kind:'memory', exported:new Date().toISOString(), items: brainLoad().items }, null, 2);
+  const data = JSON.stringify({ app:'Caeruleus', v:1, kind:'memory', exported:new Date().toISOString(), items: brainLoad().items.map(function(x){ const c = Object.assign({}, x); delete c.vec; return c; }) }, null, 2);
   const blob = new Blob([data], { type:'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -3597,9 +3568,18 @@ function needsRecall(t){
 }
 
 async function recallMemories(userText){
-  if (!cfg.brainOn && !cfg.memXc && !cfg.memOb) return '';
+  if (!cfg.brainOn && !cfg.memXc && !cfg.memOb && !window.memLatentRecall) return '';
   const parts = [];
-  if (cfg.brainOn){ const bb = brainBlock(userText); if (bb) parts.push(bb); }
+  if (window.memLatentRecall){
+    try {
+      const lb = window.memLatentRecall(userText, cfg.brainUse || 4);
+      if (lb) parts.push('【显影 · 跨窗口记忆】\n' + lb);
+    } catch (e) {}
+  }
+  if (cfg.brainOn){
+    const bb = (window.memRecallBlock ? await window.memRecallBlock(userText, cfg.brainUse || 6, 1600) : brainBlock(userText));
+    if (bb) parts.push(bb);
+  }
   if (cfg.memOb){ const rb = recentBlock(); if (rb) parts.push(rb); }
   if (cfg.memXc){
     try {
@@ -3797,7 +3777,7 @@ const MEM_TYPE = {
   event:{ sub:'事件只记录经过，不替你判断它意味着什么。', ph:'搜索事件…' },
   pref: { sub:'喜好是他对你的判断，短小，具体，带着来源。', ph:'搜索喜好…' }
 };
-let memType = 'scene', memChip = 'all', memQuery = '', memCur = null;
+let memType = 'scene', memChip = 'all', memQuery = '', memCur = null, memLimit = 80;
 
 function memKindOf(x){
   if (x.kind === 'pref') return 'pref';
@@ -3836,7 +3816,7 @@ function memWeekday(ts){ return ['周日','周一','周二','周三','周四','�
 function memCues(x){ return (x.tags || []).filter(Boolean).slice(0, 8); }
 
 function setMemType(t){
-  memType = t; memChip = 'all'; memQuery = '';
+  memType = t; memChip = 'all'; memLimit = 80; memQuery = '';
   const i = document.getElementById('memSearch'); if (i) i.value = '';
   const b = document.getElementById('memSearchBar'); if (b) b.classList.remove('has');
   renderBrainList();
@@ -3903,7 +3883,7 @@ function renderBrainList(){
     paintBrainStats();
     return;
   }
-  tl.innerHTML = list.slice(0, 80).map(function(x){
+  tl.innerHTML = list.slice(0, memLimit).map(function(x){
     const kind = memKindOf(x);
     const sunk = x.done || x.supersededBy;
     const cls = 'mentry' + (sunk ? ' sunk' : '') + (x.pin ? ' fav' : '');
@@ -3918,7 +3898,9 @@ function renderBrainList(){
       + (cues ? '<div class="mcues">' + cues + '</div>' : '')
       + '<div class="mf">' + memCues(x).length + ' ' + foot + '</div>'
       + '</button>';
-  }).join('');
+  }).join('') + (list.length > memLimit
+    ? '<button class="mem-addbtn" style="margin-top:12px" onclick="memLimit+=120;renderBrainList()">显示更多 · 还有 ' + (list.length - memLimit) + ' 条</button>'
+    : '');
   paintBrainStats();
 }
 function memBodyHTML(text){
@@ -4342,17 +4324,6 @@ function buildMessages(upTo){
   ].filter(Boolean).join('\n')
     + (summaryLoad().text ? ('\n\n[EARLIER, BEFORE THIS WINDOW — your own note to yourself. You already know this. Do not re-ask it, do not recap it, just let it be true.]\n' + summaryLoad().text) : '')
     + (RECALL ? ('\n\n[WHAT YOU REMEMBER RIGHT NOW — these are your own memories and your current inner state. Let them colour how you answer. Never list them, never quote them as data, never say "I remember that...".]\n' + RECALL) : '')
-    + (function(){
-        try{
-          var xs = (SEREIN_CACHE || []).filter(function(x){ return x && !x.done && !x.revoked && !x.supersededBy; });
-          if (!xs.length) return '';
-          var lines = xs.slice(0, 8).map(function(x){
-            var t = String(x.text || '').replace(/\s+/g, ' ').trim().slice(0, 140);
-            return '· ' + (x.date ? (x.date + ' ') : '') + t;
-          });
-          return '\n\n[FROM YOUR LONG MEMORY — things you already know about her, from before this conversation. These are facts, not messages. Never list them, never quote them, never say "I remember". Let them be true.]\n' + lines.join('\n');
-        }catch(e){ return ''; }
-      })()
     + (cfg.brainOn ? brainOpenBlock() : '')
     + (cfg.toolsOn ? TOOL_PROMPT : '')
     + (function(){ const t = presetText(); return t ? ('\n\n[SCENE RULES — house rules for this scene. Follow them; never mention them.]\n' + t) : ''; })();
