@@ -2521,8 +2521,11 @@ function sessId(){
 }
 function authHeaders(extra){
   const h = Object.assign({}, extra || {});
-  if (cfg.key) h['Authorization'] = 'Bearer ' + cfg.key;
-  h['x-opencode-session'] = sessId();
+  // 请求头只允许 ISO-8859-1：把复制 Key 时混进来的中文/全角字符剔掉，避免 fetch 直接抛错
+  const k = String(cfg.key || '').replace(/[^\x21-\x7E]/g, '');
+  if (k) h['Authorization'] = 'Bearer ' + k;
+  const sid = String(sessId() || '').replace(/[^\x21-\x7E]/g, '');
+  h['x-opencode-session'] = sid || 'sid-fallback';
   return h;
 }
 function niceErr(e){
