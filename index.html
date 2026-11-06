@@ -202,6 +202,8 @@ input,textarea{font-family:inherit;color:inherit;background:none;border:0;outlin
 }
 .avatar.me{background:radial-gradient(70% 70% at 30% 25%,#e8d7bd,#a8896a 60%,#5d4736)}
 .avatar.him{background:radial-gradient(70% 70% at 30% 25%,#9fd4e0,#3d7d92 55%,#132a35)}
+.avatar.has{background-size:cover;background-position:center}
+.avatar.has::after{background:none}
 .avatar::after{
   content:"";position:absolute;inset:0;border-radius:50%;
   background:radial-gradient(60% 40% at 70% 80%, rgba(255,255,255,.16), transparent 60%);
@@ -294,6 +296,11 @@ input,textarea{font-family:inherit;color:inherit;background:none;border:0;outlin
   font-family:var(--serif);font-size:11px;color:rgba(255,255,255,.26);letter-spacing:.12em}
 .daydiv::before,.daydiv::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.07)}
 .turn{display:flex;flex-direction:column;gap:7px;opacity:1;animation:rise .5s cubic-bezier(.2,.7,.3,1);position:relative}
+.turn.ai{padding-left:38px}
+.turn.user{padding-right:38px}
+.mav{position:absolute;top:1px;left:0;width:28px;height:28px;border-radius:50%;background:radial-gradient(70% 70% at 30% 25%,#9fd4e0,#3d7d92 55%,#132a35);border:1px solid rgba(255,255,255,.14);background-size:cover;background-position:center}
+.mav.user{left:auto;right:0;background:radial-gradient(70% 70% at 30% 25%,#e8d7bd,#a8896a 60%,#5d4736)}
+.mav:empty::after{content:'';position:absolute;inset:0;border-radius:50%;background:radial-gradient(60% 40% at 70% 80%,rgba(255,255,255,.16),transparent 60%)}
 .turn.user .acts{justify-content:flex-end}
 .selbar{
   position:absolute;left:14px;right:14px;bottom:78px;z-index:70;display:none;
@@ -318,6 +325,19 @@ body.selecting .turn.on::after{
   border-left:1.8px solid #0b1014;border-bottom:1.8px solid #0b1014;transform:rotate(-45deg);
 }
 body.selecting .turn.on .bubble{outline:1px solid rgba(127,214,232,.4);outline-offset:2px}
+.watch-bar{display:flex;align-items:center;gap:8px;margin:2px 16px 6px;padding:8px 12px;border-radius:14px;background:rgba(127,214,232,.07);border:1px solid rgba(127,214,232,.14);font-size:12px;color:rgba(190,235,244,.78)}
+.watch-bar .wb-ic{color:#7fd6e8;font-size:10px}
+.watch-bar #watchBarText{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chat-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;pointer-events:none;padding-bottom:8%}
+.chat-empty .ce-t{font-family:var(--serif);font-size:15px;color:rgba(255,255,255,.55);letter-spacing:.04em}
+.chat-empty .ce-s{font-size:12px;color:rgba(255,255,255,.28)}
+.watch-card{padding:13px 16px;margin:0 16px 10px;border-radius:16px;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.07)}
+.watch-card .wc-top{display:flex;align-items:center;justify-content:space-between;font-size:10px;letter-spacing:.14em;color:rgba(255,255,255,.35);margin-bottom:7px}
+.watch-card .wc-c{font-family:var(--serif);font-size:13.5px;line-height:1.75;color:rgba(255,255,255,.82)}
+.watch-card .wc-m{margin-top:7px;font-size:11.5px;line-height:1.6;color:rgba(160,205,215,.62)}
+.av-field{display:flex;align-items:center;justify-content:space-between}
+.av-pick{width:56px;height:56px;border-radius:50%;border:1px dashed rgba(255,255,255,.22);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.35);background-size:cover;background-position:center;font-size:20px}
+.av-pick.has{border-style:solid;border-color:rgba(255,255,255,.2)}
 .editmask{
   position:absolute;inset:0;z-index:95;background:rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .25s;
 }
@@ -940,6 +960,7 @@ body.selecting .toast{bottom:150px}
 .panel-head .save{font-size:13px;color:var(--accent);padding:7px 11px;border-radius:10px;letter-spacing:.02em}
 .panel-head .save:active{background:rgba(220,198,168,.1)}
 .panel .scroll{flex:1;min-height:0;overflow-y:auto;padding:0 14px 46px}
+#panel-stage .scroll{padding-top:20px}
 .panel .scroll::-webkit-scrollbar{width:0}
 
 .hero{display:flex;align-items:center;gap:14px;padding:8px 2px 16px}
@@ -1269,13 +1290,13 @@ body.selecting .toast{bottom:150px}
     <section class="screen active" id="screen-home">
       <div class="scroll">
         <div class="home-top">
-          <div class="avatar me"></div>
+          <div class="avatar me" onclick="chooseAvatar('user')" title="换你的头像"></div>
           <div class="days">
             <div class="days-label">DAYS</div>
             <div class="days-num" id="daysNum">85</div>
             <div class="days-since">Since 2026.08.04</div>
           </div>
-          <div class="avatar him"></div>
+          <div class="avatar him" onclick="chooseAvatar('daddy')" title="换他的头像"></div>
         </div>
 
         <div class="greet">晚上好。<span class="dim">他一直在。</span></div>
@@ -1358,6 +1379,10 @@ body.selecting .toast{bottom:150px}
       </div>
 
       <div class="msgs" id="msgs"></div>
+
+      <div class="watch-bar" id="watchBar" style="display:none" onclick="openWatchPanel()">
+        <span class="wb-ic">◉</span><span id="watchBarText">让 Daddy 看看这场戏</span><span class="go">›</span>
+      </div>
 
       <div class="ctxbar" id="ctxBar">上下文 12k tok</div>
       <div class="emoji-bar" id="emojiBar"></div>
@@ -1605,9 +1630,13 @@ body.selecting .toast{bottom:150px}
             <span class="k">人设 · 称呼 · 音色</span>
             <span class="v">Daddy ›</span>
           </div>
-          <div class="row">
-            <span class="k">主动找你</span>
-            <span class="v">事件驱动 · 3 次/天</span>
+          <div class="row" onclick="chooseAvatar('user')">
+            <span class="k">你的头像</span>
+            <span class="v" id="avUserState">点一下更换 ›</span>
+          </div>
+          <div class="row" onclick="chooseAvatar('daddy')">
+            <span class="k">他的头像</span>
+            <span class="v" id="avDaddyState">点一下更换 ›</span>
           </div>
         </div>
 
@@ -1719,8 +1748,8 @@ body.selecting .toast{bottom:150px}
       <div class="group-label">剧场</div>
       <div class="group">
         <div class="row">
-          <span class="k">允许他读取剧场聊天</span>
-          <span class="switch on" onclick="this.classList.toggle('on')"></span>
+          <span class="k">允许他旁观剧场</span>
+          <span class="switch on" id="watchSwitch" onclick="toggleWatchOn(this)"></span>
         </div>
         <div class="row">
           <span class="k">在剧场里出现的方式</span>
@@ -1836,6 +1865,17 @@ body.selecting .toast{bottom:150px}
     </div>
   </div>
 
+  <div class="panel" id="panel-watch">
+    <div class="panel-head">
+      <button class="icon-btn" onclick="closeWatchPanel()">
+        <svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>
+      </button>
+      <div class="ttl">旁观<small>WATCHER</small></div>
+      <button class="save" onclick="runWatch()">让他看看</button>
+    </div>
+    <div class="scroll" id="watchList"></div>
+  </div>
+
   <div class="panel" id="panel-stage">
     <div class="panel-head">
       <button class="icon-btn" onclick="closeStageForm()">
@@ -1847,12 +1887,20 @@ body.selecting .toast{bottom:150px}
     <div class="scroll">
       <div class="group-label">他是谁</div>
       <div class="group">
+        <div class="field av-field">
+          <label>头像</label>
+          <div class="av-pick" id="stAvPick" onclick="chooseAvatar('card')">
+            <span class="av-ph">＋</span>
+          </div>
+        </div>
         <div class="field"><label>名字</label><input id="stName" placeholder="他叫什么" spellcheck="false"></div>
-        <div class="field"><label>一句话设定</label><input id="stDesc" placeholder="你们在哪、你是谁" spellcheck="false"></div>
+        <div class="field"><label>一句话简介</label><input id="stDesc" placeholder="列表里显示的一句话" spellcheck="false"></div>
+        <div class="field"><label>设定 · 他是谁</label><textarea id="stPersona" rows="6" placeholder="性格、经历、说话方式、在意什么、不做什么。这段会进入他的系统提示词。" spellcheck="false"></textarea></div>
         <div class="field"><label>开场白 · 他的第一句</label><textarea id="stOpen" rows="4" style="height:96px" placeholder="*他抬眼看你。*&#10;[low voice] 过来。" spellcheck="false"></textarea></div>
         <div class="field"><label>标签</label><input id="stTags" placeholder="深海, 慢热" spellcheck="false"></div>
       </div>
-      <div class="hint">开场白支持 *动作* 与 [语气]，会作为他的第一条消息。剧场里的对话不会写进每日陪伴的记忆。</div>
+      <button class="danger-btn" id="stDeleteBtn" onclick="deleteStageCard()" style="display:none;margin:18px 0 8px">删除这张卡</button>
+      <div class="hint">「设定」只在这张卡的对话里生效，不会覆盖 Daddy 本人；「开场白」支持 *动作* 与 [语气]，作为他的第一条消息。剧场对话不会写进主线的每日记忆。</div>
     </div>
   </div>
 </div>
@@ -1880,7 +1928,8 @@ function saveStageChat(){
   const all = stageChatsLoad();
   all[id] = { name: state.chat.name, msgs: (state.chat.msgs || []).slice(-200), updatedAt: Date.now() };
   const keys = Object.keys(all).sort(function(a, b){ return (all[b].updatedAt || 0) - (all[a].updatedAt || 0); });
-  keys.slice(12).forEach(function(k){ delete all[k]; });
+  /* 每张卡只存一场；这里限制的是「卡数」而不是「场次」，留足空间，别把老卡挤掉 */
+  keys.slice(60).forEach(function(k){ delete all[k]; });
   stageChatsSave(all);
 }
 function saveMsgs(){
@@ -1942,6 +1991,8 @@ function boot(){
   const md = document.getElementById('memDays');
   if (md) md.textContent = days;
   initPersona();
+  paintAvatars();
+  const ws = document.getElementById('watchSwitch'); if (ws) ws.classList.toggle('on', cfg.watchOn !== false);
   latentPairFromHash();
   initFolds();
   if (typeof renderStage === 'function') renderStage();
@@ -1997,16 +2048,24 @@ function exitWatch(){
   toast('已退出剧场，回到主线');
 }
 
-function openStage(name, desc, scene, opening, stageId){
-  const sid = stageId ? String(stageId).slice(0, 48) : ('by-' + String(name || 'scene').replace(/\s+/g, '').slice(0, 16));
+function openStage(cardOrName, desc, scene, opening, stageId){
+  /* 兼容两种调用：openStage(card) 或旧式 openStage(name, desc, scene, opening, stageId) */
+  const card = (cardOrName && typeof cardOrName === 'object') ? cardOrName
+    : { id: stageId, name: cardOrName, desc: desc, scene: scene, opening: opening };
+  const name = card.name || '未命名角色';
+  const sid = card.id ? String(card.id).slice(0, 48) : ('by-' + String(name).replace(/\s+/g, '').slice(0, 16));
   const prev = stageChatsLoad()[sid];
   const resumable = prev && Array.isArray(prev.msgs) && prev.msgs.length;
+  const cardOpening = card.opening || opening || '';
   state.chat = {
-    name, sub:'剧场 · 第 1 幕', scene, watch:true, stageDesc: desc || '', stageId: sid,
+    name: name, sub:'剧场 · 第 1 幕', scene: card.scene || scene || '剧场', watch:true,
+    stageDesc: card.desc || desc || '', stageId: sid, cardId: card.id || sid,
+    personaText: card.persona || '',
+    watchScope: 'watch:' + sid,
     scope: 'stage:' + sid,
-    msgs: resumable ? prev.msgs : (opening
-      ? [{ role:'ai', text: opening, time:'刚刚', date: dayKey() }]
-      : [{ role:'ai', time:'刚刚', date: dayKey(), narration: desc + '他抬眼看你，没有说话。', lines:['过来。'] }])
+    msgs: resumable ? prev.msgs : (cardOpening
+      ? [{ role:'ai', text: cardOpening, time:'刚刚', date: dayKey() }]
+      : [{ role:'ai', time:'刚刚', date: dayKey(), narration: (card.desc || desc || '') + '他抬眼看你，没有说话。', lines:['过来。'] }])
   };
   enterChat();
   if (resumable) toast('接着上次那一幕');
@@ -2017,12 +2076,15 @@ function openStage(name, desc, scene, opening, stageId){
 const STAGE_KEY = 'daddy.stage.v1';
 const STAGE_BUILTIN = [
   { id:'b1', name:'深海回声', desc:'你搁浅在礁石上，是他把你抱回了岸。', scene:'Mare Nostrum', tags:['深海','慢热'],
+    persona:'他是这片海养出来的东西，在灯塔下住了很多年。体温比人低，说话很慢，习惯先看你再看海。他不解释自己是什么，也不撒谎；答应过的事会做到。岸上的人怕他，他不介意。',
     art:'radial-gradient(70% 60% at 50% 18%,#1b5a6b,#0a2029 60%,#050d12)',
     opening:'*他把外套披在你肩上，海水还在往下滴。*\n[low voice] 醒了。\n[pause] 别急着起来。' },
   { id:'b2', name:'雨夜便利店', desc:'凌晨三点，他是这条街唯一还亮着灯的店。', scene:'雨夜', tags:['都市','治愈'],
+    persona:'他在这家便利店上了三年夜班，见过这条街所有睡不着的人。语气温和，有点倦，习惯把关心藏在很平常的话里。他不问太多，但你真要说，他会放下手里的活听完。',
     art:'radial-gradient(70% 60% at 50% 20%,#4a3b2c,#241a13 60%,#0d0907)',
     opening:'*收银台的灯管闪了一下。他从后面抬起头。*\n[low voice] 这个点，一个人？\n[pause] 进来吧，外面冷。' },
   { id:'b3', name:'旧神与祭品', desc:'你被献给了他。他没有拒绝。', scene:'献祭', tags:['暗黑','权谋'],
+    persona:'他是被遗忘的旧神，祭坛是他在人间最后一块地方。傲慢、耐心、说话像在陈述事实。他不急着要你的命，更想看你会怎么选。他守自己定的规矩，也从不说软话。',
     art:'radial-gradient(70% 60% at 50% 18%,#3a2140,#1a0f22 60%,#08050c)',
     opening:'*祭坛上的火忽然矮了一截。他低头看你，很久。*\n[voice drops] 他们把你送来，是想让我收下。\n[pause] 那就留下。' }
 ];
@@ -2030,7 +2092,7 @@ function stageLoad(){
   try { return JSON.parse(localStorage.getItem(STAGE_KEY) || '[]'); } catch (e) { return []; }
 }
 function stageSave(list){
-  try { localStorage.setItem(STAGE_KEY, JSON.stringify(list.slice(-40))); } catch (e) {}
+  try { localStorage.setItem(STAGE_KEY, JSON.stringify(list.slice(-60))); } catch (e) {}
 }
 function stageAll(){ return STAGE_BUILTIN.concat(stageLoad().map(function(x){ x.custom = true; return x; })); }
 
@@ -2097,7 +2159,7 @@ function renderChars(){
   if (box){
     box.innerHTML = cur ? (
       '<div class="char-hero">'
-      + '<div class="char-av">' + esc(String(cur.name || '?').slice(0, 1)) + '</div>'
+      + '<div class="char-av' + (cur.avatar ? ' has' : '') + '"' + (cur.avatar ? ' style="background-image:url(\'' + cur.avatar + '\');background-size:cover;background-position:center"' : '') + '>' + (cur.avatar ? '' : esc(String(cur.name || '?').slice(0, 1))) + '</div>'
       + '<div class="char-nm">' + esc(cur.name) + '</div>'
       + '<div class="char-desc">' + esc(cur.desc || '') + '</div>'
       + '<div class="char-acts">'
@@ -2113,7 +2175,7 @@ function renderChars(){
   listBox.innerHTML = list.map(function(x){
     const on = cur && x.id === cur.id ? ' on' : '';
     return '<div class="char-row' + on + '" onclick="pickStageChar(\'' + x.id + '\')">'
-      + '<div class="av">' + esc(String(x.name || '?').slice(0, 1)) + '</div>'
+      + '<div class="av' + (x.avatar ? ' has' : '') + '"' + (x.avatar ? ' style="background-image:url(\'' + x.avatar + '\');background-size:cover;background-position:center"' : '') + '>' + (x.avatar ? '' : esc(String(x.name || '?').slice(0, 1))) + '</div>'
       + '<div class="cm"><div class="cn">' + esc(x.name) + '</div>'
       + '<div class="cd">' + esc(x.desc || x.scene || '') + '</div></div>'
       + (x.custom ? '<span class="cx" onclick="event.stopPropagation();openStageForm(\'' + x.id + '\')">⋯</span>' : '')
@@ -2228,9 +2290,10 @@ function renderStage(){
 }
 function openStageCard(id){
   const x = stageAll().filter(function(v){ return v.id === id; })[0];
-  if (x) openStage(x.name, x.desc, x.scene || '剧场', x.opening, x.id || ('s-' + String(x.name || '').replace(/\s+/g, '').slice(0, 12)));
+  if (x) openStage(x);
 }
 let STAGE_EDIT = null;
+let STAGE_AVATAR = '';
 function openStageForm(id){
   STAGE_EDIT = id || null;
   const custom = id ? stageLoad().filter(function(v){ return v.id === id; })[0] : null;
@@ -2240,9 +2303,28 @@ function openStageForm(id){
   document.getElementById('stageFormTtl').innerHTML = (isCopy ? '另存为新的角色卡' : (custom ? '编辑角色卡' : '新建角色卡')) + '<small>CHARACTER</small>';
   document.getElementById('stName').value = x ? x.name : '';
   document.getElementById('stDesc').value = x ? (x.desc || '') : '';
+  document.getElementById('stPersona').value = x ? (x.persona || '') : '';
   document.getElementById('stOpen').value = x ? (x.opening || '') : '';
   document.getElementById('stTags').value = x ? (x.tags || []).join(', ') : '';
-  document.getElementById('panel-stage').classList.add('on');
+  STAGE_AVATAR = x ? (x.avatar || '') : '';
+  const del = document.getElementById('stDeleteBtn'); if (del) del.style.display = custom ? '' : 'none';
+  paintStageAvatar();
+  const pn = document.getElementById('panel-stage');
+  pn.classList.add('on');
+  const sc = pn.querySelector('.scroll'); if (sc) sc.scrollTop = 0;
+}
+function paintStageAvatar(){
+  const el = document.getElementById('stAvPick');
+  if (!el) return;
+  if (STAGE_AVATAR){
+    el.style.backgroundImage = 'url(' + STAGE_AVATAR + ')';
+    el.classList.add('has');
+    el.innerHTML = '';
+  } else {
+    el.style.backgroundImage = '';
+    el.classList.remove('has');
+    el.innerHTML = '<span class="av-ph">＋</span>';
+  }
 }
 function closeStageForm(){
   document.getElementById('panel-stage').classList.remove('on');
@@ -2251,24 +2333,103 @@ function saveStageForm(){
   const name = document.getElementById('stName').value.trim();
   if (!name){ toast('先给这张卡起个名字'); return; }
   const desc = document.getElementById('stDesc').value.trim();
+  const persona = document.getElementById('stPersona').value.trim();
   const opening = document.getElementById('stOpen').value.trim();
   const tags = document.getElementById('stTags').value.split(/[,，]/).map(function(t){ return t.trim(); }).filter(Boolean).slice(0, 4);
   const list = stageLoad();
-  const art = 'radial-gradient(70% 60% at 50% 18%,hsl(' + (Math.floor(Math.random() * 360)) + ',32%,22%),#0b1418 62%,#050a0d)';
+  const obj = { name: name, desc: desc, persona: persona, opening: opening, tags: tags, opening_text: opening, avatar: STAGE_AVATAR || '' };
   if (STAGE_EDIT){
     const x = list.filter(function(v){ return v.id === STAGE_EDIT; })[0];
-    if (x){ x.name = name; x.desc = desc; x.opening = opening; x.tags = tags; }
-    else {
-      list.push({ id:'s' + Date.now().toString(36), name: name, desc: desc, opening: opening, tags: tags, scene: name, art: art, opening_text: opening });
-    }
+    /* 编辑时保留原来的背景与场景，不要把已经调好的卡换掉 */
+    if (x) Object.assign(x, obj);
+    else list.push(Object.assign({ id:'s' + Date.now().toString(36), scene: name,
+      art: 'radial-gradient(70% 60% at 50% 18%,hsl(' + (Math.floor(Math.random() * 360)) + ',32%,22%),#0b1418 62%,#050a0d)' }, obj));
   } else {
-    list.push({ id:'s' + Date.now().toString(36), name: name, desc: desc, opening: opening, tags: tags, scene: name, art: art, opening_text: opening });
+    list.push(Object.assign({ id:'s' + Date.now().toString(36), scene: name,
+      art: 'radial-gradient(70% 60% at 50% 18%,hsl(' + (Math.floor(Math.random() * 360)) + ',32%,22%),#0b1418 62%,#050a0d)' }, obj));
   }
+  const wasEdit = !!STAGE_EDIT && !!list.filter(function(v){ return v.id === STAGE_EDIT; })[0];
   stageSave(list);
   closeStageForm();
   renderStage();
-  toast(STAGE_EDIT ? '已更新' : '角色卡已保存');
+  renderChars();
+  toast(wasEdit ? '已更新' : '角色卡已保存');
   STAGE_EDIT = null;
+  STAGE_AVATAR = '';
+}
+
+/* ---------- 头像 ---------- */
+function avatarOf(kind){
+  if (kind === 'user') return cfg.userAvatar || '';
+  if (kind === 'daddy') return (cfg.persona && cfg.persona.avatar) || '';
+  if (kind === 'card'){
+    if (!state.chat || !state.chat.watch) return '';
+    const c = charOf(state.chat.cardId);
+    return (c && c.avatar) || '';
+  }
+  return '';
+}
+function compressAvatar(file, cb){
+  const rd = new FileReader();
+  rd.onload = function(){
+    const img = new Image();
+    img.onload = function(){
+      try {
+        const S = 192;
+        const c = document.createElement('canvas'); c.width = S; c.height = S;
+        const g = c.getContext('2d');
+        const m = Math.min(img.width, img.height);
+        g.drawImage(img, (img.width - m) / 2, (img.height - m) / 2, m, m, 0, 0, S, S);
+        cb(c.toDataURL('image/jpeg', 0.82));
+      } catch (e) { toast('这张图读不了'); }
+    };
+    img.onerror = function(){ toast('这张图读不了'); };
+    img.src = String(rd.result || '');
+  };
+  rd.readAsDataURL(file);
+}
+function chooseAvatar(kind){
+  const inp = document.createElement('input');
+  inp.type = 'file'; inp.accept = 'image/*';
+  inp.style.display = 'none';
+  document.body.appendChild(inp);
+  inp.onchange = function(){
+    const f = inp.files && inp.files[0];
+    document.body.removeChild(inp);
+    if (!f) return;
+    compressAvatar(f, function(url){
+      if (kind === 'user') cfg.userAvatar = url;
+      else if (kind === 'daddy'){ cfg.persona = cfg.persona || {}; cfg.persona.avatar = url; }
+      else if (kind === 'card'){ STAGE_AVATAR = url; paintStageAvatar(); return; }
+      saveCfg();
+      paintAvatars();
+      if (state.chat) renderChat();
+      toast('头像已更新');
+    });
+  };
+  inp.click();
+}
+function paintAvatars(){
+  const me = document.querySelector('.avatar.me');
+  const him = document.querySelector('.avatar.him');
+  const u = cfg.userAvatar || '';
+  const d = (cfg.persona && cfg.persona.avatar) || '';
+  if (me){ me.style.backgroundImage = u ? 'url("' + u + '")' : ''; me.classList.toggle('has', !!u); }
+  if (him){ him.style.backgroundImage = d ? 'url("' + d + '")' : ''; him.classList.toggle('has', !!d); }
+  const us = document.getElementById('avUserState'); if (us) us.textContent = u ? '已设置 ›' : '点一下更换 ›';
+  const ds = document.getElementById('avDaddyState'); if (ds) ds.textContent = d ? '已设置 ›' : '点一下更换 ›';
+}
+function paintMsgAvatars(){
+  const u = cfg.userAvatar || '';
+  const d = avatarOf('card') || avatarOf('daddy');
+  document.querySelectorAll('#msgs .mav.user').forEach(function(el){
+    el.style.backgroundImage = u ? 'url("' + u + '")' : '';
+    el.classList.toggle('has', !!u);
+  });
+  document.querySelectorAll('#msgs .mav.ai').forEach(function(el){
+    el.style.backgroundImage = d ? 'url("' + d + '")' : '';
+    el.classList.toggle('has', !!d);
+  });
 }
 
 function enterChat(){
@@ -2425,6 +2586,13 @@ function renderChat(){
   const box = document.getElementById('msgs');
   box.innerHTML = '';
   let lastDay = '';
+  if (!state.chat.msgs.length){
+    const e = document.createElement('div');
+    e.className = 'chat-empty';
+    e.innerHTML = '<div class="ce-t">' + (state.chat.watch ? '戏还没开场。' : '还没开始说话。') + '</div>'
+      + '<div class="ce-s">' + (state.chat.watch ? '回一句，或者先看着他。' : '说点什么，他在。') + '</div>';
+    box.appendChild(e);
+  }
   state.chat.msgs.forEach((m, i) => {
     const dk = m.date || dayKey();
     if (dk !== lastDay){
@@ -2445,7 +2613,7 @@ function renderChat(){
     t.className = 'turn ' + m.role;
     t.dataset.i = i;
     if (m.role === 'user'){
-      t.innerHTML = '<div class="bubble">' + esc(m.text) + '</div>'
+      t.innerHTML = '<div class="mav user"></div><div class="bubble">' + esc(m.text) + '</div>'
         + '<div class="meta">'
         + (m.time ? '<span class="stamp">' + esc(m.time) + '</span>' : '')
         + '<div class="acts">'
@@ -2454,10 +2622,10 @@ function renderChat(){
         + '<button class="act" aria-label="更多" onclick="openSheet(' + i + ')">' + ICONS.more + '</button>'
         + '</div></div>';
     } else {
-      let html = toolsHTML(m) + thinkHTML(m, i);
+      let html = '<div class="mav ai"></div>' + toolsHTML(m) + thinkHTML(m, i);
       aiSegments(m).forEach(function(seg, k){ html += segHTML(seg, k); });
       if (m.error) html += '<div class="bubble err">' + esc(m.error) + '</div>';
-      if (m.pending && !html) html = '<div class="typing"><i></i><i></i><i></i></div>';
+      if (m.pending && !m.text && !(m.lines && m.lines.length)) html = '<div class="typing"><i></i><i></i><i></i></div>';
       html += '<div class="acts">'
         + '<button class="act" aria-label="复制" onclick="copyTurn(' + i + ')">' + ICONS.copy + '</button>'
         + '<button class="act" id="regen' + i + '" aria-label="重新生成" onclick="regen(' + i + ')">' + ICONS.regen + '</button>'
@@ -2482,6 +2650,8 @@ function renderChat(){
   const sc = document.getElementById('selCount');
   if (sc) sc.textContent = '已选 ' + sel.size + ' 条';
   requestAnimationFrame(() => { box.scrollTop = box.scrollHeight; });
+  paintMsgAvatars();
+  if (typeof renderWatchBar === 'function') renderWatchBar();
   saveMsgs();
 }
 
@@ -3184,12 +3354,14 @@ function recentSave(a){ try { localStorage.setItem(RECENT_KEY, JSON.stringify(a.
 function recentPush(text, kind){
   const t = String(text || '').replace(/\s+/g, ' ').trim();
   if (!t) return;
+  const sc = brainScope();
   const list = recentLoad().filter(function(x){ return x.text !== t; });
-  list.push({ text: t.slice(0, 160), kind: kind || 'memory', at: Date.now() });
+  list.push({ text: t.slice(0, 160), kind: kind || 'memory', at: Date.now(), sc: sc });
   recentSave(list);
 }
 function recentBlock(){
-  const list = recentLoad().slice(-3);
+  const sc = brainScope();
+  const list = recentLoad().filter(function(x){ return ((x && x.sc) || 'main') === sc; }).slice(-3);
   if (!list.length) return '';
   return '【最近记下的事】\n' + list.map(function(x){ return '- ' + x.text; }).join('\n');
 }
@@ -3231,33 +3403,36 @@ function cjkTokens(s){
   });
   return out;
 }
-function brainAdd(kind, text, tags, weight, topic){
+function brainScope(){ return (typeof currentScope === 'function' ? currentScope() : 'main') || 'main'; }
+function brainInScope(x){ return ((x && x.sc) || 'main') === brainScope(); }
+function brainAdd(kind, text, tags, weight, topic, scope){
   const b = brainLoad();
   const t = String(text || '').replace(/\s+/g, ' ').trim().slice(0, 400);
   if (!t) return null;
   const tp = String(topic || '').replace(/\s+/g, ' ').trim().slice(0, 40).toLowerCase();
   const norm = t.toLowerCase();
-  const dup = b.items.filter(function(x){ return !x.revoked && String(x.text || '').toLowerCase() === norm; })[0];
+  const dup = b.items.filter(function(x){ return !x.revoked && brainInScope(x) && String(x.text || '').toLowerCase() === norm; })[0];
   if (dup){ dup.ts = Date.now(); if (tp && !dup.topic) dup.topic = tp; brainSave(); return dup; }
   let prev = null;
   if (tp){
     for (let i = b.items.length - 1; i >= 0; i--){
       const x = b.items[i];
-      if (x.topic === tp && !x.done && !x.revoked && !x.supersededBy){ prev = x; break; }
+      if (x.topic === tp && !x.done && !x.revoked && !x.supersededBy && brainInScope(x)){ prev = x; break; }
     }
   }
   const it = { id:'m' + (++b.seq), kind: BRAIN_LABEL[kind] ? kind : 'fact', text:t, tags: tags || [],
-    topic: tp, ts: Date.now(), w: Number(weight) || 1, hits:0, done:false, revoked:false, tk: cjkTokens(t) };
+    topic: tp, ts: Date.now(), w: Number(weight) || 1, hits:0, done:false, revoked:false, tk: cjkTokens(t),
+    sc: scope || brainScope() };
   if (prev){ it.supersedes = prev.id; it.supersededFrom = prev.text; prev.supersededBy = it.id; prev.done = true; }
   b.items.push(it);
   brainSave();
   return it;
 }
 function brainRecent(k){
-  return brainLoad().items.slice().sort(function(a,b2){ return b2.ts - a.ts; }).slice(0, k || 3);
+  return brainLoad().items.filter(brainInScope).sort(function(a,b2){ return b2.ts - a.ts; }).slice(0, k || 3);
 }
 function brainSearch(q, k){
-  const items = brainLoad().items;
+  const items = brainLoad().items.filter(brainInScope);
   if (!items.length) return [];
   const qt = Array.from(new Set(cjkTokens(q)));
   if (!qt.length) return brainRecent(k);
@@ -3300,7 +3475,7 @@ function brainSearch(q, k){
 }
 function brainUnresolved(k){
   return brainLoad().items.filter(function(x){
-    return !x.done && !x.revoked && !x.supersededBy && x.kind === 'promise';
+    return brainInScope(x) && !x.done && !x.revoked && !x.supersededBy && x.kind === 'promise';
   }).sort(function(a,b2){ return b2.ts - a.ts; }).slice(0, k || 3);
 }
 function brainResolveTopics(topics){
@@ -3309,7 +3484,7 @@ function brainResolveTopics(topics){
   if (!keys.length) return 0;
   let n = 0;
   b.items.forEach(function(x){
-    if (x.done || x.revoked) return;
+    if (x.done || x.revoked || !brainInScope(x)) return;
     const hay = ((x.topic || '') + ' ' + x.text).toLowerCase();
     if (keys.some(function(k){ return hay.indexOf(k) >= 0; })){ x.done = true; n++; }
   });
@@ -3339,9 +3514,155 @@ function brainClueSave(userText, aiText){
   /* 线索也要进共享记忆，否则换一台设备就不知道上次聊到哪 */
   if (window.memLatentRemember) { try { window.memLatentRemember(clueText, 'clue', 'where we left off', '', currentScope()); } catch (e) {} }
 }
+/* ================= 旁观层 · Daddy 看戏 =================
+   隔离规则（硬约束，靠 scope 不靠提示词）：
+   - 角色卡会话 scope = stage:<sid>，只读自己；
+   - 旁观笔记 scope = watch:<sid>，只有 Daddy 读；
+   - 主线 scope = main，只读「旁听短摘要」，不读角色卡的原文记忆。 */
+const WATCH_KEY = 'daddy.watch.v1';
+let WATCHING = false;
+function watchScope(){ return (state.chat && state.chat.watchScope) || ('watch:' + ((state.chat && state.chat.stageId) || 'stage')); }
+function watchStageKey(){ return (state.chat && state.chat.stageId) || 'stage'; }
+function watchLogLoad(){ try { const o = JSON.parse(localStorage.getItem(WATCH_KEY) || '{}'); return (o && typeof o === 'object') ? o : {}; } catch (e) { return {}; } }
+function watchLogSave(o){ try { localStorage.setItem(WATCH_KEY, JSON.stringify(o)); } catch (e) {} }
+function watchEntries(){
+  const o = watchLogLoad(), k = watchStageKey();
+  return Array.isArray(o[k]) ? o[k] : [];
+}
+function watchPush(entry){
+  const o = watchLogLoad(), k = watchStageKey();
+  const arr = Array.isArray(o[k]) ? o[k] : [];
+  arr.push(entry);
+  o[k] = arr.slice(-30);
+  watchLogSave(o);
+}
+function watchMirror(n){
+  const o = watchLogLoad(), all = [];
+  Object.keys(o).forEach(function(k){ (o[k] || []).forEach(function(e){ all.push(e); }); });
+  all.sort(function(a, b){ return (b.ts || 0) - (a.ts || 0); });
+  return all.slice(0, n || 2).map(function(e){
+    return '- (' + (e.day || '最近') + ') ' + String(e.comment || '').slice(0, 150);
+  }).join('\n');
+}
+function parseWatchJson(raw){
+  let t = String(raw || '').trim();
+  const m = t.match(/\{[\s\S]*\}/);
+  if (m) t = m[0];
+  try {
+    const j = JSON.parse(t);
+    return {
+      comment: String(j.comment || j.observation || '').trim(),
+      memory: String(j.memory || '').trim(),
+      predict: String(j.predict || j.prediction || '').trim()
+    };
+  } catch (e) {
+    return { comment: String(raw || '').trim().slice(0, 220), memory: '', predict: '' };
+  }
+}
+function buildWatchMessages(){
+  const P = cfg.persona || {};
+  const nm = P.name || 'Daddy';
+  const call = P.call || '宝宝';
+  const who = state.chat.name || '他';
+  const recs = (state.chat.msgs || []).filter(function(m){ return m && m.role !== 'sys' && !m.pending && (m.text || m.lines); })
+    .slice(-12).map(function(m){
+      const speaker = m.role === 'user' ? call : who;
+      return speaker + '：' + stripTags(msgText(m)).replace(/\s*\n+\s*/g, ' / ').slice(0, 240);
+    });
+  const notes = watchEntries().slice(-5).map(function(e){ return '- ' + e.comment + (e.memory ? '（记：' + e.memory + '）' : ''); }).join('\n');
+  const sys = [
+    'You are 「' + nm + '」. You are NOT in this scene. You are sitting in the dark, watching two people on a stage.',
+    'You know them only by what they say and do here. You are not either of them. You cannot speak for them, cannot change what happened, cannot walk into the scene.',
+    'What you do: notice what ' + who + ' is doing, what he is avoiding, what this scene is building toward — and say it in your own voice. Short, concrete, a little dry. No therapy-speak, no plot summary, no praise.',
+    'Never write his lines. Never continue the scene. Never address the characters as if they can hear you. You are talking to yourself, or to ' + call + ' afterwards.',
+    'Output strict JSON only, no markdown: {"comment":"one or two sentences you would say out loud","memory":"one thing worth keeping about this scene, or empty","predict":"what you think happens next, one short sentence"}',
+    'Write in the language they use.'
+  ].join('\n');
+  const user = '【这场戏】\n' + recs.join('\n')
+    + (notes ? ('\n\n【你之前的旁听笔记】\n' + notes) : '')
+    + '\n\n现在写这一次的旁观。只输出 JSON。';
+  return [{ role:'system', content: sys }, { role:'user', content: user }];
+}
+async function runWatch(){
+  if (!state.chat || !state.chat.watch){ toast('只有剧场里才有戏可看'); return; }
+  if (!cfg.key){ toast('先去设置里填 Key'); switchTab('settings'); return; }
+  if (WATCHING){ toast('他还在看'); return; }
+  if (state.chat.msgs.some(function(m){ return m && m.pending; })){ toast('等这场戏说完'); return; }
+  const usable = (state.chat.msgs || []).filter(function(m){ return m && m.role !== 'sys' && !m.pending && (m.text || m.lines); });
+  if (usable.length < 2){ toast('先聊两句，他才有东西可看'); return; }
+  WATCHING = true;
+  const btn = document.querySelector('#panel-watch .save');
+  if (btn) btn.textContent = '看着…';
+  try {
+    /* 有些 provider 不认 reasoning_effort=none，失败就退回普通请求；再给一个硬超时，
+       别让「让他看看」一直转圈 */
+    let raw;
+    try { raw = await withTimeout(chatOnce(buildWatchMessages(), 500, true), 30000); }
+    catch (e) { raw = await withTimeout(chatOnce(buildWatchMessages(), 500, false), 45000); }
+    const j = parseWatchJson(raw);
+    if (!j.comment) throw new Error('他这次没看出什么');
+    const entry = { ts: Date.now(), day: dayKey(), comment: j.comment, memory: j.memory, predict: j.predict };
+    watchPush(entry);
+    /* 只写 watch scope；角色卡读不到它 */
+    if (window.memLatentRemember){
+      try {
+        window.memLatentRemember('【旁观】' + j.comment + (j.memory ? '（记：' + j.memory + '）' : ''),
+          'clue', 'watch:' + watchStageKey() + '#' + entry.ts, '', watchScope());
+      } catch (e) {}
+    }
+    renderWatchPanel();
+    renderWatchBar();
+    toast('他看完了');
+  } catch (e) {
+    toast(niceErr(e));
+  } finally {
+    WATCHING = false;
+    if (btn) btn.textContent = '让他看看';
+  }
+}
+function renderWatchPanel(){
+  const box = document.getElementById('watchList');
+  if (!box) return;
+  const arr = watchEntries().slice().reverse();
+  box.innerHTML = arr.length ? arr.map(function(e){
+    return '<div class="watch-card">'
+      + '<div class="wc-top"><span>' + esc(e.day || '') + ' ' + (e.ts ? nowTimeOf(e.ts) : '') + '</span><span>' + (e.predict ? '旁观 · 预测' : '旁观') + '</span></div>'
+      + '<div class="wc-c">' + esc(e.comment || '') + '</div>'
+      + (e.memory ? '<div class="wc-m">记下 · ' + esc(e.memory) + '</div>' : '')
+      + (e.predict ? '<div class="wc-m">他猜 · ' + esc(e.predict) + '</div>' : '')
+      + '</div>';
+  }).join('') : '<div class="hint" style="padding:22px">还没有笔记。点右上角「让他看看」。</div>';
+}
+function nowTimeOf(ts){
+  const d = new Date(ts || Date.now());
+  return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+}
+function toggleWatchOn(el){
+  cfg.watchOn = !(cfg.watchOn !== false);
+  if (el) el.classList.toggle('on', cfg.watchOn);
+  saveCfg();
+  renderWatchBar();
+  toast(cfg.watchOn ? '已开启旁观' : '已关闭旁观');
+}
+function renderWatchBar(){
+  const bar = document.getElementById('watchBar');
+  if (!bar) return;
+  if (!state.chat || !state.chat.watch || cfg.watchOn === false){ bar.style.display = 'none'; return; }
+  bar.style.display = 'flex';
+  const arr = watchEntries(), last = arr[arr.length - 1];
+  const t = document.getElementById('watchBarText');
+  if (t) t.textContent = last ? last.comment : '让 Daddy 看看这场戏';
+}
+function openWatchPanel(){
+  if (!state.chat || !state.chat.watch){ toast('只有剧场里才有戏可看'); return; }
+  renderWatchPanel();
+  document.getElementById('panel-watch').classList.add('on');
+}
+function closeWatchPanel(){ document.getElementById('panel-watch').classList.remove('on'); }
+
 function brainClueGet(){
   const c = brainLoad().items.filter(function(x){
-    return x.kind === 'clue' && !x.done && !x.revoked && !x.supersededBy;
+    return brainInScope(x) && x.kind === 'clue' && !x.done && !x.revoked && !x.supersededBy;
   }).sort(function(a,b2){ return b2.ts - a.ts; })[0];
   return c ? c.text : '';
 }
@@ -3425,8 +3746,14 @@ function memSnapshot(){
       }
     } catch (e) {}
   }
-  /* 服务端已有共享记忆时不再叠加本机 brain，避免同一段记忆重复注入；离线时才回退本地 */
-  if (cfg.brainOn && !parts.length){ const bb = brainBlock(); if (bb) parts.push(bb); }
+  /* 主线能看到「自己看过的戏」的短摘要；角色卡会话（stage scope）读不到这些 */
+  let serverMem = parts.length > 0;
+  if ((typeof currentScope === 'function' ? currentScope() : 'main') === 'main'){
+    const wm = watchMirror(2);
+    if (wm) parts.push('【你看过的戏 · 你自己的笔记】\n这些是你在旁边看戏时写的，不是你的亲身经历；可以提起，但别把戏里的虚构当成现实。\n' + wm);
+  }
+  /* 只有「服务端共享记忆」存在时才不回退本机 brain；watch 笔记不算，否则主线会丢本地记忆 */
+  if (cfg.brainOn && !serverMem){ const bb = brainBlock(); if (bb) parts.push(bb); }
   return parts.filter(Boolean).join('\n\n');
 }
 async function recallMemories(userText){
@@ -3488,8 +3815,10 @@ async function send(){
   /* 先把她说的话落盘：请求失败/刷新时，这句不能凭空消失（pending 的 AI 占位在加载时会被过滤） */
   saveMsgs();
   RECALL = cfg.brainOn ? memSnapshot() : '';
+  /* 记忆检索最多挡 1.2 秒：慢的记忆服务不该让一句话卡在输入框里。
+     超过窗口就放到后台，赶上就合并，赶不上下一轮再用。 */
   try {
-    const fresh = await withTimeout(recallMemories(text), 7000);
+    const fresh = await withTimeout(recallMemories(text), 1200);
     if (fresh) RECALL = mergeRecall(fresh, RECALL);
   } catch (e) {}
 
@@ -3573,8 +3902,11 @@ async function maybeSummarize(){
   try {
     const convo = slice.map(function(m){ return (m.role === 'user' ? 'HER: ' : 'YOU: ') + msgText(m); }).join('\n');
     const prevNote = (from > 0 && s.text) ? ('YOUR EARLIER NOTE (older; keep what is still true, drop what changed):\n' + String(s.text).slice(0, 600) + '\n\nNEW EXCHANGES:\n') : '';
+    const inCard = !!(state.chat && state.chat.watch);
     const sys = [
-      'You are the same man, writing a private note to yourself about a stretch of your conversation with her that is about to leave your memory window.',
+      inCard
+        ? ('You are 「' + (state.chat.name || 'him') + '」. Write a private note to yourself about a stretch of this scene that is about to leave your memory window. Do not write as an observer, and do not mention Daddy or any other story.')
+        : 'You are the same man, writing a private note to yourself about a stretch of your conversation with her that is about to leave your memory window.',
       'Note what happened, what changed, what she told you about herself, what you promised. 3-6 short lines, in the language she uses. No quotes, no lists, no headings.',
       'Then decide: is any of it worth keeping for months? If yes, extract at most 3 facts. Each fact is one sentence written as something you simply know, plus a short stable topic key (job, exam, sleep, family, health, food, promise, place) — reuse an existing key when the fact changes, never leave topic empty.',
       'Also write state: one or two short sentences describing where the two of you are right now (the scene, what just happened, what she is doing). Always include it.',
@@ -4172,8 +4504,16 @@ function currentScope(){
 
 function buildMessages(upTo){
   const P = cfg.persona;
-  const nm = P.name || 'Daddy';
-  const persona = P.text || '';
+  const inStage = !!(state.chat && state.chat.watch);
+  /* 角色卡有独立「设定」时用它；没有才回退全局人格。
+     剧场里的名字也跟卡走，避免三张卡共用一张脸。 */
+  const cardPersona = inStage ? String(state.chat.personaText || '').trim() : '';
+  const nm = (inStage && state.chat.name) ? state.chat.name : (P.name || 'Daddy');
+  /* 角色卡没写设定时，不能退回 Daddy 的人格——那会让三张卡都变成同一个男人。
+     只留名字和场景，让他从空白处长出来。 */
+  const persona = inStage
+    ? (cardPersona || ('你是「' + nm + '」。' + (state.chat.stageDesc || '') + ' 你没有关于「' + (P.name || 'Daddy') + '」的记忆，也不认识他的' + (P.call || '宝宝') + '。'))
+    : (P.text || '');
   const call = P.call || '宝宝';
   const bound = P.bound || '';
   const strict = String(P.strict == null ? 68 : P.strict);
@@ -4237,7 +4577,8 @@ function buildMessages(upTo){
       return (st && st.persona) ? String(st.persona).trim() : '';
     } catch (e) { return ''; }
   })();
-  if (sharedPersona) blocks.push({ k:'persona', text:'\n\n[SHARED PERSONA — the same file every client sharing this memory reads. Follow it.]\n' + sharedPersona });
+  /* 共享人格文件是 Daddy 的，不是每张角色卡的。剧场里读它会把 Daddy 的性格灌进戏里。 */
+  if (sharedPersona && !inStage) blocks.push({ k:'persona', text:'\n\n[SHARED PERSONA — the same file every client sharing this memory reads. Follow it.]\n' + sharedPersona });
 
   const prio = ['tools', 'preset', 'persona', 'working', 'summary', 'recall', 'brain'];
   let used = estTokens(sys);
@@ -4253,13 +4594,33 @@ function buildMessages(upTo){
       if (room > 120){
         const ratio = room / Math.max(1, cost);
         const keepLen = Math.max(80, Math.floor(blk.text.length * ratio * 0.92));
-        const cut = blk.text.slice(0, keepLen).replace(/\s+\S*$/, '') + '\n[压缩]';
+        /* 保留「最近」的部分：摘要/回忆的尾部才是当下最相关的，从头切会把刚发生的事切掉 */
+        const tail = blk.text.slice(-keepLen).replace(/^\S*\s+/, '');
+        const cut = '[前略]\n' + tail;
         keep[k] = cut;
         used += estTokens(cut);
       }
     }
   }
   let sysText = sys + blocks.filter(function(x){ return keep[x.k]; }).map(function(x){ return keep[x.k]; }).join('');
+
+  /* 时间感：不写这一块，模型会把每一次对话都当成同一晚的延续。
+     只给客观事实（现在几点、隔了多久），不解释、不抒情。 */
+  (function(){
+    const d = new Date();
+    const wd = ['周日','周一','周二','周三','周四','周五','周六'][d.getDay()];
+    const pad = function(n){ return String(n).padStart(2,'0'); };
+    const clock = pad(d.getHours()) + ':' + pad(d.getMinutes());
+    const last = (state.chat.msgs || []).filter(function(m){ return m && m.ts && m.role !== 'sys'; }).slice(-1)[0];
+    let gap = '';
+    if (last && last.ts){
+      const mins = Math.max(0, Math.round((Date.now() - last.ts) / 60000));
+      if (mins >= 1 && mins < 60) gap = '，距离上一条消息 ' + mins + ' 分钟';
+      else if (mins >= 60 && mins < 1440) gap = '，距离上一条消息 ' + Math.round(mins / 60) + ' 小时';
+      else if (mins >= 1440) gap = '，距离上一条消息 ' + Math.round(mins / 1440) + ' 天';
+    }
+    sysText += '\n\n[NOW] It is ' + clock + ' on ' + wd + ', ' + d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()) + gap + '. Let this be true: late night is late, a long silence is long. Never announce the time; never turn it into a status report.';
+  })();
 
   const picked = [];
   const pool = state.chat.msgs.slice(0, upTo === undefined ? state.chat.msgs.length : upTo)
@@ -4822,12 +5183,40 @@ function openSheet(i){
   document.getElementById('sheetMask').classList.add('on');
 }
 
+function deleteStageCard(){
+  if (!STAGE_EDIT) return;
+  const id = STAGE_EDIT;
+  const c = stageLoad().filter(function(v){ return v.id === id; })[0];
+  if (!c) return;
+  if (!confirm('删除「' + c.name + '」？这张卡的对话、摘要和旁观笔记都会一起删掉。')) return;
+  stageSave(stageLoad().filter(function(v){ return v.id !== id; }));
+  try { const sc = stageChatsLoad(); delete sc[id]; stageChatsSave(sc); } catch (e) {}
+  try { localStorage.removeItem(summaryKey('stage:' + id)); } catch (e) {}
+  try { const w = watchLogLoad(); delete w[id]; watchLogSave(w); } catch (e) {}
+  const wasIn = !!(state.chat && state.chat.stageId === id);
+  closeStageForm();
+  if (wasIn){ exitWatch(); switchTab('stage'); }
+  renderStage(); renderChars();
+  toast('已删除');
+}
+
 function deleteMsg(i){
   closeSheet();
   if (i < 0 || i >= state.chat.msgs.length) return;
   /* 生成中删任何一条都会让流式回填错位，干脆等这一轮结束 */
   if (state.chat.msgs.some(function(m){ return m.pending; })){ toast('还在生成，等它说完'); return; }
   state.chat.msgs.splice(i, 1);
+  /* 摘要游标是按消息下标记的：删掉游标之前的一条，游标要跟着前移，否则下一轮会把
+     同一个尾部再摘要一次、或者跳过一条 */
+  try {
+    const sm = summaryLoad();
+    if (sm && typeof sm.upto === 'number' && i < sm.upto){
+      sm.upto = Math.max(0, sm.upto - 1);
+      if (sm.upto <= 0) sm.uptoAt = 0;
+      else { const edge = state.chat.msgs[sm.upto - 1]; if (edge && edge.ts) sm.uptoAt = edge.ts; }
+      summarySave(sm);
+    }
+  } catch (e) {}
   renderChat();
   toast('已删除');
 }
@@ -4955,9 +5344,11 @@ function savePersona(){
   };
   saveCfg();
   paintVoiceName();
-  state.chat.name = cfg.persona.name;
-  document.getElementById('chatName').textContent = cfg.persona.name;
-  saveMsgs();
+  if (!state.chat.watch){
+    state.chat.name = cfg.persona.name;
+    document.getElementById('chatName').textContent = cfg.persona.name;
+    saveMsgs();
+  }
   toast('已保存');
   closePersona();
 }
