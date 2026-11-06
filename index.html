@@ -413,9 +413,9 @@ body.selecting .turn.on .bubble{outline:1px solid rgba(127,214,232,.4);outline-o
 
 .tools{margin:1px 0 6px}
 .titem{overflow:hidden}
-.tool{display:flex;align-items:center;gap:6px;font-size:11px;color:rgba(255,255,255,.40);padding:3px 0;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.tool{display:flex;align-items:center;gap:7px;font-size:11px;color:rgba(255,255,255,.40);padding:4px 0;font-family:var(--sans)}
 .tool svg{width:12px;height:12px;stroke:rgba(255,255,255,.34);fill:none;stroke-width:1.6;flex:0 0 12px}
-.tool .tn{color:rgba(255,255,255,.56);flex:0 0 auto}
+.tool .tn{color:rgba(255,255,255,.52);flex:0 0 auto;letter-spacing:.02em}
 .tool .ta{color:rgba(255,255,255,.26);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:54%}
 .tool .ts{margin-left:auto;color:rgba(255,255,255,.28);font-size:10px;flex:0 0 auto}
 .tres{display:none;margin:2px 0 6px;padding:9px 11px;border-radius:11px;background:rgba(255,255,255,.03);border-left:1px solid rgba(255,255,255,.12);font-size:11px;line-height:1.7;color:rgba(255,255,255,.48);white-space:pre-wrap;word-break:break-word;max-height:210px;overflow:auto;font-family:inherit}
@@ -1122,6 +1122,127 @@ body.selecting .toast{bottom:150px}
 .mem-sheet-acts{display:flex;gap:10px;margin-top:14px}
 .mem-sheet-acts button{flex:1;padding:12px;border-radius:12px;border:1px solid var(--line);background:none;color:var(--dim);font-size:13px;font-family:var(--sans)}
 .mem-sheet-acts button.acc{background:rgba(220,198,168,.14);border-color:rgba(220,198,168,.4);color:var(--accent)}
+
+/* ===================== liquid glass v2 =====================
+   参考 liquid-glass-note 的材质分层：
+   1) 大面积背景先降对比、留出可被看见的明暗落点
+   2) 玻璃本体只有很轻的填充，靠边缘高光/内侧暗边表达厚度
+   3) 近层投影贴边、远层投影托起，避免"浮雕按钮"感
+   注意：手机端 backdrop-filter 成本高，只给真正悬浮的层加
+*/
+:root{
+  --lg-stroke:rgba(255,255,255,.115);
+  --lg-fill:linear-gradient(158deg,rgba(255,255,255,.115) 0%,rgba(255,255,255,.045) 48%,rgba(255,255,255,.075) 100%);
+  --lg-fill-strong:linear-gradient(158deg,rgba(255,255,255,.215) 0%,rgba(255,255,255,.085) 55%,rgba(255,255,255,.13) 100%);
+  --lg-inner:inset 0 1px 0 rgba(255,255,255,.18),inset 0 -1px 0 rgba(0,0,0,.32);
+  --lg-depth:0 1px 1px rgba(0,0,0,.30),0 16px 40px -16px rgba(0,0,0,.62);
+  --lg-depth-sm:0 1px 1px rgba(0,0,0,.26),0 10px 24px -14px rgba(0,0,0,.55);
+  --lg-blur:blur(20px) saturate(1.45);
+}
+
+/* 背景：加一层低对比的"光带"，让玻璃边缘有可折射的明暗 */
+.bg-water{
+  background:
+    radial-gradient(58% 42% at 18% 8%, rgba(58,120,138,.42) 0%, transparent 64%),
+    radial-gradient(52% 44% at 88% 18%, rgba(44,64,104,.40) 0%, transparent 66%),
+    radial-gradient(70% 46% at 62% 52%, rgba(26,52,64,.34) 0%, transparent 70%),
+    radial-gradient(80% 60% at 42% 100%, rgba(18,44,54,.62) 0%, transparent 72%),
+    linear-gradient(164deg,#04070a 0%,#091219 40%,#070d12 66%,#03060a 100%);
+}
+.bg-shimmer{
+  background:
+    linear-gradient(102deg,rgba(160,220,235,0) 38%,rgba(178,232,244,.075) 48%,rgba(160,220,235,0) 58%),
+    radial-gradient(38% 24% at 28% 34%, rgba(150,210,225,.12) 0%, transparent 72%),
+    radial-gradient(32% 20% at 74% 60%, rgba(214,186,146,.085) 0%, transparent 74%);
+  animation:drift 42s ease-in-out infinite alternate, sheen 26s ease-in-out infinite;
+}
+@keyframes sheen{
+  0%{background-position:-30% 0,0 0,0 0}
+  50%{background-position:130% 0,0 0,0 0}
+  100%{background-position:-30% 0,0 0,0 0}
+}
+@media (prefers-reduced-motion:reduce){ .bg-shimmer{animation:none} }
+
+/* 卡片：轻填充 + 双缘 + 双层投影 */
+.card{
+  background:var(--lg-fill);
+  border:1px solid var(--lg-stroke);
+  box-shadow:var(--lg-inner),var(--lg-depth);
+  -webkit-backdrop-filter:var(--lg-blur);backdrop-filter:var(--lg-blur);
+  transition:transform .18s cubic-bezier(.2,.8,.3,1), box-shadow .22s;
+}
+.card:active{transform:scale(.988)}
+
+/* 气泡 */
+.bubble{
+  background:var(--lg-fill);
+  border:1px solid rgba(255,255,255,.085);
+  box-shadow:var(--lg-inner),var(--lg-depth-sm);
+  -webkit-backdrop-filter:var(--lg-blur);backdrop-filter:var(--lg-blur);
+}
+.turn.user .bubble{
+  background:var(--lg-fill-strong);
+  border-color:rgba(255,255,255,.14);
+  box-shadow:var(--lg-inner),var(--lg-depth-sm);
+}
+.bubble.narration{background:none;border:none;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none}
+.turn.ai .bubble{max-width:88%}
+
+/* 输入条：整块玻璃，内部输入区不再单独加底 */
+.composer-inner{
+  background:var(--lg-fill);
+  border:1px solid rgba(255,255,255,.12);
+  box-shadow:var(--lg-inner),0 1px 1px rgba(0,0,0,.3),0 22px 48px -20px rgba(0,0,0,.7);
+  -webkit-backdrop-filter:blur(26px) saturate(1.5);backdrop-filter:blur(26px) saturate(1.5);
+}
+
+/* 底栏 */
+.tabbar{
+  background:linear-gradient(180deg,rgba(12,17,21,.42) 0%,rgba(6,9,12,.72) 100%);
+  border-top:1px solid rgba(255,255,255,.075);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06);
+  -webkit-backdrop-filter:blur(28px) saturate(1.5);backdrop-filter:blur(28px) saturate(1.5);
+}
+
+/* chip / 小标签 */
+.chip{
+  background:rgba(255,255,255,.055);
+  border:1px solid rgba(255,255,255,.09);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 1px 1px rgba(0,0,0,.25);
+  -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+}
+.chip.on{background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.16);box-shadow:inset 0 1px 0 rgba(255,255,255,.22)}
+
+/* 弹层 */
+.sheet,.editbox,.selbar{
+  background:linear-gradient(180deg,rgba(22,27,33,.86) 0%,rgba(12,16,20,.94) 100%);
+  border:1px solid rgba(255,255,255,.10);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 -1px 0 rgba(0,0,0,.4),0 -24px 60px rgba(0,0,0,.55);
+  -webkit-backdrop-filter:blur(30px) saturate(1.4);backdrop-filter:blur(30px) saturate(1.4);
+}
+
+
+/* ---------- 备份卡片：从"虚线占位"变成真正的玻璃卡 ---------- */
+.mem-bak{
+  margin:2px 16px 14px;padding:14px 15px 12px;border-radius:16px;
+  background:linear-gradient(158deg,rgba(255,255,255,.075),rgba(255,255,255,.028) 60%,rgba(255,255,255,.05));
+  border:1px solid rgba(255,255,255,.085);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 12px 30px -18px rgba(0,0,0,.7);
+}
+.mem-bak #memBakLast{font-size:11.5px;color:var(--dim);letter-spacing:.02em;line-height:1.6;border-left:0;padding-left:0;margin-top:1px}
+.mem-bak .bak-row{display:flex;gap:8px;margin:11px 0 2px}
+.mem-bak .mem-addbtn{
+  flex:1;margin:0;border-style:solid;border-color:rgba(255,255,255,.12);
+  background:rgba(255,255,255,.055);color:rgba(255,255,255,.82);font-size:12.5px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.14);
+}
+.mem-bak .mem-addbtn:active{background:rgba(255,255,255,.10)}
+.mem-bak .mem-addbtn.ghost{background:transparent;color:rgba(255,255,255,.55)}
+#memBakList{margin-top:6px}
+#memBakList .bak-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 0;border-top:1px solid rgba(255,255,255,.055);font-size:11.5px;color:var(--faint)}
+
+.conn-sub{font-size:11.5px;color:rgba(255,255,255,.40);line-height:1.7;margin:2px 0 12px}
+.conn-hint{min-height:16px;font-size:11px;color:#e9a0a0;margin:2px 0 4px;letter-spacing:.01em}
 </style>
 </head>
 <body>
@@ -1323,7 +1444,7 @@ body.selecting .toast{bottom:150px}
         <div class="mem-wrap">
           <div class="mem-head">
             <div class="mem-kicker">
-              <span class="num">[ 02 ]</span><span>Memory</span><span class="r" id="memDaysTop">第 91 天</span>
+              <span class="num">[ 02 ]</span><span>Memory</span><span class="r" id="memDaysTop">—</span>
             </div>
             <h1 class="mem-h1">记忆库</h1>
             <div class="mem-sub" id="memSub">换窗口、换客户端，还是同一份记忆。</div>
@@ -1332,15 +1453,15 @@ body.selecting .toast{bottom:150px}
           <div class="mem-conn">
             <span class="dot" id="memConnDot"></span>
             <span id="memConnTxt">本地模式</span>
-            <button class="mem-conn-btn" onclick="memConnOpen()">连接</button>
+            <button class="mem-conn-btn" onclick="connOpen()">连接</button>
           </div>
 
           <div class="mem-sec">备份 · 数据目录/backups</div>
           <div class="mem-bak">
             <div id="memBakLast" class="mem-sub">未读取</div>
-            <div style="display:flex;gap:8px;margin:8px 0">
-              <button class="mem-addbtn" style="flex:1;margin:0" onclick="bakNow()">立即备份</button>
-              <button class="mem-addbtn" style="flex:1;margin:0;background:transparent;color:var(--fg)" onclick="bakList()">刷新</button>
+            <div class="bak-row">
+              <button class="mem-addbtn" onclick="bakNow()">立即备份</button>
+              <button class="mem-addbtn ghost" onclick="bakList()">刷新</button>
             </div>
             <div id="memBakList"></div>
           </div>
@@ -1664,6 +1785,19 @@ body.selecting .toast{bottom:150px}
     </div>
   </div>
 
+  <div class="sheet-mask" id="connMask" onclick="connClose()"></div>
+  <div class="sheet" id="connSheet" style="padding-bottom:calc(18px + env(safe-area-inset-bottom))">
+    <div class="handle"></div>
+    <div style="padding:2px 22px 0">
+      <div class="mem-sheet-t">连接共享记忆</div>
+      <div class="conn-sub">同一个服务、同一个 token，手机和电脑看到的就是同一份记忆。</div>
+      <input id="connBase" class="mem-sheet-input" placeholder="http://127.0.0.1:8765" autocomplete="off" spellcheck="false">
+      <textarea id="connTok" class="mem-sheet-area" placeholder="token（数据目录里 token 文件的内容）" spellcheck="false" style="height:82px"></textarea>
+      <div class="conn-hint" id="connHint"></div>
+      <div class="mem-sheet-acts"><button onclick="connClose()">取消</button><button class="acc" onclick="connSave()">连接</button></div>
+    </div>
+  </div>
+
   <div class="sheet-mask" id="memAddMask" onclick="memAddClose()"></div>
   <div class="sheet" id="memAddSheet" style="padding-bottom:calc(18px + env(safe-area-inset-bottom))">
     <div class="handle"></div>
@@ -1803,6 +1937,7 @@ function boot(){
   if (window.memBoot) memBoot();
   if (window.memLatentBoot) memLatentBoot();
   renderBrainPane();
+  paintBrainStats();
   initApi();
   const target = new URLSearchParams(location.search).get('s');
   if (typeof renderStagePane === 'function') renderStagePane();
@@ -1825,7 +1960,7 @@ function switchTab(name){
   document.getElementById('screen-' + name).classList.add('active');
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
   document.getElementById('app').classList.remove('chat-open');
-  if (name === 'memory') { renderBrainList(); renderBrainPane(); }
+  if (name === 'memory') { renderBrainList(); renderBrainPane(); paintBrainStats(); bakAuto(); }
   window.scrollTo(0,0);
 }
 
@@ -2161,11 +2296,22 @@ const ICONS = {
 };
 
 /* ---------- 备份 ---------- */
-function bakBase(){ return /^https?:/.test(location.origin) ? location.origin : 'http://127.0.0.1:8765'; }
+function bakBase(){
+  /* 跟 mem-latent 用同一个地址：页面可能由 18080 或局域网地址提供，
+     记忆服务却始终在 8765（或在「连接」里手工填过别的地址）。 */
+  try { const b = localStorage.getItem('daddy.latent.base'); if (b) return String(b).replace(/\/+$/, ''); } catch (e) {}
+  return /^https?:/.test(location.origin) ? location.origin : 'http://127.0.0.1:8765';
+}
 function bakWhen(ts){
   const d = new Date(ts);
   const p = function(n){ return String(n).padStart(2,'0'); };
   return (d.getMonth()+1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+}
+function bakAuto(){
+  const last = document.getElementById('memBakLast');
+  const t = (typeof latentToken === 'function') ? latentToken() : '';
+  if (!t){ if (last) last.textContent = '未配对 · 点「连接」粘贴 token，或打开带 #t= 的链接'; return; }
+  bakList();
 }
 async function bakList(){
   const last = document.getElementById('memBakLast'), box = document.getElementById('memBakList');
@@ -2178,7 +2324,7 @@ async function bakList(){
       ? ('最近 ' + bakWhen(items[0].ts) + ' · ' + (items[0].size / 1048576).toFixed(1) + ' MB · 共 ' + items.length + ' 份 / 保留 ' + (j.keep || 14))
       : '还没有备份';
     if (box) box.innerHTML = items.slice(0, 6).map(function(it){
-      return '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:4px 0">'
+      return '<div class="bak-item">'
         + '<span class="mem-sub" style="margin:0">' + esc(bakWhen(it.ts)) + ' · ' + (it.size/1048576).toFixed(1) + ' MB</span>'
         + '<button class="mem-add" onclick="bakDownload(\'' + esc(it.name) + '\')">下载</button></div>';
     }).join('');
@@ -2340,16 +2486,21 @@ function copyTurn(i){
 }
 
 async function regen(i){
+  const cur = state.chat.msgs[i];
   if (!cfg.key){ toast('先去设置里填 Key'); return; }
+  if (!cur || cur.role !== 'ai'){ toast('只能重新生成他的回复'); return; }
+  if (state.chat.msgs.some(function(m){ return m.pending; })){ toast('等他说完这句'); return; }
   const btn = document.getElementById('regen' + i);
   if (btn) btn.classList.add('spin');
+  /* 重说失败时不能把她原本那条回复弄丢：先留底，失败原样放回并加错误标记 */
+  const prev = Object.assign({}, cur);
   state.chat.msgs[i] = { role:'ai', text:'', time: nowTime(), date: dayKey(), pending:true, ts: Date.now() };
   renderChat();
   try {
     await streamReply(i);
     toast('已重新生成');
   } catch (e) {
-    state.chat.msgs[i] = { role:'ai', text:'', error: niceErr(e), time: nowTime() };
+    state.chat.msgs[i] = Object.assign({}, prev, { error: niceErr(e), time: prev.time || nowTime() });
     renderChat();
   }
 }
@@ -4260,7 +4411,12 @@ async function streamOnce(aiIdx, modelId, messages, tools, hasFallback){
     const body = await r.text();
     clearTimeout(wd);
     if (r.status === 401){
-      const e401 = new Error('记忆服务需要配对：打开 http://127.0.0.1:8765/#t=<token>，或在记忆页点「连接」粘贴 token 文件内容');
+      /* 两种 401 会走到这里：本地记忆服务没配对（proxy 自己返回），或上游模型 Key 无效（原样透传）。
+         用响应体区分，避免把"Key 过期"误报成"记忆服务需要配对"。 */
+      const pairing = /"hint"\s*:/.test(body) || /token/.test(body) && /记忆|latent/i.test(body);
+      const e401 = new Error(pairing
+        ? '记忆服务需要配对：打开 http://127.0.0.1:8765/#t=<token>，或在记忆页点「连接」粘贴 token 文件内容'
+        : '模型 Key 无效或已过期（HTTP 401）：去设置里检查 API Key');
       e401.status = 401;
       throw e401;
     }
@@ -4444,17 +4600,28 @@ function ttoggle(ev){
   if (el) el.classList.toggle('open');
 }
 
+const TOOL_CN = { recall:'查记忆', remember:'记下来', forget:'忘掉', resolve:'归档', update_state:'更新状态', thread_close:'收线索', state:'状态', unresolved:'未解决' };
+/* 给她看的是"他刚才想起了什么"，不是 JSON。原始参数只留在展开的详情里。 */
+function toolArg(t){
+  const raw = t && (t.args != null ? t.args : t.arguments);
+  let a = raw;
+  if (typeof raw === 'string'){ try { a = JSON.parse(raw); } catch (e) { a = null; } }
+  if (!a || typeof a !== 'object') return String(raw == null ? '' : raw).replace(/[{}\[\]"]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 44);
+  const pick = [a.q, a.query, a.text, a.current_state, a.fact, a.topic, a.summary].filter(function(v){ return typeof v === 'string' && v.trim(); })[0] || '';
+  return String(pick).replace(/\s+/g, ' ').trim().slice(0, 44);
+}
 function toolsHTML(m){
   const list = m.tools;
   if (!list || !list.length) return '';
   return '<div class="tools">' + list.map(function(t){
     const running = t.state === 'running';
+    const arg = toolArg(t);
     return '<div class="titem">'
       + '<div class="tool" onclick="ttoggle(event)">'
       + '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v2.6M12 18.6v2.6M2.8 12h2.6M18.6 12h2.6M5.5 5.5l1.8 1.8M16.7 16.7l1.8 1.8M18.5 5.5l-1.8 1.8M7.3 16.7l-1.8 1.8"/></svg>'
-      + '<span class="tn">' + esc(t.name) + '</span>'
-      + (t.args ? '<span class="ta">' + esc(clip(t.args, 52)) + '</span>' : '')
-      + '<span class="ts">' + (running ? '执行中' : '›') + '</span>'
+      + '<span class="tn">' + esc(TOOL_CN[t.name] || t.name) + '</span>'
+      + (arg ? '<span class="ta">' + esc(arg) + '</span>' : '')
+      + '<span class="ts">' + (running ? '进行中' : '›') + '</span>'
       + '</div>'
       + (t.result ? '<div class="tres">' + esc(String(t.result).slice(0, 1200)) + '</div>' : '')
       + '</div>';
@@ -4630,7 +4797,8 @@ function openSheet(i){
 function deleteMsg(i){
   closeSheet();
   if (i < 0 || i >= state.chat.msgs.length) return;
-  if (state.chat.msgs[i].pending){ toast('还在生成，等它说完'); return; }
+  /* 生成中删任何一条都会让流式回填错位，干脆等这一轮结束 */
+  if (state.chat.msgs.some(function(m){ return m.pending; })){ toast('还在生成，等它说完'); return; }
   state.chat.msgs.splice(i, 1);
   renderChat();
   toast('已删除');
@@ -4663,6 +4831,7 @@ function closeEditor(){
 }
 
 function saveEdit(){
+  if (state.chat.msgs.some(function(m){ return m.pending; })){ toast('还在生成，等它说完再改'); return closeEditor(); }
   const m = state.chat.msgs[editIdx];
   const v = document.getElementById('editArea').value;
   if (!m) return closeEditor();
@@ -4876,6 +5045,41 @@ function clearChat(){
   renderChat();
   closePersona();
   toast('已清空对话');
+}
+
+
+/* ---------- 连接共享记忆：不再用两个 prompt 打断她 ---------- */
+function connHint(t){ const el = document.getElementById('connHint'); if (el) el.textContent = t || ''; }
+function connOpen(){
+  const b = document.getElementById('connBase');
+  const t = document.getElementById('connTok');
+  let base = '';
+  try { base = localStorage.getItem('daddy.latent.base') || ''; } catch (e) {}
+  if (!base) base = /^https?:$/.test(location.protocol) ? location.origin : 'http://127.0.0.1:8765';
+  if (b) b.value = base;
+  if (t) t.value = (typeof latentToken === 'function' ? latentToken() : '') || '';
+  connHint('');
+  document.getElementById('connMask').classList.add('on');
+  document.getElementById('connSheet').classList.add('on');
+}
+function connClose(){
+  document.getElementById('connMask').classList.remove('on');
+  document.getElementById('connSheet').classList.remove('on');
+}
+function connSave(){
+  const b = document.getElementById('connBase');
+  const t = document.getElementById('connTok');
+  const base = String((b && b.value) || '').trim().replace(/\/+$/, '');
+  const tok = String((t && t.value) || '').trim();
+  if (!/^https?:\/\/[^\s]+$/.test(base)){ connHint('地址要以 http:// 或 https:// 开头，例如 http://192.168.1.20:8765'); return; }
+  try { localStorage.setItem('daddy.latent.base', base); } catch (e) {}
+  if (typeof latentSetToken === 'function') latentSetToken(tok);
+  connClose();
+  const txt = document.getElementById('memConnTxt');
+  if (txt) txt.textContent = '连接中…';
+  if (window.memLatentBoot){ try { window.memLatentBoot(); } catch (e) {} }
+  setTimeout(function(){ bakAuto(); }, 800);
+  toast('已连接 · 正在同步记忆');
 }
 
 function memThreadClosePrompt(){
