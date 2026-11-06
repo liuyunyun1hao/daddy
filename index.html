@@ -1866,8 +1866,25 @@ const DEFAULT_START = new Date(2026, 7, 4); // 2026.08.04
 
 /* 无开场：新对话从空白开始 */
 
+const STAGE_CHAT_KEY = 'daddy.stages.v1';
+function stageChatsLoad(){
+  try { const o = JSON.parse(localStorage.getItem(STAGE_CHAT_KEY) || '{}'); return (o && typeof o === 'object') ? o : {}; }
+  catch (e) { return {}; }
+}
+function stageChatsSave(o){ try { localStorage.setItem(STAGE_CHAT_KEY, JSON.stringify(o)); } catch (e) {} }
+/* 剧场不是"看完就烧掉"的：按 stageId 存最近 12 场，每场保留最后 200 条，
+   退出去再进来能接着上次那一幕；主线存档始终独立。 */
+function saveStageChat(){
+  const id = state.chat && state.chat.stageId;
+  if (!id) return;
+  const all = stageChatsLoad();
+  all[id] = { name: state.chat.name, msgs: (state.chat.msgs || []).slice(-200), updatedAt: Date.now() };
+  const keys = Object.keys(all).sort(function(a, b){ return (all[b].updatedAt || 0) - (all[a].updatedAt || 0); });
+  keys.slice(12).forEach(function(k){ delete all[k]; });
+  stageChatsSave(all);
+}
 function saveMsgs(){
-  if (state.chat.watch) return;
+  if (state.chat.watch){ saveStageChat(); return; }
   if (!state.chat.msgs.length) return;
   const MAX = 1200;
   if (state.chat.msgs.length > MAX){
@@ -1981,14 +1998,18 @@ function exitWatch(){
 }
 
 function openStage(name, desc, scene, opening, stageId){
+  const sid = stageId ? String(stageId).slice(0, 48) : ('by-' + String(name || 'scene').replace(/\s+/g, '').slice(0, 16));
+  const prev = stageChatsLoad()[sid];
+  const resumable = prev && Array.isArray(prev.msgs) && prev.msgs.length;
   state.chat = {
-    name, sub:'剧场 · 第 1 幕', scene, watch:true, stageDesc: desc || '',
-    scope: stageId ? 'stage:' + String(stageId).slice(0, 48) : 'stage',
-    msgs: opening
+    name, sub:'剧场 · 第 1 幕', scene, watch:true, stageDesc: desc || '', stageId: sid,
+    scope: 'stage:' + sid,
+    msgs: resumable ? prev.msgs : (opening
       ? [{ role:'ai', text: opening, time:'刚刚', date: dayKey() }]
-      : [{ role:'ai', time:'刚刚', date: dayKey(), narration: desc + '他抬眼看你，没有说话。', lines:['过来。'] }]
+      : [{ role:'ai', time:'刚刚', date: dayKey(), narration: desc + '他抬眼看你，没有说话。', lines:['过来。'] }])
   };
   enterChat();
+  if (resumable) toast('接着上次那一幕');
   saveMsgs();
 }
 
@@ -3501,11 +3522,17 @@ const TOOL_PROMPT = [
 ].join('\n');
 
 const SUMMARY_KEY = 'daddy.summary.v1';
-function summaryLoad(){
-  try { return JSON.parse(localStorage.getItem(SUMMARY_KEY) || 'null') || { text:'', upto:0 }; }
+/* 摘要必须跟着作用域走：剧场聊 20 轮不能把主线的摘要冲掉。
+   主线沿用老键名，旧数据不用迁移。 */
+function summaryKey(scope){
+  const sc = scope || (typeof currentScope === 'function' ? currentScope() : 'main');
+  return (!sc || sc === 'main') ? SUMMARY_KEY : SUMMARY_KEY + ':' + sc;
+}
+function summaryLoad(scope){
+  try { return JSON.parse(localStorage.getItem(summaryKey(scope)) || 'null') || { text:'', upto:0 }; }
   catch (e) { return { text:'', upto:0 }; }
 }
-function summarySave(o){ try { localStorage.setItem(SUMMARY_KEY, JSON.stringify(o)); } catch (e) {} }
+function summarySave(o, scope){ try { localStorage.setItem(summaryKey(scope), JSON.stringify(o)); } catch (e) {} }
 let SUMMARIZING = false;
 
 async function chatOnce(messages, maxTokens, noThink){
@@ -3525,7 +3552,8 @@ async function chatOnce(messages, maxTokens, noThink){
 async function maybeSummarize(){
   if (SUMMARIZING || !cfg.summaryOn || !cfg.key) return;
   const every = Number(cfg.summaryEvery) || 20;
-  const s = summaryLoad();
+  const sc = currentScope();
+  const s = summaryLoad(sc);
   const all = state.chat.msgs.filter(function(m){ return m.role !== 'sys' && !m.pending && (m.text || m.lines); });
   let from = 0;
   if (s.uptoAt){
@@ -3564,7 +3592,7 @@ async function maybeSummarize(){
     const last = slice[slice.length - 1] || {};
     const upto = from + slice.length;
     const uptoAt = last.ts || Date.now();
-    if (text) summarySave({ text: text, upto: upto, uptoAt: uptoAt, at: Date.now() });
+    if (text) summarySave({ text: text, upto: upto, uptoAt: uptoAt, at: Date.now() }, sc);
     const stateText = String(j.state || '').replace(/\s+/g, ' ').trim().slice(0, 400);
     if (stateText && window.memLatentSetState) {
       try { window.memLatentSetState(currentScope(), stateText); } catch (e) {}
@@ -4194,7 +4222,7 @@ function buildMessages(upTo){
   const blocks = [];
   const wsText = (window.memLatentWorkingState ? window.memLatentWorkingState(currentScope()) : '');
   if (wsText) blocks.push({ k:'working', text:'\n\n[WHERE YOU ARE NOW — your own working memory of this scene. This is where the two of you are right now; keep it true, let it colour the scene, never recite it.]\n' + wsText });
-  const smText = summaryLoad().text;
+  const smText = summaryLoad(currentScope()).text;
   if (smText) blocks.push({ k:'summary', text:'\n\n[EARLIER, BEFORE THIS WINDOW — your own note to yourself. You already know this. Do not re-ask it, do not recap it, just let it be true.]\n' + smText });
   if (RECALL) blocks.push({ k:'recall', text:'\n\n[WHAT YOU REMEMBER RIGHT NOW — these are your own memories and your current inner state. Let them colour how you answer. Never list them, never quote them as data, never say "I remember that...".]\n' + RECALL });
   if (cfg.brainOn){ const bb = brainOpenBlock(); if (bb) blocks.push({ k:'brain', text:bb }); }
