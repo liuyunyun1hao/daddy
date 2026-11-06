@@ -1452,7 +1452,10 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_response(302)
                 self.send_header("Set-Cookie",
                                  "latent_token=%s; Path=/; Max-Age=31536000; SameSite=Lax; HttpOnly" % TOKEN)
-                self.send_header("Location", p or "/")
+                # 跳到带 #t= 的干净地址：hash 不发给服务端，但页面脚本能读到它并把 token
+                # 存进 localStorage。只靠 cookie 的话，脚本永远不知道 token，换浏览器/
+                # 清缓存后就会变成"已连接但备份 401"。
+                self.send_header("Location", (p or "/") + "#t=" + TOKEN)
                 self.send_header("Content-Length", "0")
                 self.end_headers()
                 return
