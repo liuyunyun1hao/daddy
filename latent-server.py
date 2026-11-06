@@ -1774,6 +1774,12 @@ def main():
         TOKEN, token_new = read_or_create_token()
     if a.static:
         STATIC_DIR = Path(a.static).resolve()
+    else:
+        # 不带 --static 直接运行时，默认把脚本所在目录当站点根（index.html 在那儿就成立），
+        # 否则手敲 `python3 latent-server.py --port 8765` 会得到一个连首页都 404 的服务。
+        cand = Path(__file__).resolve().parent
+        if (cand / "index.html").is_file():
+            STATIC_DIR = cand
     PROXY_BASE = a.proxy
     if a.lan:
         a.host = "0.0.0.0"
