@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#05080a">
+<link rel="icon" href="icon-192.png" type="image/png">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -325,9 +326,9 @@ body.selecting .turn.on .bubble{outline:1px solid rgba(127,214,232,.4);outline-o
   position:absolute;left:12px;right:12px;bottom:12px;z-index:96;transform:translateY(115%);
   background:rgba(22,27,33,.98);border:1px solid rgba(255,255,255,.1);border-radius:22px;
   padding:8px 14px 14px;transition:transform .3s cubic-bezier(.2,.8,.3,1);backdrop-filter:blur(20px);
-  box-shadow:0 18px 50px rgba(0,0,0,.6);
+  box-shadow:0 18px 50px rgba(0,0,0,.6);pointer-events:none;visibility:hidden;
 }
-.editbox.on{transform:none}
+.editbox.on{transform:none;pointer-events:auto;visibility:visible}
 .editbox .ehandle{width:34px;height:4px;border-radius:4px;background:rgba(255,255,255,.2);margin:4px auto 12px}
 .editbox .etitle{font-size:12px;letter-spacing:.14em;color:rgba(255,255,255,.42);margin:0 4px 10px}
 .editbox textarea{
@@ -1029,6 +1030,16 @@ body.selecting .toast{bottom:150px}
 #screen-memory .mem-empty{padding:46px 18px}
 #screen-memory .mem-empty b{display:block;font-family:var(--serif);font-size:17px;font-weight:400;color:rgba(255,255,255,.32);text-align:center}
 #screen-memory .mem-empty span{display:block;margin-top:9px;font-size:11px;letter-spacing:.04em;color:rgba(255,255,255,.2);line-height:1.9;text-align:center}
+#screen-memory .brain-card{border-bottom:1px solid rgba(255,255,255,.06);padding:12px 0}
+#screen-memory .brain-card summary{list-style:none;cursor:pointer;display:flex;gap:8px;align-items:baseline;font-size:14px;line-height:1.7;color:rgba(255,255,255,.86)}
+#screen-memory .brain-card summary::-webkit-details-marker{display:none}
+#screen-memory .brain-card summary .d{font-size:10px;color:rgba(255,255,255,.4);font-variant-numeric:tabular-nums;white-space:nowrap}
+#screen-memory .brain-card summary .st{font-size:9px;border:1px solid rgba(255,255,255,.12);border-radius:3px;padding:1px 5px;color:rgba(255,255,255,.4);white-space:nowrap}
+#screen-memory .brain-card .bt{margin:8px 0 0;font-size:13.5px;line-height:1.9;color:rgba(255,255,255,.72)}
+#screen-memory .brain-card .bm{margin:6px 0 0;font-size:9px;letter-spacing:.1em;color:rgba(255,255,255,.22)}
+#screen-memory .brain-card .ba{display:flex;gap:10px;margin-top:8px}
+#screen-memory .brain-card .ba button{background:none;border:1px solid rgba(255,255,255,.12);border-radius:7px;color:rgba(255,255,255,.5);font-size:11px;padding:4px 10px;font-family:var(--sans)}
+#screen-memory .brain-card.dim{opacity:.55}
 /* detail */
 #screen-memory .mem-detail{position:absolute;inset:0;z-index:74;display:flex;flex-direction:column;background:rgba(8,11,13,.96);-webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);transform:translateX(100%);opacity:0;pointer-events:none;transition:transform .32s cubic-bezier(.25,.8,.3,1),opacity .2s}
 #screen-memory .mem-detail.on{transform:none;opacity:1;pointer-events:auto}
@@ -1211,6 +1222,9 @@ body.selecting .toast{bottom:150px}
           <div class="name" id="chatName">Daddy</div>
           <div class="sub" id="chatSub"><span class="live-dot"></span>始终在线 · 记得你的一切</div>
         </div>
+        <button class="icon-btn" id="exitWatchBtn" style="display:none" title="退出剧场" onclick="exitWatch()">
+          <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
         <button class="icon-btn" onclick="openPersona()">
           <svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.2" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.2" fill="currentColor" stroke="none"/></svg>
         </button>
@@ -1272,7 +1286,7 @@ body.selecting .toast{bottom:150px}
         <div class="stg-pane on" id="pane-play">
           <div class="notice">
             <svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="2.6"/></svg>
-            他会读到你在剧场里的一切，并在合适的时候提起
+            剧场里的记忆单独存放，只在这个场景里被读到
           </div>
           <div class="stage-grid" id="stageGrid"></div>
           <div class="group-label folded" onclick="foldSec(this)"><span class="lt">旁白风格</span><span class="fv" id="foldNarrV">克制</span><svg class="fa" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></div>
@@ -1321,6 +1335,16 @@ body.selecting .toast{bottom:150px}
             <button class="mem-conn-btn" onclick="memConnOpen()">连接</button>
           </div>
 
+          <div class="mem-sec">备份 · 数据目录/backups</div>
+          <div class="mem-bak">
+            <div id="memBakLast" class="mem-sub">未读取</div>
+            <div style="display:flex;gap:8px;margin:8px 0">
+              <button class="mem-addbtn" style="flex:1;margin:0" onclick="bakNow()">立即备份</button>
+              <button class="mem-addbtn" style="flex:1;margin:0;background:transparent;color:var(--fg)" onclick="bakList()">刷新</button>
+            </div>
+            <div id="memBakList"></div>
+          </div>
+
           <div class="mem-tabs">
             <button class="mem-tab on" data-tab="memory" onclick="memTab('memory')">记忆</button>
             <button class="mem-tab" data-tab="unresolved" onclick="memTab('unresolved')">未解决</button>
@@ -1329,11 +1353,14 @@ body.selecting .toast{bottom:150px}
           </div>
 
           <div class="mem-pane" id="pane-memory">
+            <div class="mem-sec">本机缓存 · 共享记忆的本地副本</div>
+            <div id="brainPane"></div>
+            <div class="mem-sec">共享记忆 · Latent</div>
             <div class="mem-search">
               <input id="memQ" placeholder="查一个人、一个地方、一件事" onkeydown="if(event.key==='Enter')memSearch()">
               <button onclick="memSearch()">查</button>
             </div>
-            <button class="mem-addbtn" onclick="memAddOpen()">+ 记一件事</button>
+            <button class="mem-addbtn" onclick="memAddOpen()">+ 记进共享记忆</button>
             <div id="memList"></div>
           </div>
 
@@ -1342,6 +1369,9 @@ body.selecting .toast{bottom:150px}
           </div>
 
           <div class="mem-pane" id="pane-threads" hidden>
+            <div style="display:flex;justify-content:flex-end;margin-bottom:8px">
+              <button class="mem-add" onclick="memThreadClosePrompt()">结束这段</button>
+            </div>
             <div id="memThreads"></div>
           </div>
 
@@ -1393,6 +1423,13 @@ body.selecting .toast{bottom:150px}
             <span class="k">测试接口</span>
             <span class="v" id="apiTest">点一下 ›</span>
           </div>
+        </div>
+
+        <div class="group-label folded" onclick="foldSec(this)"><span class="lt">记忆与工具</span><span class="fv" id="foldMemV">3 项开启</span><svg class="fa" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></div>
+        <div class="group">
+          <div class="row"><span class="k">记忆召回</span><span class="switch on" id="brainOn" onclick="toggleMem('brainOn',this)"></span></div>
+          <div class="row"><span class="k">工具调用</span><span class="switch on" id="toolsOn" onclick="toggleMem('toolsOn',this)"></span></div>
+          <div class="row"><span class="k">自动摘要</span><span class="switch on" id="summaryOn" onclick="toggleSummary(this)"></span></div>
         </div>
 
         <div class="group-label folded" onclick="foldSec(this)"><span class="lt">阅读</span><span class="fv" id="foldReadV">14.5px · 行距 1.7</span><svg class="fa" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></div>
@@ -1689,107 +1726,42 @@ body.selecting .toast{bottom:150px}
 <script src="mem-local.js"></script>
 <script src="mem-latent.js"></script>
 <script>
-window.addEventListener('error', e => { document.title = 'ERR: ' + e.message + ' @' + (e.lineno||''); });
+window.addEventListener('error', e => { console.error('[daddy]', e.message, (e.filename||'') + ':' + (e.lineno||'')); });
 /* ================= state ================= */
 const DEFAULT_START = new Date(2026, 7, 4); // 2026.08.04
 
 /* 无开场：新对话从空白开始 */
 
-/* ---------- 服务端存档（桥的 /store，落盘到 Termux） ---------- */
-let STORE_OK = null;
-const _storeTimers = {};
-function storeGet(name){
-  return fetch('/store/' + name, { cache: 'no-store' }).then(function(r){
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    return r.json();
-  }).then(function(j){ STORE_OK = true; return (j && j.found === false) ? null : j; })
-    .catch(function(){ if (STORE_OK === null) STORE_OK = false; return null; });
-}
-function storePut(name, obj, delay){
-  const send = function(){
-    try {
-      fetch('/store/' + name, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(obj)
-      }).then(function(r){ STORE_OK = r.ok; }).catch(function(){ STORE_OK = false; });
-    } catch (e) {}
-  };
-  clearTimeout(_storeTimers[name]);
-  if (delay) _storeTimers[name] = setTimeout(send, delay);
-  else send();
-}
-function storeDel(name){
-  try { fetch('/store/' + name, { method: 'DELETE' }).catch(function(){}); } catch (e) {}
-}
-async function syncFromStore(){
-  const sChat = await storeGet('chat');
-  if (sChat && Object.prototype.toString.call(sChat.msgs) === '[object Array]' && sChat.msgs.length){
-    const local = loadMsgs();
-    const localAt = (local && local.updatedAt) || 0;
-    const srvAt = sChat.updatedAt || 0;
-    if (!local || srvAt > localAt){
-      const clean = sChat.msgs.filter(function(m){ return !m.pending; });
-      try { localStorage.setItem('daddy.chat.v1', JSON.stringify({ name: sChat.name, msgs: clean, updatedAt: srvAt })); } catch (e) {}
-      if (document.getElementById('screen-chat').classList.contains('active')){
-        state.chat.name = sChat.name || state.chat.name;
-        state.chat.msgs = clean;
-        renderChat();
-      }
-    }
-  }
-  const sDiary = await storeGet('diary');
-  if (sDiary && Object.prototype.toString.call(sDiary.items) === '[object Array]' && sDiary.items.length){
-    const localD = diaryLoad();
-    if (!localD.length){
-      try { localStorage.setItem(DIARY_KEY, JSON.stringify(sDiary.items)); } catch (e) {}
-      if (document.getElementById('panel-diary') && document.getElementById('panel-diary').classList.contains('on')) renderDiary();
-    }
-  }
-  const sStage = await storeGet('stage');
-  if (sStage && Object.prototype.toString.call(sStage.items) === '[object Array]' && sStage.items.length){
-    const localS = stageLoad();
-    if (!localS.length){
-      try { localStorage.setItem(STAGE_KEY, JSON.stringify(sStage.items)); } catch (e) {}
-      if (typeof renderStage === 'function') renderStage();
-    }
-  }
-  const sBrain = await storeGet('brain');
-  if (sBrain && Object.prototype.toString.call(sBrain.items) === '[object Array]' && sBrain.items.length){
-    const local = brainLoad();
-    const srvAt = sBrain.updatedAt || 0;
-    if (!local.items.length || srvAt > BRAIN_AT){
-      const byId = {};
-      (local.items || []).forEach(function(x){ byId[x.id] = x; });
-      sBrain.items.forEach(function(x){
-        const cur = byId[x.id];
-        if (!cur) { byId[x.id] = x; return; }
-        if (!cur.vec && x.vec) cur.vec = x.vec;
-      });
-      const items = Object.keys(byId).map(function(k){ return byId[k]; })
-        .sort(function(a, c){ return (a.ts || 0) - (c.ts || 0); });
-      const strip = function(x){ if (!x.vec) return x; const c = Object.assign({}, x); delete c.vec; return c; };
-      BRAIN = { v:1, seq: Math.max(sBrain.seq || 0, local.seq || 0), items: items };
-      BRAIN_AT = srvAt;
-      try { localStorage.setItem(BRAIN_KEY, JSON.stringify({ v:1, seq: BRAIN.seq, items: items.slice(-600).map(strip), updatedAt: srvAt })); } catch (e) {}
-      if (window.memOnSave) memOnSave(BRAIN);
-      if (typeof renderBrainList === 'function') renderBrainList();
-    }
-  }
-  paintStoreState();
-}
-function paintStoreState(){
-  const el = document.getElementById('storeState');
-  if (!el) return;
-  el.textContent = STORE_OK === true ? '已同步 · 存在手机里' : (STORE_OK === false ? '仅本机浏览器' : '检查中…');
-}
-
 function saveMsgs(){
   if (state.chat.watch) return;
   if (!state.chat.msgs.length) return;
+  const MAX = 1200;
+  if (state.chat.msgs.length > MAX){
+    const cut = state.chat.msgs.length - MAX;
+    state.chat.msgs.splice(0, cut);
+    try {
+      const sm = summaryLoad();
+      if (sm && typeof sm.upto === 'number'){
+        sm.upto = Math.max(0, sm.upto - cut);
+        if (sm.upto <= 0) sm.uptoAt = 0;
+        else {
+          const edge = state.chat.msgs[sm.upto - 1];
+          if (edge && edge.ts) sm.uptoAt = edge.ts;
+        }
+        summarySave(sm);
+      }
+    } catch (e) {}
+  }
   const payload = { name: state.chat.name, msgs: state.chat.msgs, updatedAt: Date.now() };
-  try { localStorage.setItem('daddy.chat.v1', JSON.stringify(payload)); } catch (e) {}
-  storePut('chat', payload, 700);
+  try { localStorage.setItem('daddy.chat.v1', JSON.stringify(payload)); }
+  catch (e){
+    try {
+      state.chat.msgs = state.chat.msgs.slice(-400);
+      try { const sm = summaryLoad(); sm.upto = 0; sm.uptoAt = 0; summarySave(sm); } catch (e) {}
+      localStorage.setItem('daddy.chat.v1', JSON.stringify({ name: state.chat.name, msgs: state.chat.msgs, updatedAt: Date.now() }));
+      if (!state._quotaWarned){ state._quotaWarned = true; toast('本地存储满了，已保留最近 400 条'); }
+    } catch (e2) {}
+  }
 }
 function loadMsgs(){
   try {
@@ -1819,6 +1791,7 @@ function boot(){
   const md = document.getElementById('memDays');
   if (md) md.textContent = days;
   initPersona();
+  latentPairFromHash();
   initFolds();
   if (typeof renderStage === 'function') renderStage();
   paintHomeSubs();
@@ -1826,39 +1799,56 @@ function boot(){
   if (savedBoot){ state.chat.name = savedBoot.name || state.chat.name; state.chat.msgs = savedBoot.msgs; }
   state.chat.name = cfg.persona.name || state.chat.name;
   renderChat();
-  syncFromStore();
   if (window.memInitUI) memInitUI();
   if (window.memBoot) memBoot();
   if (window.memLatentBoot) memLatentBoot();
+  renderBrainPane();
   initApi();
   const target = new URLSearchParams(location.search).get('s');
   if (typeof renderStagePane === 'function') renderStagePane();
-  /* Serein 自动同步已停用：记忆页重做中，先不连外部记忆服务。 */
   if (target) switchTab(target);
   if (location.hash === '#persona') openPersona();
 }
 
 /* ================= nav ================= */
+var SCREENS = ['home','chat','stage','memory','settings'];
 function switchTab(name){
-  if (name === 'chat') { openChat(); return; }
+  if (name === 'chat') {
+    state.screen = 'chat';
+    document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === 'chat'));
+    openChat();
+    return;
+  }
+  if (SCREENS.indexOf(name) < 0) name = 'home';
   state.screen = name;
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen-' + name).classList.add('active');
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
   document.getElementById('app').classList.remove('chat-open');
-  if (name === 'memory') renderBrainList();
+  if (name === 'memory') { renderBrainList(); renderBrainPane(); }
   window.scrollTo(0,0);
 }
 
 function openChat(){
+  // 从剧场点「对话」应回到主线；否则消息会继续写进 stage scope，主线反而看不到
+  if (state.chat && state.chat.watch){ exitWatch(); return; }
   const saved = loadMsgs();
-  state.chat = { name: (saved && saved.name) || cfg.persona.name || 'Daddy', sub:'始终在线 · 记得你的一切', scene:'我们的海 · Mare Nostrum', watch:false, msgs: (saved && saved.msgs) || [] };
+  state.chat = { name: (saved && saved.name) || cfg.persona.name || 'Daddy', sub:'始终在线 · 记得你的一切', scene:'我们的海 · Mare Nostrum', watch:false, scope:'main', msgs: (saved && saved.msgs) || [] };
   enterChat();
 }
 
-function openStage(name, desc, scene, opening){
+function exitWatch(){
+  if (!state.chat || !state.chat.watch) return;
+  const saved = loadMsgs();
+  state.chat = { name: (saved && saved.name) || cfg.persona.name || 'Daddy', sub:'始终在线 · 记得你的一切', scene:'我们的海 · Mare Nostrum', watch:false, scope:'main', msgs: (saved && saved.msgs) || [] };
+  enterChat();
+  toast('已退出剧场，回到主线');
+}
+
+function openStage(name, desc, scene, opening, stageId){
   state.chat = {
-    name, sub:'剧场 · 第 1 幕', scene, watch:true,
+    name, sub:'剧场 · 第 1 幕', scene, watch:true, stageDesc: desc || '',
+    scope: stageId ? 'stage:' + String(stageId).slice(0, 48) : 'stage',
     msgs: opening
       ? [{ role:'ai', text: opening, time:'刚刚', date: dayKey() }]
       : [{ role:'ai', time:'刚刚', date: dayKey(), narration: desc + '他抬眼看你，没有说话。', lines:['过来。'] }]
@@ -1885,7 +1875,6 @@ function stageLoad(){
 }
 function stageSave(list){
   try { localStorage.setItem(STAGE_KEY, JSON.stringify(list.slice(-40))); } catch (e) {}
-  storePut('stage', { items: list.slice(-40), updatedAt: Date.now() }, 700);
 }
 function stageAll(){ return STAGE_BUILTIN.concat(stageLoad().map(function(x){ x.custom = true; return x; })); }
 
@@ -1913,7 +1902,6 @@ function presetLoad(){
 let PRESETS = presetLoad();
 function presetSave(){
   try { localStorage.setItem(PRESET_KEY, JSON.stringify(PRESETS)); } catch (e) {}
-  storePut('presets', { data: PRESETS, updatedAt: Date.now() }, 700);
 }
 function presetText(){
   const u = cfg.persona.call || '宝宝';
@@ -2084,7 +2072,7 @@ function renderStage(){
 }
 function openStageCard(id){
   const x = stageAll().filter(function(v){ return v.id === id; })[0];
-  if (x) openStage(x.name, x.desc, x.scene || '剧场', x.opening);
+  if (x) openStage(x.name, x.desc, x.scene || '剧场', x.opening, x.id || ('s-' + String(x.name || '').replace(/\s+/g, '').slice(0, 12)));
 }
 let STAGE_EDIT = null;
 function openStageForm(id){
@@ -2128,6 +2116,8 @@ function saveStageForm(){
 }
 
 function enterChat(){
+  const ew = document.getElementById('exitWatchBtn');
+  if (ew) ew.style.display = state.chat.watch ? '' : 'none';
   document.getElementById('chatName').textContent = state.chat.name;
   paintSub();
   document.getElementById('sceneText').textContent = state.chat.scene;
@@ -2170,6 +2160,57 @@ const ICONS = {
   more:'<svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.7" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.7" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.7" fill="currentColor" stroke="none"/></svg>'
 };
 
+/* ---------- 备份 ---------- */
+function bakBase(){ return /^https?:/.test(location.origin) ? location.origin : 'http://127.0.0.1:8765'; }
+function bakWhen(ts){
+  const d = new Date(ts);
+  const p = function(n){ return String(n).padStart(2,'0'); };
+  return (d.getMonth()+1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+}
+async function bakList(){
+  const last = document.getElementById('memBakLast'), box = document.getElementById('memBakList');
+  try {
+    const r = await fetch(bakBase() + '/memory/backups', { headers: authHeaders({}) });
+    if (r.status === 401) throw new Error('unauthorized');
+    const j = await r.json();
+    const items = (j && j.items) || [];
+    if (last) last.textContent = items.length
+      ? ('最近 ' + bakWhen(items[0].ts) + ' · ' + (items[0].size / 1048576).toFixed(1) + ' MB · 共 ' + items.length + ' 份 / 保留 ' + (j.keep || 14))
+      : '还没有备份';
+    if (box) box.innerHTML = items.slice(0, 6).map(function(it){
+      return '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:4px 0">'
+        + '<span class="mem-sub" style="margin:0">' + esc(bakWhen(it.ts)) + ' · ' + (it.size/1048576).toFixed(1) + ' MB</span>'
+        + '<button class="mem-add" onclick="bakDownload(\'' + esc(it.name) + '\')">下载</button></div>';
+    }).join('');
+  } catch (e) {
+    if (last) last.textContent = /unauthorized/.test(e.message) ? '需要先配对：打开带 #t= 的链接' : ('读不到备份 · ' + e.message);
+    if (box) box.innerHTML = '';
+  }
+}
+async function bakNow(){
+  const last = document.getElementById('memBakLast');
+  if (last) last.textContent = '正在备份…';
+  try {
+    const r = await fetch(bakBase() + '/memory/backup', { method:'POST', headers: authHeaders({ 'Content-Type':'application/json' }), body:'{}' });
+    if (!r.ok) throw new Error(r.status === 401 ? '需要先配对' : ('HTTP ' + r.status));
+    await bakList();
+  } catch (e) {
+    if (last) last.textContent = '备份失败 · ' + e.message;
+  }
+}
+async function bakDownload(name){
+  try {
+    const r = await fetch(bakBase() + '/memory/backup?name=' + encodeURIComponent(name), { headers: authHeaders({}) });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const b = await r.blob();
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(b);
+    a.download = name;
+    document.body.appendChild(a); a.click();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+  } catch (e) { toast('下载失败 · ' + e.message); }
+}
+
 function esc(s){
   return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 }
@@ -2197,10 +2238,11 @@ function segHTML(seg, k){
 
 function thinkHTML(m, i){
   if (!m.reasoning) return '';
+  const rs = typeof m.reasoning === 'string' ? m.reasoning : String(m.reasoning);
   const open = m.thinkOpen || m.pending;
   return '<div class="think' + (open ? ' open' : '') + '" onclick="toggleThink(' + i + ',event)">'
-    + '<div class="th">' + ICONS.chev + '<span>思维链</span><span class="tc">' + m.reasoning.length + ' 字</span></div>'
-    + '<div class="tb">' + esc(m.reasoning) + '</div></div>';
+    + '<div class="th">' + ICONS.chev + '<span>思维链</span><span class="tc">' + rs.length + ' 字</span></div>'
+    + '<div class="tb">' + esc(rs) + '</div></div>';
 }
 function toggleThink(i, ev){
   if (ev) ev.stopPropagation();
@@ -2238,7 +2280,7 @@ function renderChat(){
     if (m.role === 'user'){
       t.innerHTML = '<div class="bubble">' + esc(m.text) + '</div>'
         + '<div class="meta">'
-        + (m.time ? '<span class="stamp">' + m.time + '</span>' : '')
+        + (m.time ? '<span class="stamp">' + esc(m.time) + '</span>' : '')
         + '<div class="acts">'
         + '<button class="act" aria-label="复制" onclick="copyTurn(' + i + ')">' + ICONS.copy + '</button>'
         + '<button class="act" aria-label="编辑" onclick="openEditor(' + i + ')">' + ICONS.pencil + '</button>'
@@ -2280,15 +2322,28 @@ function renderChat(){
 function copyTurn(i){
   const m = state.chat.msgs[i];
   const txt = stripTags(msgText(m));
-  if (navigator.clipboard) navigator.clipboard.writeText(txt).catch(()=>{});
-  toast('已复制');
+  const fallback = function(){
+    /* 没有 clipboard API 或权限被拒时，退回老式选中复制，别假装成功 */
+    try {
+      const t = document.createElement('textarea');
+      t.value = txt; t.style.position = 'fixed'; t.style.opacity = '0';
+      document.body.appendChild(t); t.select();
+      const ok = document.execCommand('copy');
+      document.body.removeChild(t);
+      toast(ok ? '已复制' : '复制失败，长按文字手动复制');
+      return ok;
+    } catch (e) { toast('复制失败，长按文字手动复制'); return false; }
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText)
+    navigator.clipboard.writeText(txt).then(function(){ toast('已复制'); }, fallback);
+  else fallback();
 }
 
 async function regen(i){
   if (!cfg.key){ toast('先去设置里填 Key'); return; }
   const btn = document.getElementById('regen' + i);
   if (btn) btn.classList.add('spin');
-  state.chat.msgs[i] = { role:'ai', text:'', time: nowTime(), date: dayKey(), pending:true };
+  state.chat.msgs[i] = { role:'ai', text:'', time: nowTime(), date: dayKey(), pending:true, ts: Date.now() };
   renderChat();
   try {
     await streamReply(i);
@@ -2300,7 +2355,36 @@ async function regen(i){
 }
 
 /* ================= TTS · ElevenLabs ================= */
-const ttsState = { turn:null, audio:null, seq:[], cache:new Map(), token:0 };
+const ttsState = { turn:null, audio:null, seq:[], cache:new Map(), inflight:new Map(), token:0, unlocked:false };
+const TTS_CACHE_MAX = 24;
+
+function ttsCachePut(k, url){
+  if (ttsState.cache.has(k)) ttsState.cache.delete(k);
+  ttsState.cache.set(k, url);
+  while (ttsState.cache.size > TTS_CACHE_MAX){
+    const old = ttsState.cache.keys().next().value;
+    const u = ttsState.cache.get(old);
+    ttsState.cache.delete(old);
+    try { URL.revokeObjectURL(u); } catch (e) {}
+  }
+}
+
+/* iOS/Safari 只在用户手势里允许播放；点击朗读时先解锁一次 AudioContext */
+function unlockAudio(){
+  if (ttsState.unlocked) return;
+  ttsState.unlocked = true;
+  try {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    const ac = new AC();
+    const b = ac.createBuffer(1, 1, 22050);
+    const src = ac.createBufferSource();
+    src.buffer = b;
+    src.connect(ac.destination);
+    src.start(0);
+    setTimeout(function(){ try { ac.close(); } catch (e) {} }, 150);
+  } catch (e) {}
+}
 
 function ttsOpts(){
   return {
@@ -2316,34 +2400,40 @@ async function ttsBlobUrl(text, kind, voice){
   const v = voice || o.voice;
   const ck = v + '|' + o.model + '|' + kind + '|' + text;
   const hit = ttsState.cache.get(ck);
-  if (hit) return hit;
-  // 叙事压低情绪、台词放开一点，听起来才像「他在讲」和「他在对你说」
-  const vs = kind === 'narr'
-    ? { stability:0.62, similarity_boost:0.72, style:0.10, use_speaker_boost:true }
-    : { stability:0.40, similarity_boost:0.82, style:0.36, use_speaker_boost:true };
-  const url = o.base + '/text-to-speech/' + encodeURIComponent(v) + '?output_format=mp3_44100_128';
-  const r = await fetch(url, {
-    method:'POST',
-    headers:{ 'xi-api-key': o.key, 'Content-Type':'application/json', 'Accept':'audio/mpeg' },
-    body: JSON.stringify({ text:text, model_id:o.model, voice_settings:vs })
-  });
-  if (!r.ok){
-    let m = 'HTTP ' + r.status;
-    try {
-      const j = await r.json();
-      const d = j && j.detail;
-      m = (d && (d.message || d)) || (j && j.message) || m;
-      if (typeof m !== 'string') m = JSON.stringify(m);
-    } catch (e) {}
-    if (r.status === 401) m = 'Key 无效，或没有 text-to-speech 权限';
-    else if (r.status === 402) m = '额度不足';
-    else if (r.status === 422) m = '音色 ID 不对，或这个模型不支持';
-    throw new Error(m);
-  }
-  const blob = await r.blob();
-  const obj = URL.createObjectURL(blob);
-  ttsState.cache.set(ck, obj);
-  return obj;
+  if (hit){ ttsState.cache.delete(ck); ttsState.cache.set(ck, hit); return hit; }
+  if (ttsState.inflight.has(ck)) return ttsState.inflight.get(ck);
+  const job = (async function(){
+    // 叙事压低情绪、台词放开一点，听起来才像「他在讲」和「他在对你说」
+    const vs = kind === 'narr'
+      ? { stability:0.62, similarity_boost:0.72, style:0.10, use_speaker_boost:true }
+      : { stability:0.40, similarity_boost:0.82, style:0.36, use_speaker_boost:true };
+    const url = o.base + '/text-to-speech/' + encodeURIComponent(v) + '?output_format=mp3_44100_128';
+    const r = await fetch(url, {
+      method:'POST',
+      headers:{ 'xi-api-key': o.key, 'Content-Type':'application/json', 'Accept':'audio/mpeg' },
+      body: JSON.stringify({ text:text, model_id:o.model, voice_settings:vs })
+    });
+    if (!r.ok){
+      let m = 'HTTP ' + r.status;
+      try {
+        const j = await r.json();
+        const d = j && j.detail;
+        m = (d && (d.message || d)) || (j && j.message) || m;
+        if (typeof m !== 'string') m = JSON.stringify(m);
+      } catch (e) {}
+      if (r.status === 401) m = 'Key 无效，或没有 text-to-speech 权限';
+      else if (r.status === 402) m = '额度不足';
+      else if (r.status === 422) m = '音色 ID 不对，或这个模型不支持';
+      throw new Error(m);
+    }
+    const blob = await r.blob();
+    const obj = URL.createObjectURL(blob);
+    ttsCachePut(ck, obj);
+    return obj;
+  })();
+  ttsState.inflight.set(ck, job);
+  try { return await job; }
+  finally { ttsState.inflight.delete(ck); }
 }
 
 function playAudio(url){
@@ -2378,6 +2468,7 @@ function highlightSeg(i, k){
 
 async function togglePlay(i){
   if (ttsState.turn === i){ stopSpeak(); return; }
+  unlockAudio();
   stopSpeak();
   if (!cfg.ttsKey){ toast('先在设置里填 ElevenLabs Key'); switchTab('settings'); return; }
   const m = state.chat.msgs[i];
@@ -2432,7 +2523,7 @@ function toggleTtsAuto(el){
 }
 
 const CFG_STORE = 'daddy.cfg.v1';
-const cfg = Object.assign({ base:'', key:'', model:'deepseek-v4.1-flash', history:24, ctxTokens:12000, narr:'neutral', fallbacks:[], brainOn:true, brainUse:6, memXc:false, memOb:false, memEvent:false, memBase:'', toolsOn:true, summaryOn:true, summaryEvery:20, ttsUrl:'https://api.elevenlabs.io/v1', ttsKey:'', ttsModel:'eleven_v4', ttsAuto:true, voice:'TZF5Z996m1MjVz76PFoH', sereinOn:true, sereinBase:'', sereinWrite:true, sereinTools:0 }, (function(){
+const cfg = Object.assign({ base:'', key:'', model:'deepseek-v4.1-flash', history:24, ctxTokens:12000, narr:'neutral', fallbacks:[], brainOn:true, brainUse:6, toolsOn:true, summaryOn:true, summaryEvery:20, ttsUrl:'https://api.elevenlabs.io/v1', ttsKey:'', ttsModel:'eleven_v4', ttsAuto:true, voice:'TZF5Z996m1MjVz76PFoH', }, (function(){
   try { return JSON.parse(localStorage.getItem(CFG_STORE) || '{}'); } catch (e) { return {}; }
 })());
 
@@ -2449,8 +2540,6 @@ const PERSONA_DEF = {
 };
 cfg.persona = Object.assign({}, PERSONA_DEF, cfg.persona || {});
 // 外部记忆服务（心潮 / Ombre Brain）已从界面移除：不再读取、不再连接。
-cfg.memXc = false; cfg.memOb = false; cfg.memEvent = false; cfg.memBase = '';
-cfg.sereinOn = false; cfg.sereinWrite = false;
 
 function saveCfg(){
   try { localStorage.setItem(CFG_STORE, JSON.stringify(cfg)); } catch (e) {}
@@ -2519,6 +2608,30 @@ function sessId(){
   }
   return s;
 }
+function latentToken(){
+  try { return String(localStorage.getItem('daddy.latent.token') || '').trim(); } catch (e) { return ''; }
+}
+function latentSetToken(t){
+  t = String(t || '').replace(/[^\x21-\x7E]/g, '').trim();
+  try { if (t) localStorage.setItem('daddy.latent.token', t); else localStorage.removeItem('daddy.latent.token'); } catch (e) {}
+  return t;
+}
+// 配对链接 http://127.0.0.1:8765/#t=xxx：读到就存下并把地址栏擦干净
+function latentPairFromHash(){
+  let raw = '';
+  const m = /[#&]t=([^&]+)/.exec(location.hash || '');
+  if (m) raw = decodeURIComponent(m[1]);
+  if (!raw) { try { raw = new URLSearchParams(location.search).get('t') || ''; } catch (e) {} }
+  if (!raw) return false;
+  const tok = latentSetToken(raw);
+  try {
+    const u = new URL(location.href);
+    u.searchParams.delete('t');
+    u.hash = '';
+    history.replaceState(null, '', u.pathname + (u.search || ''));
+  } catch (e) {}
+  return !!tok;
+}
 function authHeaders(extra){
   const h = Object.assign({}, extra || {});
   // 请求头只允许 ISO-8859-1：把复制 Key 时混进来的中文/全角字符剔掉，避免 fetch 直接抛错
@@ -2526,6 +2639,8 @@ function authHeaders(extra){
   if (k) h['Authorization'] = 'Bearer ' + k;
   const sid = String(sessId() || '').replace(/[^\x21-\x7E]/g, '');
   h['x-opencode-session'] = sid || 'sid-fallback';
+  const lt = latentToken();
+  if (lt) h['X-Latent-Token'] = lt;
   return h;
 }
 function niceErr(e){
@@ -2696,10 +2811,15 @@ function renderModels(q){
 }
 
 async function loadModels(){
+  syncKeyFromInput();
   const sel = document.getElementById('modelSel');
   if (!sel) return;
+  if (!cfg.key){
+    sel.innerHTML = '<option value="' + esc(cfg.model) + '">' + esc(prettyModel(cfg.model)) + '</option>';
+    return;
+  }
   try {
-    const r = await fetch(apiURL('/models'), { headers: cfg.key ? authHeaders() : {} });
+    const r = await fetch(apiURL('/models'), { headers: authHeaders() });
     if (!r.ok) throw new Error('HTTP ' + r.status);
     const j = await r.json();
     const ids = (j.data || j.models || []).map(function(m){ return m.id || m.name; }).filter(Boolean);
@@ -2709,7 +2829,7 @@ async function loadModels(){
     try { localStorage.setItem('daddy.models.v1', JSON.stringify(ids.slice())); } catch (e) {}
     if (ids.indexOf(cfg.model) < 0){ cfg.model = ids[0]; saveCfg(); }
     sel.innerHTML = ids.map(function(id){
-      return '<option value="' + id + '"' + (id === cfg.model ? ' selected' : '') + '>' + esc(prettyModel(id)) + '</option>';
+      return '<option value="' + esc(id) + '"' + (id === cfg.model ? ' selected' : '') + '>' + esc(prettyModel(id)) + '</option>';
     }).join('');
   } catch (e) {
     if (!MODELS.length) MODELS_FAILED = true;
@@ -2763,7 +2883,13 @@ function tickMeters(){
   if (document.visibilityState !== 'visible') return;
   paintMeter('rolling'); paintMeter('weekly'); paintMeter('monthly');
 }
+function syncKeyFromInput(){
+  const el = document.getElementById('apiKey');
+  if (el && el.value.trim() !== String(cfg.key || '')) { cfg.key = el.value.trim(); saveCfg(); }
+  return cfg.key;
+}
 async function refreshUsage(manual){
+  syncKeyFromInput();
   const timeEl = document.getElementById('usageTime');
   const rowEl = document.getElementById('usageRefresh');
   const hint = document.getElementById('usageHint');
@@ -2815,6 +2941,7 @@ function initApi(){
   }
   if (key){
     key.value = cfg.key;
+    key.addEventListener('input', function(){ cfg.key = key.value.trim(); });
     key.addEventListener('change', function(){
       cfg.key = key.value.trim(); saveCfg(); loadModels(); refreshUsage(false);
     });
@@ -2833,17 +2960,7 @@ function initApi(){
     });
   }
   paintCtxBar();
-  const sb = document.getElementById('sereinBase');
-  if (sb){
-    sb.value = cfg.sereinBase || '';
-    sb.addEventListener('change', function(){ cfg.sereinBase = sb.value.trim(); saveCfg(); sereinReset(); if (typeof paintFoldVals === 'function') paintFoldVals(); });
-  }
-  const mb = document.getElementById('memBase');
-  if (mb){
-    mb.value = cfg.memBase || '';
-    mb.addEventListener('change', function(){ cfg.memBase = mb.value.trim(); saveCfg(); MCP.ready = {}; MCP.sid = {}; });
-  }
-  ['memXc','memOb','memEvent','toolsOn','brainOn','sereinOn','sereinWrite'].forEach(function(id){
+  ['toolsOn','brainOn'].forEach(function(id){
     const el = document.getElementById(id);
     if (el) el.classList.toggle('on', !!cfg[id]);
   });
@@ -2871,7 +2988,6 @@ function initApi(){
   if (smOn) smOn.classList.toggle('on', !!cfg.summaryOn);
   paintVoiceName();
   if (cfg.ttsKey){ paintVoiceName(); }
-  if (typeof paintSereinSync === 'function') paintSereinSync();
 
   loadModels().then(paintChip);
   probeApi().then(function(m){
@@ -2883,454 +2999,8 @@ function initApi(){
 }
 
 
-/* ================= 本地记忆 · MCP（心潮 / OB） ================= */
-const MCP = { sid: {}, ready: {}, cache: { xc:'', xcAt:0 } };
+/* ================= 记忆 · 召回缓存 ================= */
 let RECALL = '';
-
-function memBaseURL(){
-  const b = (cfg.memBase || '').trim();
-  if (b) return b.replace(/\/+$/, '');
-  if (location.port === '18080') return '';
-  return 'http://127.0.0.1:18080';
-}
-
-async function mcpPost(path, payload, sid, baseOverride){
-  const _base = (baseOverride !== undefined) ? baseOverride : memBaseURL();
-  const ac = new AbortController();
-  const timer = setTimeout(function(){ ac.abort(); }, 20000);
-  try {
-    const headers = { 'Content-Type':'application/json', 'Accept':'application/json, text/event-stream' };
-    if (sid) headers['Mcp-Session-Id'] = sid;
-    const r = await fetch(_base + path, { method:'POST', headers, body: JSON.stringify(payload), signal: ac.signal });
-    const sidOut = r.headers.get('mcp-session-id') || r.headers.get('Mcp-Session-Id') || '';
-    const ct = (r.headers.get('content-type') || '').toLowerCase();
-    if (!r.ok){
-      let msg = 'HTTP ' + r.status;
-      try { const t = await r.text(); if (t) msg += ' · ' + t.slice(0, 120); } catch(e){}
-      throw new Error(msg);
-    }
-    if (ct.indexOf('text/event-stream') >= 0){
-      const reader = r.body.getReader();
-      const dec = new TextDecoder();
-      let buf = '', got = null;
-      while (!got){
-        const { done, value } = await reader.read();
-        if (done) break;
-        buf += dec.decode(value, { stream: true });
-        let nl;
-        while ((nl = buf.indexOf('\n')) >= 0 && !got){
-          const line = buf.slice(0, nl).trim();
-          buf = buf.slice(nl + 1);
-          if (!line.startsWith('data:')) continue;
-          const data = line.slice(5).trim();
-          if (!data) continue;
-          try {
-            const j = JSON.parse(data);
-            if (j && j.id !== undefined && (j.result || j.error)) got = j;
-          } catch (e) {}
-        }
-      }
-      try { reader.cancel(); } catch (e) {}
-      return { data: got, sid: sidOut, status: r.status };
-    }
-    let data = null;
-    try { data = await r.json(); } catch (e) {}
-    return { data, sid: sidOut, status: r.status };
-  } finally { clearTimeout(timer); }
-}
-
-async function mcpEnsure(key, path, base){
-  if (MCP.ready[key]) return MCP.sid[key];
-  const init = await mcpPost(path, { jsonrpc:'2.0', id:1, method:'initialize',
-    params:{ protocolVersion:'2025-06-18', capabilities:{}, clientInfo:{ name:'caeruleus', version:'1' } } }, '', base);
-  const sid = init.sid || '';
-  MCP.sid[key] = sid;
-  MCP.ready[key] = true;
-  try { await mcpPost(path, { jsonrpc:'2.0', method:'notifications/initialized' }, sid, base); } catch (e) {}
-  return sid;
-}
-
-async function mcpCall(key, path, method, params, base){
-  const sid = await mcpEnsure(key, path, base);
-  const res = await mcpPost(path, { jsonrpc:'2.0', id: Date.now() % 100000, method, params }, sid, base);
-  if (!res.data) throw new Error('空响应');
-  if (res.data.error) throw new Error(res.data.error.message || 'MCP error');
-  return res.data.result;
-}
-
-function mcpText(result){
-  if (!result) return '';
-  const arr = result.content;
-  if (Object.prototype.toString.call(arr) === '[object Array]'){
-    return arr.map(function(c){ return c && c.type === 'text' ? c.text : ''; }).filter(Boolean).join('\n');
-  }
-  return '';
-}
-
-/* ============ Serein · 记忆服务（Termux 里的 MCP） ============ */
-var SEREIN_TOOLS = null;
-/* ============ 手动写一条（直通 Serein） ============ */
-function openMemForm(){
-  if (!document.getElementById('memSheet')) return;
-  document.getElementById('memSheetMask').classList.add('on');
-  document.getElementById('memSheet').classList.add('on');
-  ['mfTitle','mfBody','mfCues'].forEach(function(id){ const el=document.getElementById(id); if (el) el.value=''; });
-  setTimeout(function(){ const b=document.getElementById('mfBody'); if (b) b.focus(); }, 120);
-}
-function closeMemForm(){
-  if (!document.getElementById('memSheet')) return;
-  document.getElementById('memSheetMask').classList.remove('on');
-  document.getElementById('memSheet').classList.remove('on');
-}
-async function saveMemManual(){
-  if (!document.getElementById('memSheet')) return;
-  const title = (document.getElementById('mfTitle').value || '').trim();
-  const body = (document.getElementById('mfBody').value || '').trim();
-  const cuesRaw = (document.getElementById('mfCues').value || '').trim();
-  if (!body){ toast('写点什么'); return; }
-  const cues = cuesRaw ? cuesRaw.split(/[,，、]/).map(function(t){ return t.trim(); }).filter(Boolean).slice(0, 8) : [];
-  const d = new Date();
-  const day = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-  const btn = document.querySelector('#memSheet .mf-acts .acc');
-  if (btn){ btn.textContent = '写入中…'; btn.disabled = true; }
-  try {
-    if (!cfg.sereinOn) throw new Error('Serein 没开');
-    if (!SEREIN_TOOLS || !SEREIN_TOOLS.length) SEREIN_TOOLS = await withTimeout(sereinTools(), 12000);
-    const out = await withTimeout(sereinCall('write_scene', {
-      content: body, cues: cues.length ? cues : [body.slice(0, 60)], title: title || undefined, date: day
-    }), 20000);
-    const txt = String(out || '');
-    if (!/scene_id|已保存|saved/i.test(txt)) throw new Error('Serein 没返回 scene_id');
-    // 成功后进本机缓存与索引
-    const m = txt.match(/scene_id[\s:"]+(scene_[0-9a-fA-F]+)/);
-    const sceneId = m ? m[1] : ('m' + Date.now().toString(36));
-    sereinSceneAdd(sceneId);
-    brainAdd('event', body, cues, 7, title || sceneId);
-    if (SEREIN_CACHE){
-      SEREIN_CACHE.unshift({ id: sceneId, kind:'event', text: body, title: title, tags: cues,
-        topic: sceneId, ts: Date.now(), w:7, hits:0, done:false, revoked:false, pin:false, src:'serein' });
-    }
-    closeMemForm();
-    renderBrainList();
-    paintSereinSync();
-    toast('写进 Serein 了');
-  } catch (e) {
-    toast('没写进 Serein · ' + String((e && e.message) || e).slice(0, 40));
-  } finally {
-    if (btn){ btn.textContent = '写进 Serein'; btn.disabled = false; }
-  }
-}
-
-/* ============ Serein 自动连接 ============ */
-let SEREIN_AUTOING = false;
-async function sereinAuto(){
-  if (!cfg.sereinOn || SEREIN_AUTOING) return;
-  if (SEREIN_TOOLS && SEREIN_TOOLS.length) return;
-  SEREIN_AUTOING = true;
-  try {
-    SEREIN_TOOLS = await withTimeout(sereinTools(), 12000);
-    cfg.sereinTools = SEREIN_TOOLS.length; saveCfg();
-    const el = document.getElementById('sereinState');
-    if (el) el.textContent = '已连接 · ' + SEREIN_TOOLS.length + ' 个工具';
-    if (typeof paintFoldVals === 'function') paintFoldVals();
-    sereinPull(true);
-  } catch (e) {
-    const el = document.getElementById('sereinState');
-    if (el) el.textContent = '未连接 · 自动重试';
-  } finally { SEREIN_AUTOING = false; }
-}
-
-async function testSerein(){
-  const el = document.getElementById('sereinState');
-  const old = el ? el.textContent : '';
-  if (el) el.textContent = '连接中…';
-  sereinReset();
-  try {
-    const tools = await withTimeout(sereinTools(), 15000);
-    SEREIN_TOOLS = tools;
-    cfg.sereinTools = tools.length; saveCfg();
-    if (el) el.textContent = '已连接 · ' + tools.length + ' 个工具';
-    toast('Serein 已连接 · ' + tools.length + ' 个工具');
-  } catch (e) {
-    const msg = String(e && e.message || e);
-    let hint;
-    if (/Failed to fetch|NetworkError|Load failed/i.test(msg)) hint = '连不上 · 用 18080 打开';
-    else if (/401/.test(msg)) hint = '未授权 · 桥没读到 Key';
-    else if (/403/.test(msg)) hint = '被拒 · 来源不对';
-    else if (/404/.test(msg)) hint = '没找到 · 地址错了';
-    else if (/502/.test(msg)) hint = '桥连不上 Serein · 18217 没服务';
-    else hint = msg.replace(/\s*\{.*$/,'').slice(0, 26) || '失败';
-    if (el) el.textContent = hint;
-    toast('Serein · ' + hint + (old ? '' : ''));
-    cfg.sereinTools = 0; saveCfg();
-  }
-  if (typeof paintFoldVals === 'function') paintFoldVals();
-}
-
-var SEREIN_CACHE = null;
-const SEREIN_PATH = '/serein/mcp';
-function sereinBase(){
-  const custom = (cfg.sereinBase || '').trim();
-  if (custom) return custom.replace(/\/+$/, '');
-  const h = location.hostname;
-  const local = h === '127.0.0.1' || h === 'localhost' || h === '0.0.0.0' || h === ''
-    || /^192\.168\.|^10\.|^172\.(1[6-9]|2\d|3[01])\./.test(h);
-  return local ? '' : 'http://127.0.0.1:18080';
-}
-
-function sereinItem(x, kind){
-  const id = x.item_id || x.id || x.document_id || ('s' + Math.random().toString(36).slice(2, 8));
-  const body = x.body_md || x.content || x.text || x.body || x.summary || '';
-  const cues = x.cues || x.tags || [];
-  const ts = Date.parse(x.date || x.created_at || x.updated_at || '') || Date.now();
-  return {
-    id: id, kind: kind, text: String(body).slice(0, 600),
-    title: x.title || '', tags: (cues || []).slice(0, 8),
-    topic: x.document_id || x.item_id || id,
-    ts: ts, w: 7, hits: 0, done: (x.lifecycle === 'archived' || x.status === 'archived'),
-    revoked: false, pin: !!x.favorite,
-    status: x.lifecycle || x.status || '', rev: x.revision || 0, src: 'serein'
-  };
-}
-
-const SEREIN_SENT_KEY = 'daddy.serein.sent.v1';
-const SEREIN_SCENE_KEY = 'daddy.serein.scenes.v1';
-function sereinSceneLoad(){ try { return JSON.parse(localStorage.getItem(SEREIN_SCENE_KEY) || '[]'); } catch (e) { return []; } }
-function sereinSceneSave(a){ try { localStorage.setItem(SEREIN_SCENE_KEY, JSON.stringify(a.slice(-400))); } catch (e) {} }
-function sereinSceneAdd(id){
-  if (!id) return;
-  const a = sereinSceneLoad().filter(function(x){ return x.id !== id; });
-  a.push({ id: id, at: Date.now() });
-  sereinSceneSave(a);
-}
-function parseSereinScene(text, fallbackId){
-  const s = String(text || '');
-  if (!s) return null;
-  const pick = function(k){ const m = new RegExp('^' + k + ':\\s*(.+)$', 'm').exec(s); return m ? m[1].trim() : ''; };
-  const stat = pick('status');
-  if (stat === 'deleted') return null;
-  const rawId = pick('id').replace(/^scene:/, '') || fallbackId;
-  const bi = s.indexOf('\nbody:');
-  let body = bi >= 0 ? s.slice(bi + 6) : '';
-  const ci = body.indexOf('\ncomments:');
-  if (ci >= 0) body = body.slice(0, ci);
-  return {
-    id: rawId, kind: 'scene', text: body.trim().slice(0, 600),
-    title: pick('title'), tags: [], topic: rawId,
-    ts: Date.parse(pick('date')) || Date.now(), w: 7, hits: 0,
-    done: stat === 'archived', revoked: false, pin: false,
-    status: stat, rev: Number(pick('revision')) || 1, src: 'serein'
-  };
-}
-function sereinSentLoad(){ try { return JSON.parse(localStorage.getItem(SEREIN_SENT_KEY) || '[]'); } catch (e) { return []; } }
-function sereinSentSave(a){ try { localStorage.setItem(SEREIN_SENT_KEY, JSON.stringify(a.slice(-800))); } catch (e) {} }
-function sereinKeyOf(x){
-  if (x.id) return String(x.id);
-  let h = 0; const t = String(x.text || '') + '|' + (x.ts || 0);
-  for (let i = 0; i < t.length; i++) h = (h * 31 + t.charCodeAt(i)) | 0;
-  return 'h' + Math.abs(h).toString(36);
-}
-function sereinCuesOf(x){
-  const cues = (x.tags || []).filter(Boolean).map(function(t){ return String(t).slice(0, 80); }).slice(0, 8);
-  if (cues.length) return cues;
-  const t = String(x.text || '').replace(/\s+/g, ' ').trim();
-  return [t ? t.slice(0, 60) : '那一刻'];
-}
-function sereinPending(){
-  const sent = sereinSentLoad();
-  return brainLoad().items.filter(function(x){
-    if (x.kind === 'clue') return false;            // 线索只留在本机，避免每条对话都往 Serein 堆一条
-    return !x.done && !x.revoked && !x.supersededBy && sent.indexOf(sereinKeyOf(x)) < 0;
-  });
-}
-function paintSereinSync(){
-  const el = document.getElementById('sereinSyncN');
-  if (!el) return;
-  if (!cfg.sereinOn){ el.textContent = '未开启 ›'; return; }
-  const n = sereinPending().length;
-  el.textContent = n ? (n + ' 条待写入 ›') : '已全部同步 ›';
-}
-async function sereinWriteItem(x){
-  if (!cfg.sereinOn || !cfg.sereinWrite) return false;
-  const k = sereinKeyOf(x);
-  if (sereinSentLoad().indexOf(k) >= 0) return false;
-  const d = new Date(x.ts || Date.now());
-  const day = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-  try {
-    const body = String(x.text || '').replace(/\s+/g, ' ').trim();
-    // 写入前查重：Serein 里已有同一段内容就不再写一次
-    if (body.length > 12 && !(x.__skipDup)){
-      try {
-        const probe = await withTimeout(sereinCall('recall_memory', { query: body.slice(0, 30), mode: 'lookup', limit: 5 }), 12000);
-        const norm = function(t){ return String(t || '').replace(/\s+/g, '').slice(0, 40); };
-        if (norm(probe).indexOf(norm(body)) >= 0){
-          const list = sereinSentLoad(); if (list.indexOf(k) < 0) list.push(k); sereinSentSave(list);
-          return true;
-        }
-      } catch (e) {}
-    }
-    const args = {
-      content: body,
-      cues: sereinCuesOf(x),
-      title: x.title || shortTitle(body),
-      date: day
-    };
-    if (x.pin) args.favorite = true;   // 只有真的置顶才传，Serein 的 favorite 功能可能被禁用
-    const out = await withTimeout(sereinCall('write_scene', args), 20000);
-    const ok = /scene_id|已保存/.test(String(out || ''));
-    if (ok){
-      const list = sereinSentLoad(); list.push(k); sereinSentSave(list);
-      const sm = String(out).match(/scene_id[:\s"]+(scene_[0-9a-fA-F]+)/);
-      if (sm) sereinSceneAdd(sm[1]);
-      // 把本机的状态同步过去：已沉底/被取代的不要浮在 Serein 里
-      if (x.done || x.supersededBy){
-        const m = String(out).match(/scene_id[:\s]+(scene_[0-9a-f]+)/);
-        if (m){
-          try {
-            const rd = await withTimeout(sereinCall('read_memory', { identifier: m[1] }), 12000);
-            const rev = String(rd).match(/^revision:\s*(\d+)/m);
-            if (rev){
-              await withTimeout(sereinCall('set_memory_state', {
-                operation_id: 'cae-' + k + '-' + Date.now(),
-                document_id: m[1],
-                expected_revision: Number(rev[1]),
-                can_surface: false
-              }), 15000);
-            }
-          } catch (e) {}
-        }
-      }
-    }
-    return ok;
-  } catch (e) { return false; }
-}
-async function sereinStateOf(x, patch){
-  if (!cfg.sereinOn || !x || x.src !== 'serein') return false;
-  const raw = String(x.id || '').replace(/^(scene|event):/, '');
-  if (!raw || /^event_/.test(raw)) return false;
-  try {
-    const out = await withTimeout(sereinCall('set_memory_state', Object.assign({
-      operation_id: 'cae-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
-      document_id: raw,
-      expected_revision: Number(x.rev || 1)
-    }, patch)), 15000);
-    const bad = /missing or its revision changed|error/i.test(String(out || ''));
-    if (!bad){ x.rev = Number(x.rev || 1) + 1; return true; }
-    return false;
-  } catch (e) { return false; }
-}
-
-async function sereinSyncAll(manual){
-  if (!cfg.sereinOn){ if (manual) toast('先在设置里打开 Serein'); return 0; }
-  const list = sereinPending();
-  if (!list.length){ if (manual) toast('没有新的要写'); paintSereinSync(); return 0; }
-  let n = 0;
-  for (let i = 0; i < list.length; i += 3){
-    const batch = list.slice(i, i + 3);
-    const res = await Promise.all(batch.map(function(x){
-      return sereinWriteItem(x).catch(function(){ return false; });
-    }));
-    res.forEach(function(r){ if (r) n++; });
-    paintSereinSync();
-  }
-  if (manual) toast(n ? ('已写入 ' + n + ' 条到 Serein') : '写入失败 · 检查 Serein 连接');
-  return n;
-}
-function parseTypedMemories(text){
-  const out = [];
-  const re = /\[typed_memory ref=([^\]]+)\]([\s\S]*?)\[\/typed_memory\]/g;
-  let m;
-  while ((m = re.exec(String(text || '')))){
-    const body = m[2];
-    const title = ((/^title:\s*(.+)$/m.exec(body) || [])[1] || '').trim();
-    const date = ((/^date:\s*(.+)$/m.exec(body) || [])[1] || '').trim();
-    let tx = '';
-    const t = /\ntext:\s*\|?\s*\n([\s\S]*)$/.exec(body);
-    if (t) tx = t[1];
-    else tx = body.split('\n').filter(function(l){
-      return !/^(title|date|date_basis|可能是)/.test(l.trim());
-    }).join('\n');
-    tx = tx.replace(/\[memory_details[\s\S]*$/, '').trim();
-    if (tx) out.push({ ref: m[1].trim(), title: title, date: date, text: tx });
-  }
-  return out;
-}
-
-async function sereinPull(silent){
-  const el = document.getElementById('sereinPullN');
-  if (el) el.textContent = '读取中…';
-  const out = [];
-  try {
-    if (!SEREIN_TOOLS) SEREIN_TOOLS = await withTimeout(sereinTools(), 12000);
-    const has = function(n){ return (SEREIN_TOOLS || []).some(function(t){ return t.name === n; }); };
-    // 先按记录下来的 scene_id 直读：必然拿得到，不依赖检索命中
-    if (has('read_memory')){
-      const recs = sereinSceneLoad().slice(-40).reverse();
-      const seenScene = {};
-      for (let i = 0; i < recs.length; i += 4){
-        const batch = recs.slice(i, i + 4);
-        const res = await Promise.all(batch.map(function(r){
-          return withTimeout(sereinCall('read_memory', { identifier: r.id }), 12000)
-            .then(function(t){ return parseSereinScene(t, r.id); })
-            .catch(function(){ return null; });
-        }));
-        res.forEach(function(it){ if (it && !seenScene[it.id]){ seenScene[it.id] = 1; out.push(it); } });
-      }
-    }
-    if (has('recall_memory')){
-      const seeds = [];
-      brainLoad().items.slice(-6).forEach(function(x){
-        const w = String((x.tags && x.tags[0]) || x.title || String(x.text || '').slice(0, 8)).trim();
-        if (w && seeds.indexOf(w) < 0) seeds.push(w);
-      });
-      if (!seeds.length) seeds.push('她');
-      const seen = {};
-      for (const q of seeds.slice(0, 4)){
-        try {
-          const t = await withTimeout(sereinCall('recall_memory', { query: q, mode: 'lookup', limit: 8, method: 'lexical' }), 12000);
-          parseTypedMemories(t).forEach(function(x){
-            if (seen[x.ref]) return;
-            seen[x.ref] = 1;
-            out.push(sereinItem({ id: x.ref.replace(/^scene:/, ''), content: x.text, title: x.title, date: x.date, tags: [], lifecycle: 'active' }, 'scene'));
-          });
-        } catch (e) {}
-      }
-    }
-    if (has('read_favorites')){
-      try {
-        const t = await withTimeout(sereinCall('read_favorites', { limit: 40, include_archived: true }), 15000);
-        parseTypedMemories(t).forEach(function(x){
-          out.push(sereinItem({ id: x.ref.replace(/^scene:/, '').replace(/^event:/, ''), content: x.text, title: x.title, date: x.date, lifecycle: 'active', favorite: true }, x.ref.indexOf('event:') === 0 ? 'event' : 'scene'));
-        });
-      } catch (e) {}
-    }
-    if (has('read_preferences')){
-      try {
-        const t = await withTimeout(sereinCall('read_preferences', {}), 15000);
-        const arr = Array.isArray(t) ? t : (t && (t.items || t.preferences)) || [];
-        arr.forEach(function(x){ out.push(sereinItem(x, 'pref')); });
-      } catch (e) {}
-    }
-    SEREIN_CACHE = out;
-    if (el) el.textContent = out.length ? (out.length + ' 条 ›') : '没有读到 ›';
-    if (!silent) toast(out.length ? ('从 Serein 读到 ' + out.length + ' 条') : 'Serein 里还没有记忆');
-    if (typeof renderBrainList === 'function') renderBrainList();
-    paintSereinSync();
-  } catch (e) {
-    if (el) el.textContent = '读取失败 ›';
-    toast('Serein · ' + String((e && e.message) || e).slice(0, 50));
-  }
-}
-
-async function sereinTools(){
-  const r = await mcpCall('serein', SEREIN_PATH, 'tools/list', {}, sereinBase());
-  return (r && r.tools) || [];
-}
-async function sereinCall(name, args){
-  const r = await mcpCall('serein', SEREIN_PATH, 'tools/call', { name: name, arguments: args || {} }, sereinBase());
-  return mcpText(r) || r;
-}
-function sereinReset(){ MCP.ready.serein = false; MCP.sid.serein = ''; }
 
 function withTimeout(p, ms){
   return Promise.race([p, new Promise(function(_, rej){ setTimeout(function(){ rej(new Error('timeout')); }, ms); })]);
@@ -3372,12 +3042,12 @@ function brainSave(){
     if (!x.vec) return x;
     const c = Object.assign({}, x); delete c.vec; return c;
   };
-  /* IndexedDB 存全量；localStorage 只留最近 600 条做冷启动（避免 5MB 爆） */
-  const cache = b.items.slice(-600).map(strip);
+  /* IndexedDB 存全量；localStorage 做冷启动缓存（去向量后体积很小，保留全部避免重载丢记忆） */
+  const cache = b.items.slice(-2000).map(strip);
   const upstream = b.items.slice(-1200).map(strip);
   try { localStorage.setItem(BRAIN_KEY, JSON.stringify({ v:1, seq:b.seq, items: cache, updatedAt: BRAIN_AT })); } catch (e) {}
-  storePut('brain', { v:1, seq:b.seq, items: upstream, updatedAt: BRAIN_AT }, 700);
   if (window.memOnSave) memOnSave(b);
+  if (document.getElementById('brainPane')) renderBrainPane();
 }
 function cjkTokens(s){
   const out = [];
@@ -3492,7 +3162,10 @@ function brainClueSave(userText, aiText){
   if (!u && !a) return;
   const b = brainLoad();
   b.items.forEach(function(x){ if (x.kind === 'clue' && !x.done && !x.revoked) x.done = true; });
-  brainAdd('clue', '上次停在这里：她「' + u + '」，你回「' + a + '」', [], 0.9, 'where we left off');
+  const clueText = '上次停在这里：她「' + u + '」，你回「' + a + '」';
+  brainAdd('clue', clueText, [], 0.9, 'where we left off');
+  /* 线索也要进共享记忆，否则换一台设备就不知道上次聊到哪 */
+  if (window.memLatentRemember) { try { window.memLatentRemember(clueText, 'clue', 'where we left off', '', currentScope()); } catch (e) {} }
 }
 function brainClueGet(){
   const c = brainLoad().items.filter(function(x){
@@ -3523,20 +3196,27 @@ function brainImport(input){
       const have = {};
       b.items.forEach(function(x){ have[String(x.text || '').toLowerCase()] = 1; });
       let n = 0;
+      const added = [];
       items.forEach(function(x){
         if (!x || !x.text) return;
         const k = String(x.text).toLowerCase();
         if (have[k]) return;
         have[k] = 1;
         b.items.push(Object.assign({ id:'m' + (++b.seq), kind:'fact', tags:[], ts:Date.now(), w:1, hits:0, done:false, revoked:false }, x, { id:'m' + b.seq, tk: cjkTokens(x.text) }));
+        added.push({ text: String(x.text), kind: x.kind || 'fact' });
         n++;
       });
       brainSave();
+      /* 导入的旧记忆也补进共享库，换设备后才检索得到 */
+      if (window.memLatentRemember && added.length){
+        added.forEach(function(x){ try { window.memLatentRemember(x.text, x.kind, '', '', 'main'); } catch (e) {} });
+      }
       renderBrainList();
       toast('已导入 ' + n + ' 条记忆');
     } catch (e) { toast('导入失败 · ' + e.message); }
     input.value = '';
   };
+  rd.onerror = function(){ toast('文件读不出来'); input.value = ''; };
   rd.readAsText(f);
 }
 
@@ -3557,93 +3237,69 @@ function brainClear(){ BRAIN = { v:1, seq:0, items:[] }; brainSave(); }
 
 function memSnapshot(){
   const parts = [];
-  if (cfg.brainOn){ const bb = brainBlock(); if (bb) parts.push(bb); }
-  if (cfg.memXc && MCP.cache.xc) parts.push('【此刻的他】\n' + MCP.cache.xc);
-  if (cfg.memOb){ const r = recentBlock(); if (r) parts.push(r); }
-  return parts.join('\n\n');
-}
-function needsRecall(t){
-  const s = String(t || '').trim();
-  if (!s) return false;
-  if (s.length >= 10) return true;
-  if (/[?？]$/.test(s)) return true;
-  return /记得|上次|之前|那天|说过|答应|回忆|以前|曾经|提起/.test(s);
-}
-
-async function recallMemories(userText){
-  if (!cfg.brainOn && !cfg.memXc && !cfg.memOb && !window.memLatentRecall) return '';
-  const parts = [];
-  if (window.memLatentRecall){
+  /* 服务端共享记忆的最近条目：保证新窗口/新设备即使没有关键词命中也不会失忆 */
+  if (window.memLatentRecent){
     try {
-      const lb = window.memLatentRecall(userText, cfg.brainUse || 4);
-      if (lb) parts.push('【显影 · 跨窗口记忆】\n' + lb);
+      const rows = memLatentRecent(8, currentScope());
+      if (rows && rows.length) parts.push('【共享记忆 · 最近】\n' + rows.join('\n'));
+      const st = memLatentState();
+      if (st){
+        const sc = currentScope();
+        const inScope = function (x) { return ((x && x.scope) || 'main') === sc; };
+        const open = (st.unresolved || []).filter(function(x){ return x && x.status !== 'closed' && inScope(x); }).slice(0, 4);
+        if (open.length) parts.push('【还没解决的事】\n' + open.map(function(x){ return '- ' + x.summary; }).join('\n'));
+        const th = (st.threads || []).filter(function(x){ return x && inScope(x); }).slice(-1)[0];
+        if (th && th.summary) parts.push('【上次会话停在这里】\n' + th.summary);
+      }
     } catch (e) {}
   }
-  if (cfg.brainOn){
+  /* 服务端已有共享记忆时不再叠加本机 brain，避免同一段记忆重复注入；离线时才回退本地 */
+  if (cfg.brainOn && !parts.length){ const bb = brainBlock(); if (bb) parts.push(bb); }
+  return parts.filter(Boolean).join('\n\n');
+}
+async function recallMemories(userText){
+  if (!cfg.brainOn) return '';
+  const parts = [];
+  let serverAnswered = false;
+  if (window.memLatentRecall){
+    try {
+      const lines = await window.memLatentRecall(userText, cfg.brainUse || 4, currentScope());
+      /* null 表示离线/未配置/空查询，应回退本机缓存；[] 表示服务端查过但没命中，算已回答 */
+      serverAnswered = (lines !== null && lines !== undefined);
+      const txt = Array.isArray(lines) ? lines.join('\n') : (typeof lines === 'string' ? lines : '');
+      if (txt) parts.push('【显影 · 跨窗口记忆】\n' + txt);
+    } catch (e) { /* 离线才回退本机缓存 */ }
+  }
+  /* 服务端回答了（哪怕是空的）就以服务端为准；只有请求失败才回退本机缓存 */
+  if (cfg.brainOn && !parts.length && !serverAnswered){
     const bb = (window.memRecallBlock ? await window.memRecallBlock(userText, cfg.brainUse || 6, 1600) : brainBlock(userText));
     if (bb) parts.push(bb);
   }
-  if (cfg.memOb){ const rb = recentBlock(); if (rb) parts.push(rb); }
-  if (cfg.memXc){
-    try {
-      let t = MCP.cache.xc;
-      if (!t || Date.now() - MCP.cache.xcAt > 10 * 60000){
-        const r = await withTimeout(mcpCall('xc', '/xc', 'tools/call', { name:'xinchao_context', arguments:{ mode:'turn', max_tokens: 900 } }), 8000);
-        t = mcpText(r);
-        if (t){ MCP.cache.xc = t; MCP.cache.xcAt = Date.now(); }
-      }
-      if (t) parts.push('【此刻的他】\n' + t);
-    } catch (e) { console.warn('xc recall failed', e.message); }
-  }
-  if (cfg.memOb && needsRecall(userText)){
-    try {
-      const r = await withTimeout(mcpCall('ob', '/ob', 'tools/call', { name:'breath', arguments:{ query: userText, max_results: 6, max_tokens: 1100 } }), 6000);
-      const t = mcpText(r);
-      if (t) parts.push('【浮现的记忆】\n' + t);
-    } catch (e) { console.warn('ob recall failed', e.message); }
-  }
   return parts.join('\n\n');
-}
-
-async function reportEvent(userText, replyText){
-  if (!cfg.memXc || !cfg.memEvent) return;
-  try {
-    await withTimeout(mcpCall('xc', '/xc', 'tools/call', {
-      name:'xinchao_event',
-      arguments:{ exchange:'她：' + String(userText || '').slice(0, 300) + '\n我：' + String(replyText || '').slice(0, 300), ttl_minutes: 240 }
-    }), 12000);
-    MCP.cache.xcAt = 0;
-  } catch (e) { console.warn('xc event failed', e.message); }
 }
 
 function toggleMem(field, el){
   cfg[field] = !cfg[field];
-  if (field === 'memXc' || field === 'memOb' || field === 'toolsOn' || field === 'sereinOn') TOOL_MAP = null;
   el.classList.toggle('on', !!cfg[field]);
   saveCfg();
-  toast((cfg[field] ? '已开启 ' : '已关闭 ') + ({ memXc:'心潮', memOb:'OB 记忆', memEvent:'情绪回传', toolsOn:'工具调用', brainOn:'本机记忆', sereinOn:'Serein 记忆', sereinWrite:'写入权限' })[field]);
+  toast((cfg[field] ? '已开启 ' : '已关闭 ') + ({ toolsOn:'工具调用', brainOn:'记忆召回' })[field]);
   if (typeof paintFoldVals === 'function') paintFoldVals();
 }
 
-async function testMemory(){
-  TOOL_MAP = null;
-  const el = document.getElementById('memTest');
-  if (el) el.textContent = '连接中…';
-  const out = [];
-  try {
-    const res = await withTimeout(mcpCall('ob', '/ob', 'tools/list', {}), 8000);
-    out.push('OB ' + ((res && res.tools && res.tools.length) || 0) + ' 个工具');
-  } catch (e) { out.push('OB 失败 · ' + e.message); }
-  try {
-    const res = await withTimeout(mcpCall('xc', '/xc', 'tools/list', {}), 8000);
-    out.push('心潮 ' + ((res && res.tools && res.tools.length) || 0) + ' 个工具');
-  } catch (e) { out.push('心潮 失败 · ' + e.message); }
-  const msg = out.join(' · ');
-  if (el) el.textContent = msg.slice(0, 40) + ' ›';
-  toast(msg);
+function mergeRecall(a, b){
+  const out = [], seen = {};
+  [a, b].forEach(function(part){
+    String(part || '').split('\n').forEach(function(line){
+      const k = line.trim();
+      if (!k || seen[k]) return;
+      seen[k] = 1; out.push(line);
+    });
+  });
+  return out.join('\n');
 }
 
 async function send(){
+  syncKeyFromInput();
   const ta = document.getElementById('input');
   const text = ta.value.trim();
   if (!text) return;
@@ -3653,14 +3309,16 @@ async function send(){
   ta.style.height = '22px';
   document.getElementById('sendBtn').classList.add('off');
 
-  state.chat.msgs.push({ role:'user', text, time: nowTime(), date: dayKey() });
+  state.chat.msgs.push({ role:'user', text, time: nowTime(), date: dayKey(), ts: Date.now() });
   const aiIdx = state.chat.msgs.length;
-  state.chat.msgs.push({ role:'ai', text:'', time: nowTime(), date: dayKey(), pending:true });
+  state.chat.msgs.push({ role:'ai', text:'', time: nowTime(), date: dayKey(), pending:true, ts: Date.now() });
   renderChat();
-  RECALL = memSnapshot();
+  /* 先把她说的话落盘：请求失败/刷新时，这句不能凭空消失（pending 的 AI 占位在加载时会被过滤） */
+  saveMsgs();
+  RECALL = cfg.brainOn ? memSnapshot() : '';
   try {
     const fresh = await withTimeout(recallMemories(text), 7000);
-    if (fresh) RECALL = fresh;
+    if (fresh) RECALL = mergeRecall(fresh, RECALL);
   } catch (e) {}
 
   try {
@@ -3679,19 +3337,15 @@ function msgText(m){
 
 const TOOL_PROMPT = [
   '',
-  '[YOUR HANDS] You have tools that touch your own memory and inner state. She never sees them.',
+  '[YOUR HANDS] You have tools that touch your own memory. She never sees them.',
   '- recall: search your own memory. Call it before you answer anything about the past, when she asks what you remember, or when you might have been told something you are not sure about. Never guess at a shared history.',
-  '- remember: keep one concrete thing she just told you (a plan, a date, a preference, a person, a fear, a rule). One short sentence in English, written as something you simply know. Give it a stable topic key so a changed fact retires the old one instead of piling up.',
-  '- if you notice a like or dislike (food, touch, weather, a way she wants to be spoken to), save it as pref, with the reason you saw it.',
+  '- remember: keep one concrete thing she just told you (a plan, a date, a preference, a person, a fear, a rule). One short sentence in the language she uses, written as something you simply know. Give it a stable topic key so a changed fact retires the old one instead of piling up.',
+  '- update_state: rewrite where the two of you are right now — the scene, what just happened, what she is doing, what you are waiting for. Overwrites the old state. Call it once before you answer, every turn, even when little changed; never leave it stale.',
   '- resolve: close something when it actually ends — she went, the deadline passed, the promise was kept.',
-  '- breath: an older external archive, only when it is configured.',
-  '- grow: save a longer passage when something heavy actually happened.',
-  '- xinchao_context: check your own current state when the mood is unclear.',
-  '- xinchao_event: record how this exchange felt. At most once per turn.',
-  'What you already know is loaded at the end of this prompt. Do not call breath for anything already listed there — only when you need something older or more specific.',
+  '- forget: withdraw something you remembered wrongly, or that was never true.',
+  'External archive tools (breath / hold / grow / plan / xinchao_*) exist only when she has configured that service. If a tool is not in your tool list, it is not available — do not call it.',
+  'What you already know is loaded at the end of this prompt. Do not search for anything already listed there — only when you need something older or more specific.',
   'Only use a tool when it earns its place. Never for greetings, filler, one-word messages ("嗯", "好", "在吗"), or pure small talk.',
-  'hold is for a concrete fact about her life: a plan, a date, a preference, a person, a fear, a rule. One sentence, her own words. Do not save the same fact twice.',
-  'plan is only for a promise or a deadline the two of you actually agreed on. Never invent one.',
   'At most two calls per turn. Never mention tools. Never narrate that you looked something up. Never say "I remember" — you simply know it.'
 ].join('\n');
 
@@ -3722,7 +3376,17 @@ async function maybeSummarize(){
   const every = Number(cfg.summaryEvery) || 20;
   const s = summaryLoad();
   const all = state.chat.msgs.filter(function(m){ return m.role !== 'sys' && !m.pending && (m.text || m.lines); });
-  const from = Math.min(s.upto || 0, all.length);
+  let from = 0;
+  if (s.uptoAt){
+    from = all.findIndex(function(m){ return (m.ts || 0) > s.uptoAt; });
+    if (from < 0){
+      // 旧版本消息没有 ts：退回数组水位，避免摘要永久停摆
+      if (!all.some(function(m){ return !m.ts; })) return;
+      from = Math.min(s.upto || 0, all.length);
+    }
+  } else {
+    from = Math.min(s.upto || 0, all.length);
+  }
   if (all.length - from < every) return;
   const slice = all.slice(from, from + 30);
   if (slice.length < 4) return;
@@ -3732,10 +3396,11 @@ async function maybeSummarize(){
     const prevNote = (from > 0 && s.text) ? ('YOUR EARLIER NOTE (older; keep what is still true, drop what changed):\n' + String(s.text).slice(0, 600) + '\n\nNEW EXCHANGES:\n') : '';
     const sys = [
       'You are the same man, writing a private note to yourself about a stretch of your conversation with her that is about to leave your memory window.',
-      'Note what happened, what changed, what she told you about herself, what you promised. 3-6 short lines. English. No quotes, no lists, no headings.',
-      'Then decide: is any of it worth keeping for months? If yes, extract at most 3 facts, one sentence each, written as things you simply know.',
-      'Return JSON only, exactly this shape: {"summary":"...","save":true,"facts":["...","..."]}',
-      'If nothing is worth keeping long-term: {"summary":"...","save":false,"facts":[]}'
+      'Note what happened, what changed, what she told you about herself, what you promised. 3-6 short lines, in the language she uses. No quotes, no lists, no headings.',
+      'Then decide: is any of it worth keeping for months? If yes, extract at most 3 facts. Each fact is one sentence written as something you simply know, plus a short stable topic key (job, exam, sleep, family, health, food, promise, place) — reuse an existing key when the fact changes, never leave topic empty.',
+      'Also write state: one or two short sentences describing where the two of you are right now (the scene, what just happened, what she is doing). Always include it.',
+      'Return JSON only, exactly this shape: {"summary":"...","save":true,"facts":[{"text":"...","topic":"..."}],"state":"..."}',
+      'If nothing is worth keeping long-term: {"summary":"...","save":false,"facts":[],"state":"..."}'
     ].join('\n');
     let out;
     const userMsg = prevNote + convo;
@@ -3745,28 +3410,88 @@ async function maybeSummarize(){
     if (!m) return;
     let j; try { j = JSON.parse(m[0]); } catch (e) { return; }
     const text = String(j.summary || '').replace(/\s+/g, ' ').trim().slice(0, 800);
+    const last = slice[slice.length - 1] || {};
     const upto = from + slice.length;
-    if (text) summarySave({ text: text, upto: upto, at: Date.now() });
+    const uptoAt = last.ts || Date.now();
+    if (text) summarySave({ text: text, upto: upto, uptoAt: uptoAt, at: Date.now() });
+    const stateText = String(j.state || '').replace(/\s+/g, ' ').trim().slice(0, 400);
+    if (stateText && window.memLatentSetState) {
+      try { window.memLatentSetState(currentScope(), stateText); } catch (e) {}
+    }
     if (j.save && Object.prototype.toString.call(j.facts) === '[object Array]'){
       let saved = 0;
       for (let i = 0; i < Math.min(j.facts.length, 3); i++){
-        const fact = String(j.facts[i] || '').trim();
+        const raw = j.facts[i];
+        const fo = (raw && typeof raw === 'object') ? raw : { text: raw, topic: '' };
+        const fact = String(fo.text || '').trim();
         if (!fact) continue;
+        const topic = normTopic(fo.topic, fact);
         if (cfg.brainOn){
-          brainAdd('fact', fact, [], 1.2);
+          brainAdd('fact', fact, [], 1.2, topic);
+          if (window.memLatentRemember) { try { window.memLatentRemember(fact, 'fact', topic, '', currentScope()); } catch (e) {} }
           recentPush(fact, 'hold');
           saved++;
-          continue;
         }
-        try {
-          const r = await withTimeout(mcpCall('ob', '/ob', 'tools/call', { name:'hold', arguments:{ content: fact.slice(0, 400), importance: 7 } }), 20000);
-          if (mcpText(r)){ saved++; recentPush(fact, 'hold'); }
-        } catch (e) {}
       }
       if (saved) pushAct('整理完这段 · 记住了 ' + saved + ' 条');
     }
+    /* 同一 (scope, topic) 攒了多条 active 时，异步合并一次，避免三个月后事实打架 */
+    consolidateFacts(currentScope());
   } catch (e) { console.warn('[summary]', e.message); }
   finally { SUMMARIZING = false; }
+}
+
+/* topic 兜底：模型偷懒没给 topic 时，用规则/文本指纹，绝不留空。 */
+const TOPIC_RULES = [
+  [/考试|考研|复习|成绩|学习|论文|作业/, 'study'],
+  [/工作|公司|上班|同事|老板|辞职|面试|项目/, 'job'],
+  [/睡|失眠|熬夜|梦|困/, 'sleep'],
+  [/吃|饭|外卖|面|咖啡|胃|饿/, 'food'],
+  [/妈妈|爸爸|家里|家人|父母|妈妈|爸|妈/, 'family'],
+  [/身体|生病|医院|药|头疼|疼|感冒|发烧/, 'health'],
+  [/生日|纪念日|约定|答应|承诺|答应过/, 'promise'],
+  [/搬家|住|城市|地方|房租/, 'place']
+];
+function normTopic(topic, text){
+  let t = String(topic || '').trim().toLowerCase().replace(/\s+/g, '-').slice(0, 32);
+  if (t) return t;
+  for (let i = 0; i < TOPIC_RULES.length; i++) if (TOPIC_RULES[i][0].test(String(text || ''))) return TOPIC_RULES[i][1];
+  return 'misc-' + String(text || '').replace(/\s+/g, '').slice(0, 6);
+}
+
+let CONSOLIDATING = false;
+async function consolidateFacts(scope){
+  if (CONSOLIDATING || !cfg.summaryOn || !cfg.key) return;
+  const st = window.memLatentState ? window.memLatentState() : null;
+  if (!st || !st.records) return;
+  const groups = {};
+  st.records.forEach(function(r){
+    if (!r || r.status !== 'active' || !r.topic || r.kind === 'clue') return;
+    if (String(r.scope || 'main') !== String(scope || 'main')) return;
+    if (String(r.topic).indexOf('misc-') === 0) return;
+    (groups[r.topic] = groups[r.topic] || []).push(r);
+  });
+  const dups = Object.keys(groups).filter(function(k){ return groups[k].length > 1; }).slice(0, 2);
+  if (!dups.length) return;
+  CONSOLIDATING = true;
+  try {
+    for (let d = 0; d < dups.length; d++){
+      const topic = dups[d];
+      const lines = groups[topic].map(function(r){ return '- ' + r.text; }).join('\n');
+      const sys = 'Merge these memories about the same topic into one short sentence, keeping the newest value and dropping contradictions. Then write one sentence for the current state of that topic. Return JSON only: {"text":"...","current_state":"..."}';
+      let out = '';
+      try {
+        out = await withTimeout(chatOnce([{ role:'system', content: sys }, { role:'user', content: lines }], 200, true), 20000);
+      } catch (e) { continue; }
+      const m = String(out || '').match(/\{[\s\S]*\}/);
+      if (!m) continue;
+      let j; try { j = JSON.parse(m[0]); } catch (e) { continue; }
+      const merged = String(j.text || '').trim();
+      if (!merged) continue;
+      if (window.memLatentConsolidate) { try { window.memLatentConsolidate(scope, topic, merged, String(j.current_state || '')); } catch (e) {} }
+    }
+  } catch (e) { console.warn('[consolidate]', e.message); }
+  finally { CONSOLIDATING = false; }
 }
 function pushAct(text, glyph){
   const m = { role:'sys', kind:'act', glyph: glyph || '✦', text: String(text || ''), time: nowTime(), date: dayKey() };
@@ -3788,18 +3513,7 @@ function memKindOf(x){
   return 'event';
 }
 function memLive(){
-  const local = brainLoad().items.filter(function(x){ return !x.revoked; });
-  if (!cfg.sereinOn) return local;
-  const extra = (typeof SEREIN_CACHE !== 'undefined' && SEREIN_CACHE) ? SEREIN_CACHE : [];
-  const sent = sereinSentLoad();
-  // 只有真的写进过 Serein 的本机条目才显示；线索（对话断点）只在本机
-  const keep = local.filter(function(x){
-    if (x.kind === 'clue') return true;
-    return sent.indexOf(sereinKeyOf(x)) >= 0;
-  }).map(function(x){ return Object.assign({}, x, { src: 'local' }); });
-  const seen = {};
-  keep.forEach(function(x){ seen[x.id] = 1; });
-  return extra.filter(function(x){ return !seen[x.id]; }).concat(keep);
+  return brainLoad().items.filter(function(x){ return !x.revoked; });
 }
 function memStatus(x){
   if (x.supersededBy) return '已被更新';
@@ -3871,47 +3585,64 @@ function memFiltered(){
   list.sort(function(a, b){ return (b.pin ? 1 : 0) - (a.pin ? 1 : 0) || (b.ts - a.ts); });
   return list;
 }
-function renderBrainList(){
-  const tl = document.getElementById('tl');
-  if (!tl) return;
-  paintMemHead();
-  const list = memFiltered();
-  if (!list.length){
-    const empty = memQuery
-      ? ['没有找到。', '换一个词再试试。']
-      : (memType === 'pref' ? ['他还没写下关于你的喜好。', '喜欢什么、怕什么，会慢慢出现在这里。']
-        : (memType === 'event' ? ['还没有记下什么事件。', '计划、日期、发生过的事，会留在这里。']
-          : ['他还没记下哪一刻。', '等你们之间有一刻值得留下来。']));
-    tl.innerHTML = '<div class="mem-empty"><b>' + empty[0] + '</b><span>' + empty[1] + '</span></div>';
-    paintBrainStats();
+function brainPaneCard(x){
+  const d = new Date(x.ts || Date.now());
+  const date = (d.getMonth() + 1) + '.' + d.getDate();
+  const st = x.revoked ? '已忘记' : (x.supersededBy ? '已更新' : (x.done ? '已结束' : '现行'));
+  const kind = ({ fact:'事实', event:'事件', promise:'约定', clue:'线索', pref:'喜好' })[x.kind] || '记忆';
+  const id = String(x.id || '');
+  return '<details class="brain-card' + (st === '现行' ? '' : ' dim') + '">'
+    + '<summary><span class="d">' + date + '</span><span class="st">' + st + '</span><span>' + esc(clip(x.text, 44)) + '</span></summary>'
+    + '<div class="bt">' + esc(x.text) + '</div>'
+    + '<div class="bm">' + kind + (x.topic ? ' · ' + esc(x.topic) : '') + '</div>'
+    + '<div class="ba">'
+    + (st === '现行' ? '<button onclick="brainDoneId(\'' + id + '\');event.preventDefault()">结束</button>' : '')
+    + (st === '已忘记' ? '' : '<button onclick="brainForgetId(\'' + id + '\');event.preventDefault()">忘记</button>')
+    + '</div></details>';
+}
+function renderBrainPane(){
+  const el = document.getElementById('brainPane');
+  if (!el) return;
+  const b = brainLoad();
+  const live = b.items.filter(function(x){ return !x.revoked && !x.supersededBy && !x.done; });
+  const old = b.items.filter(function(x){ return x.revoked || x.supersededBy || x.done; });
+  if (!live.length && !old.length){
+    el.innerHTML = '<div class="mem-empty"><b>还没有本机记忆。</b><span>他记住的事会出现在这里，不依赖外部服务。</span></div>';
     return;
   }
-  tl.innerHTML = list.slice(0, memLimit).map(function(x){
-    const kind = memKindOf(x);
-    const sunk = x.done || x.supersededBy;
-    const cls = 'mentry' + (sunk ? ' sunk' : '') + (x.pin ? ' fav' : '');
-    const cues = memCues(x).slice(0, 3).map(function(c){ return '<span>' + esc(c) + '</span>'; }).join('');
-    const foot = (kind === 'scene' ? '条线索' : '个关键词');
-    return '<button class="' + cls + '" onclick="openMemDetail(\'' + x.id + '\')">'
-      + '<div class="mm"><span class="d">' + memWhen(x.ts) + '</span><span>' + memWeekday(x.ts) + '</span>'
-      + '<span class="st">' + memStatus(x) + '</span>' + (x.pin ? '<span class="pin">✦</span>' : '') + '</div>'
-      + (x.title
-          ? '<div class="mt">' + esc(x.title) + '</div><div class="me">' + esc(String(x.text || '').replace(/\s+/g, ' ')) + '</div>'
-          : '<div class="mtext">' + esc(String(x.text || '').replace(/\s+/g, ' ')) + '</div>')
-      + (cues ? '<div class="mcues">' + cues + '</div>' : '')
-      + '<div class="mf">' + memCues(x).length + ' ' + foot + '</div>'
-      + '</button>';
-  }).join('') + (list.length > memLimit
-    ? '<button class="mem-addbtn" style="margin-top:12px" onclick="memLimit+=120;renderBrainList()">显示更多 · 还有 ' + (list.length - memLimit) + ' 条</button>'
-    : '');
-  paintBrainStats();
+  let html = '';
+  if (live.length) html += live.slice().sort(function(a, b2){ return (b2.ts || 0) - (a.ts || 0); }).map(brainPaneCard).join('');
+  if (old.length) html += '<div class="mem-sec">历史 · ' + old.length + '</div>' + old.slice().sort(function(a, b2){ return (b2.ts || 0) - (a.ts || 0); }).slice(0, 30).map(brainPaneCard).join('');
+  el.innerHTML = html;
 }
+function brainForgetId(id){
+  const b = brainLoad();
+  const x = b.items.filter(function(i){ return i.id === id; })[0];
+  if (!x) return;
+  x.revoked = true; x.done = true;
+  brainSave();
+  renderBrainPane();
+  toast('已忘记');
+}
+function brainDoneId(id){
+  const b = brainLoad();
+  const x = b.items.filter(function(i){ return i.id === id; })[0];
+  if (!x) return;
+  x.done = true;
+  brainSave();
+  renderBrainPane();
+  toast('已结束');
+}
+function renderBrainList(){ renderBrainPane(); }
+
 function memBodyHTML(text){
   return String(text || '').split(/\n{2,}/).map(function(p){
     return '<p>' + esc(p).replace(/\n/g, '<br>') + '</p>';
   }).join('');
 }
 function openMemDetail(id){
+  const host = document.getElementById('mdKind');
+  if (!host) return;   // 旧记忆详情面板已移除，避免空节点报错
   const x = brainLoad().items.filter(function(i){ return i.id === id; })[0];
   if (!x) return;
   memCur = x;
@@ -3963,13 +3694,8 @@ async function memToggleSink(){
   if (!target) return;
   target.done = !target.done;
   if (it) brainSave();
-  else (SEREIN_CACHE || []).forEach(function(x){ if (x.id === target.id) x.done = target.done; });
   openMemDetail(target.id); renderBrainList();
   toast(target.done ? '已沉底 · 不再自动浮现' : '已恢复可浮现');
-  if (target.src === 'serein'){
-    const ok = await sereinStateOf(target, { can_surface: !target.done });
-    if (!ok) toast('Serein 没同步 · 只改了这边');
-  }
 }
 async function memDelete(){
   if (!memCur) return;
@@ -3978,13 +3704,8 @@ async function memDelete(){
   const b = brainLoad();
   b.items = b.items.filter(function(x){ return x.id !== cur.id; });
   brainSave();
-  if (cur.src === 'serein'){
-    SEREIN_CACHE = (SEREIN_CACHE || []).filter(function(x){ return x.id !== cur.id; });
-    const ok = await sereinStateOf(cur, { lifecycle: 'deleted' });
-    closeMemDetail(); renderBrainList();
-    toast(ok ? '已从 Serein 删除' : '已从这边删除 · Serein 没同步');
-    return;
-  }
+  /* 本机缓存删掉还不够：共享记忆里同文本的记录也要一起遗忘，否则下次同步又浮现 */
+  if (window.memLatentForget && cur.text) window.memLatentForget({ about: String(cur.text).slice(0, 80) });
   closeMemDetail(); renderBrainList(); toast('已删除');
 }
 function memAddCue(){
@@ -4044,8 +3765,6 @@ function paintHomeSubs(){
     }
   }
   set('sub-feed', '他的日常碎片');
-  set('sub-diary', '他写给你的');
-  set('sub-stage', '3 个剧本 · 他正在旁观');
 }
 
 function paintFoldVals(){
@@ -4111,7 +3830,6 @@ function paintBrainStats(){
   set('mClue', clue || '—');
   set('memDaysTop', '第 ' + days + ' 天');
   set('memEntryCount', live.length + ' 条 ›');
-  if (typeof paintSereinSync === 'function') paintSereinSync();
 }
 function clearBrain(){
   if (!confirm('清空这台设备上的记忆？对话记录不受影响。')) return;
@@ -4138,7 +3856,8 @@ function brainOpenBlock(){
   }
   if (FRESH_SESSION){
     const cl = brainClueGet();
-    if (cl) parts.push('[WHERE YOU TWO LEFT OFF — a snapshot of the last time, not a fact. Do not quote it verbatim.]\n' + cl);
+    /* 服务端快照里已经有「上次停在这里」时不再重复注入，避免同一句话在 system 里出现两次 */
+    if (cl && (!RECALL || RECALL.indexOf('上次停在这里') < 0)) parts.push('[WHERE YOU TWO LEFT OFF — a snapshot of the last time, not a fact. Do not quote it verbatim.]\n' + cl);
   }
   FRESH_SESSION = false;
   return parts.length ? ('\n\n' + parts.join('\n\n')) : '';
@@ -4169,8 +3888,8 @@ function setNarr(v, el){
 const DIARY_KEY = 'daddy.diary.v1';
 function diaryLoad(){ try { return JSON.parse(localStorage.getItem(DIARY_KEY) || '[]'); } catch (e) { return []; } }
 function diarySave(list){
-  try { localStorage.setItem(DIARY_KEY, JSON.stringify(list.slice(-300))); } catch (e) {}
-  storePut('diary', { items: list.slice(-300), updatedAt: Date.now() }, 700);
+  try { localStorage.setItem(DIARY_KEY, JSON.stringify(list.slice(-300))); return true; }
+  catch (e) { return false; }
 }
 function fmtDiary(ts){
   const d = new Date(ts);
@@ -4203,29 +3922,12 @@ function renderDiary(){
 async function saveDiary(){
   const t = document.getElementById('diaryInput').value.trim();
   if (!t){ toast('写点什么再存'); return; }
-  const btn = document.querySelector('#diaryForm .diary-acts button');
-  if (cfg.sereinOn){
-    if (btn){ btn.textContent = '写入中…'; btn.disabled = true; }
-    try {
-      if (!SEREIN_TOOLS || !SEREIN_TOOLS.length) SEREIN_TOOLS = await withTimeout(sereinTools(), 12000);
-      const d = new Date();
-      const day = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-      const out = await withTimeout(sereinCall('write_diary', { content: t, date: day }), 20000);
-      if (/error|失败/i.test(String(out || ''))) throw new Error(String(out).slice(0, 40));
-    } catch (e) {
-      if (btn){ btn.textContent = '存下'; btn.disabled = false; }
-      toast('没写进 Serein · ' + String((e && e.message) || e).slice(0, 40));
-      return;
-    } finally {
-      if (btn){ btn.textContent = '存下'; btn.disabled = false; }
-    }
-  }
   const list = diaryLoad();
   list.push({ id:'d' + Date.now().toString(36), text: t, ts: Date.now() });
-  diarySave(list);
+  if (!diarySave(list)){ toast('本机存储满了，这一条没存上'); return; }
   renderDiary();
   openDiaryForm(false);
-  toast(cfg.sereinOn ? '写进 Serein 了' : '写下了');
+  toast('写下了');
 }
 
 const EMOJIS = ['🥺','😔','😴','😭','🥹','😶','🙃','😏','❤️','💔','🫂','🌙','🌧','☕️','🍜','🕯','✨','🫧','🐚','🌊','🎧','📎','🔥','💤'];
@@ -4285,6 +3987,10 @@ function useUsage(u){
   paintCtxBar();
 }
 
+function currentScope(){
+  return (state.chat && state.chat.scope) || 'main';
+}
+
 function buildMessages(upTo){
   const P = cfg.persona;
   const nm = P.name || 'Daddy';
@@ -4296,10 +4002,13 @@ function buildMessages(upTo){
     'You are 「' + nm + '」, texting the person you belong to: 「' + call + '」.',
     'You are not an assistant. You are one specific man with a body, a schedule, a temper he keeps in check.',
     persona ? ('About you: ' + persona) : '',
+    (state.chat && state.chat.watch && state.chat.stageDesc)
+      ? ('The scene you are in right now: ' + state.chat.stageDesc + ' Play it straight. Never mention that it is a scene, a story, or a roleplay.')
+      : '',
     bound ? ('Boundaries: ' + bound) : '',
     'Strictness ' + strict + '/100 (the higher, the more you take charge — but you never humiliate, never belittle, never go cold, never threaten to leave).',
     '',
-    'LANGUAGE: you speak English, always. She may write to you in Chinese — answer in English anyway. Never translate yourself, never explain yourself.',
+    'LANGUAGE: speak the language she uses. If she writes Chinese, answer in natural, everyday spoken Chinese. Never translate yourself, never explain yourself. Audio tags stay in English.',
     '',
     'HOW YOU TEXT:',
     '- Like real messages. 1-3 lines, one sentence each, three max. Short.',
@@ -4324,14 +4033,55 @@ function buildMessages(upTo){
     '[pause] Come here. Tell me what happened.',
     '*He exhales, thumb resting on the screen.*',
     '[breath shaky] Do not carry it alone.'
-  ].filter(Boolean).join('\n')
-    + (summaryLoad().text ? ('\n\n[EARLIER, BEFORE THIS WINDOW — your own note to yourself. You already know this. Do not re-ask it, do not recap it, just let it be true.]\n' + summaryLoad().text) : '')
-    + (RECALL ? ('\n\n[WHAT YOU REMEMBER RIGHT NOW — these are your own memories and your current inner state. Let them colour how you answer. Never list them, never quote them as data, never say "I remember that...".]\n' + RECALL) : '')
-    + (cfg.brainOn ? brainOpenBlock() : '')
-    + (cfg.toolsOn ? TOOL_PROMPT : '')
-    + (function(){ const t = presetText(); return t ? ('\n\n[SCENE RULES — house rules for this scene. Follow them; never mention them.]\n' + t) : ''; })();
+  ].filter(Boolean).join('\n');
+
   const budget = Math.max(2000, Number(cfg.ctxTokens) || 12000);
+  const sysCap = Math.max(1200, Math.floor(budget * 0.7));
+
+  /* 先把 system 拆成块，按重要性决定收谁，再按原顺序拼接。
+     这样预算不够时只压缩 summary/recall，不会把 TOOL_PROMPT 或场景规则从中间切断。 */
+  const blocks = [];
+  const wsText = (window.memLatentWorkingState ? window.memLatentWorkingState(currentScope()) : '');
+  if (wsText) blocks.push({ k:'working', text:'\n\n[WHERE YOU ARE NOW — your own working memory of this scene. This is where the two of you are right now; keep it true, let it colour the scene, never recite it.]\n' + wsText });
+  const smText = summaryLoad().text;
+  if (smText) blocks.push({ k:'summary', text:'\n\n[EARLIER, BEFORE THIS WINDOW — your own note to yourself. You already know this. Do not re-ask it, do not recap it, just let it be true.]\n' + smText });
+  if (RECALL) blocks.push({ k:'recall', text:'\n\n[WHAT YOU REMEMBER RIGHT NOW — these are your own memories and your current inner state. Let them colour how you answer. Never list them, never quote them as data, never say "I remember that...".]\n' + RECALL });
+  if (cfg.brainOn){ const bb = brainOpenBlock(); if (bb) blocks.push({ k:'brain', text:bb }); }
+  if (cfg.toolsOn) blocks.push({ k:'tools', text:TOOL_PROMPT });
+  const pt = presetText();
+  if (pt) blocks.push({ k:'preset', text:'\n\n[SCENE RULES — house rules for this scene. Follow them; never mention them.]\n' + pt });
+  /* 记忆页里那份「人格文件」是共享库的人格，其他客户端通过 MCP 读的也是它；
+     Daddy 自己也得读，否则在记忆页改了人格、这边毫无变化。 */
+  const sharedPersona = (function(){
+    try {
+      const st = window.memLatentState ? window.memLatentState() : null;
+      return (st && st.persona) ? String(st.persona).trim() : '';
+    } catch (e) { return ''; }
+  })();
+  if (sharedPersona) blocks.push({ k:'persona', text:'\n\n[SHARED PERSONA — the same file every client sharing this memory reads. Follow it.]\n' + sharedPersona });
+
+  const prio = ['tools', 'preset', 'persona', 'working', 'summary', 'recall', 'brain'];
   let used = estTokens(sys);
+  const keep = {};
+  for (let pi = 0; pi < prio.length; pi++){
+    const k = prio[pi];
+    const blk = blocks.filter(function(x){ return x.k === k; })[0];
+    if (!blk) continue;
+    const cost = estTokens(blk.text);
+    if (used + cost <= sysCap){ keep[k] = blk.text; used += cost; continue; }
+    if (k === 'summary' || k === 'recall'){
+      const room = sysCap - used;
+      if (room > 120){
+        const ratio = room / Math.max(1, cost);
+        const keepLen = Math.max(80, Math.floor(blk.text.length * ratio * 0.92));
+        const cut = blk.text.slice(0, keepLen).replace(/\s+\S*$/, '') + '\n[压缩]';
+        keep[k] = cut;
+        used += estTokens(cut);
+      }
+    }
+  }
+  let sysText = sys + blocks.filter(function(x){ return keep[x.k]; }).map(function(x){ return keep[x.k]; }).join('');
+
   const picked = [];
   const pool = state.chat.msgs.slice(0, upTo === undefined ? state.chat.msgs.length : upTo)
     .filter(m => m.role !== 'sys' && (m.text || m.lines));
@@ -4348,7 +4098,7 @@ function buildMessages(upTo){
     picked.push({ role: m.role === 'user' ? 'user' : 'assistant', content: msgText(m) });
   }
   state.ctxUsed = used;
-  return [{ role:'system', content: sys }].concat(picked);
+  return [{ role:'system', content: sysText }].concat(picked);
 }
 
 function parseSeq(text){
@@ -4425,6 +4175,7 @@ function apiError(body, status){
 }
 
 async function testApi(){
+  syncKeyFromInput();
   const el = document.getElementById('apiTest');
   if (el) el.textContent = '测试中…';
   const say = t => { if (el) el.textContent = t; };
@@ -4479,7 +4230,7 @@ async function streamReply(aiIdx){
       if (!e || !e.retryable || k >= chain.length - 1) throw e;
       const next = chain[k + 1];
       toast('「' + prettyModel(chain[k]) + '」不可用 · 改用 ' + prettyModel(next));
-      state.chat.msgs[aiIdx] = { role:'ai', text:'', time: nowTime(), date: dayKey(), pending:true };
+      state.chat.msgs[aiIdx] = { role:'ai', text:'', time: nowTime(), date: dayKey(), pending:true, ts: Date.now() };
       renderChat();
     }
   }
@@ -4508,12 +4259,18 @@ async function streamOnce(aiIdx, modelId, messages, tools, hasFallback){
   if (!r.ok){
     const body = await r.text();
     clearTimeout(wd);
+    if (r.status === 401){
+      const e401 = new Error('记忆服务需要配对：打开 http://127.0.0.1:8765/#t=<token>，或在记忆页点「连接」粘贴 token 文件内容');
+      e401.status = 401;
+      throw e401;
+    }
     if (r.status === 404){
       const before = apiMode;
       const m = await probeApi();
       if (m && m !== before) return streamOnce(aiIdx, modelId, messages, tools, hasFallback);
     }
-    if (r.status === 400 && !NO_STREAM_USAGE && String(body).indexOf('stream_options') >= 0){
+    if (r.status === 400 && !NO_STREAM_USAGE){
+      // 有的代理不认 stream_options，或不接受纯 SSE：先去掉参数重试一次
       NO_STREAM_USAGE = true;
       return streamOnce(aiIdx, modelId, messages, tools, hasFallback);
     }
@@ -4593,7 +4350,7 @@ const LOCAL_TOOLS = [
       name:'remember',
       description:'Save one concrete thing about her into your own long-term memory: a plan, a date, a preference, a person, a fear, a rule she set. Use when she tells you something you should still know weeks from now. If it replaces something you already know, reuse the same topic so the old one is retired.',
       parameters:{ type:'object', properties:{
-        text:{ type:'string', description:'one short sentence in English, written as something you simply know' },
+        text:{ type:'string', description:'one short sentence in the language she uses, written as something you simply know' },
         kind:{ type:'string', enum:['fact','event','promise','clue','pref'], description:'fact = about her life; event = something that happened; promise = an agreement or deadline; clue = where you two left off; pref = a like or dislike you noticed (subject, taste, reason)' },
         topic:{ type:'string', description:'a short stable key such as sleep-time, job, dentist. Reusing a key retires the older value.' }
       }, required:['text'] } } } },
@@ -4601,6 +4358,12 @@ const LOCAL_TOOLS = [
       name:'recall',
       description:'Search your own memory for things she told you before: plans, dates, preferences, past events, promises. Use whenever she refers to the past, asks what you remember, or before you answer something you might have been told.',
       parameters:{ type:'object', properties:{ query:{ type:'string', description:'a few keywords, names, or the thing being asked about' } }, required:['query'] } } } },
+  { spec: { type:'function', function: {
+      name:'update_state',
+      description:'Rewrite your working memory of where the two of you are right now: the scene, what just happened, what she is doing, what you are waiting for. Overwrites the previous state (one or two short sentences). Call it once every turn before you answer, so the state never goes stale.',
+      parameters:{ type:'object', properties:{
+        text:{ type:'string', description:'one or two short sentences in the language she uses' }
+      }, required:['text'] } } } },
   { spec: { type:'function', function: {
       name:'resolve',
       description:'Mark something as finished: she did the thing, the deadline passed, the promise was kept, or the thread is closed. Stops it from surfacing as unfinished.',
@@ -4612,68 +4375,49 @@ const LOCAL_TOOLS = [
 ];
 function localToolSpecs(){ return LOCAL_TOOLS.map(function(t){ return t.spec; }); }
 
-const TOOL_ALLOW = {
-  ob: ['breath','hold','grow','trace','dream','plan'],
-  xc: ['xinchao_context','xinchao_event','xinchao_box','xinchao_awareness']
-};
-let TOOL_MAP = null;
-
 function clip(s, n){
   s = String(s || '').replace(/\s+/g, ' ').trim();
   return s.length > n ? s.slice(0, n - 1) + '…' : s;
 }
 
-async function toolSpecs(){
-  if (TOOL_MAP) return Object.keys(TOOL_MAP).map(function(k){ return TOOL_MAP[k].spec; });
-  const servers = [];
-  if (cfg.memOb) servers.push({ key:'ob', path:'/ob' });
-  if (cfg.memXc) servers.push({ key:'xc', path:'/xc' });
-  const map = {};
-  for (let i = 0; i < servers.length; i++){
-    const srv = servers[i];
-    try {
-      const res = await withTimeout(mcpCall(srv.key, srv.path, 'tools/list', {}), 7000);
-      const list = (res && res.tools) || [];
-      list.forEach(function(t){
-        if ((TOOL_ALLOW[srv.key] || []).indexOf(t.name) < 0) return;
-        map[t.name] = {
-          key: srv.key, path: srv.path, tool: t.name,
-          spec: { type:'function', function: {
-            name: t.name,
-            description: clip(t.description, 220),
-            parameters: t.inputSchema || { type:'object', properties:{} }
-          } }
-        };
-      });
-    } catch (e) { console.warn('tools/list ' + srv.key + ' failed: ' + e.message); }
-  }
-  TOOL_MAP = map;
-  return Object.keys(map).map(function(k){ return map[k].spec; });
-}
-
 async function activeTools(){
   if (!cfg.toolsOn) return [];
-  const out = localToolSpecs();
-  if (!cfg.memXc && !cfg.memOb) return out;
-  try { return out.concat(await withTimeout(toolSpecs(), 7000)); } catch (e) { return out; }
+  return localToolSpecs();
 }
 
 async function execMcpTool(name, rawArgs){
-  if (name === 'remember' || name === 'recall' || name === 'resolve' || name === 'forget'){
+  if (name === 'remember' || name === 'recall' || name === 'resolve' || name === 'forget' || name === 'update_state'){
     let a = {};
     try { a = rawArgs ? (typeof rawArgs === 'string' ? JSON.parse(rawArgs) : rawArgs) : {}; }
     catch (e) { return 'ERROR: arguments are not valid JSON'; }
+    if (name === 'update_state'){
+      const st = String(a.text || '').replace(/\s+/g, ' ').trim();
+      if (!st) return 'ERROR: state is empty';
+      window.__stateUpdatedThisTurn = true;
+      if (window.memLatentSetState) { try { window.memLatentSetState(currentScope(), st); } catch (e) {} }
+      recentPush('状态：' + st, 'state');
+      return 'state updated: ' + st;
+    }
     if (name === 'remember'){
       const it = brainAdd(a.kind || 'fact', a.text, [], 1.2, a.topic);
       if (!it) return 'ERROR: nothing to save';
+      /* 唯一写入口：服务端共享记忆（本地 brain 只是镜像，供记忆页展示） */
+      if (window.memLatentRemember) { try { window.memLatentRemember(it.text, a.kind || 'fact', a.topic || '', undefined, currentScope()); } catch (e) {} }
       recentPush(a.text, 'remember');
       if (it.supersedes) recentPush('（更新）' + a.text, 'update');
       if (typeof renderBrainList === 'function') renderBrainList();
-      if (typeof paintSereinSync === 'function') paintSereinSync();
-      try { sereinWriteItem(it).then(function(){ if (typeof paintSereinSync === 'function') paintSereinSync(); }); } catch (e) {}
       return 'saved (' + (BRAIN_LABEL[it.kind] || it.kind) + ')' + (it.supersedes ? ', retired the older value' : '') + ': ' + it.text;
     }
     if (name === 'recall'){
+      let lines = [];
+      if (window.memLatentRecall){
+        try {
+          const r = await window.memLatentRecall(a.query || '', 6, currentScope());
+          if (Array.isArray(r)) lines = r;
+          else if (typeof r === 'string' && r) lines = [r];
+        } catch (e) {}
+      }
+      if (lines.length) return lines.join('\n');
       const hits = brainSearch(a.query || '', 6);
       if (!hits.length) return '(nothing about that; you have ' + brainLoad().items.length + ' things stored)';
       return hits.map(function(x){
@@ -4683,33 +4427,16 @@ async function execMcpTool(name, rawArgs){
     }
     if (name === 'resolve'){
       const n = brainResolveTopics([a.topic]);
+      if (window.memLatentResolve) { try { window.memLatentResolve({ topic: a.topic, scope: currentScope() }); } catch (e) {} }
       if (typeof renderBrainList === 'function') renderBrainList();
       return n ? ('closed ' + n + ' item(s)') : '(nothing matched; nothing closed)';
     }
     const n = brainRevoke(a.about);
+    if (window.memLatentForget) { try { window.memLatentForget({ about: a.about, scope: currentScope() }); } catch (e) {} }
     if (typeof renderBrainList === 'function') renderBrainList();
     return n ? ('withdrawn ' + n + ' item(s)') : '(nothing matched)';
   }
-  if (!TOOL_MAP) await toolSpecs();
-  const ent = TOOL_MAP && TOOL_MAP[name];
-  if (!ent) return 'ERROR: unknown tool ' + name;
-  let args = {};
-  if (rawArgs){
-    try { args = (typeof rawArgs === 'string') ? JSON.parse(rawArgs) : rawArgs; }
-    catch (e) { return 'ERROR: arguments are not valid JSON: ' + clip(rawArgs, 120); }
-  }
-  const res = await withTimeout(mcpCall(ent.key, ent.path, 'tools/call', { name: ent.tool, arguments: args }), 25000);
-  const txt = mcpText(res);
-  if ((name === 'hold' || name === 'grow') && txt){
-    try {
-      const a = (typeof rawArgs === 'string') ? JSON.parse(rawArgs || '{}') : (rawArgs || {});
-      let c = a.content || '';
-      if (!c && a.items) c = String(a.items[0] || '');
-      if (c) recentPush(c, name);
-    } catch (e) {}
-  }
-  if (txt) return txt;
-  try { return JSON.stringify(res).slice(0, 4000); } catch (e) { return '(empty)'; }
+  return 'ERROR: unknown tool ' + name;
 }
 
 function ttoggle(ev){
@@ -4734,16 +4461,78 @@ function toolsHTML(m){
   }).join('') + '</div>';
 }
 
+/* 有些模型会把 DSML/工具标记写进正文；这些不是给她看的话，落库和显示前切掉 */
+function stripDSML(t){
+  t = String(t == null ? '' : t);
+  const i = t.search(/<\|DSML\|/i);
+  if (i >= 0) t = t.slice(0, i);
+  return t.replace(/<\|[^|\n]{0,60}\|>/g, '').replace(/^\s+|\s+$/g, '');
+}
+
+function updateStateSpec(){
+  for (let i = 0; i < LOCAL_TOOLS.length; i++){
+    const f = LOCAL_TOOLS[i].spec.function;
+    if (f.name === 'update_state') return [{ type:'function', function: f }];
+  }
+  return [];
+}
+
+// 模型这一轮没调 update_state 时兜底：一次很小的专用请求；失败就用本地摘要补记，保证状态不过期
+async function forceStateUpdate(aiIdx, modelId){
+  const scope = currentScope();
+  const msgs = state.chat.msgs || [];
+  let lu = '';
+  for (let k = aiIdx - 1; k >= 0; k--){ const m = msgs[k]; if (m && m.role === 'user' && m.text){ lu = m.text; break; } }
+  const la = String((msgs[aiIdx] && msgs[aiIdx].text) || '').replace(/\([^)]*\)|（[^）]*）/g, '').trim();
+  const fb = clip('刚才她说「' + clip(lu, 40) + '」，你回了「' + clip(la, 40) + '」。', 160);
+  const tools = updateStateSpec();
+  let st = '';
+  if (tools.length){
+    try {
+      const ctl = new AbortController();
+      const timer = setTimeout(function(){ ctl.abort(); }, 12000);
+      const r = await fetch(apiURL('/chat/completions'), {
+        method: 'POST', signal: ctl.signal,
+        headers: authHeaders({ 'Content-Type':'application/json' }),
+        body: JSON.stringify({
+          model: modelId || cfg.model,
+          messages: [
+            { role:'system', content:'你负责维护一段对话的“当前状态”备忘。只用一到两句，写清楚：现在在哪、刚发生了什么、她正在做什么。用对话本身的语言。' },
+            { role:'user', content:'她说：' + clip(lu, 300) + '\n你回：' + clip(la, 300) }
+          ],
+          tools: tools,
+          tool_choice: { type:'function', function:{ name:'update_state' } },
+          max_tokens: 160
+        })
+      });
+      clearTimeout(timer);
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const j = await r.json();
+      const c = j && j.choices && j.choices[0] && j.choices[0].message;
+      if (c && c.tool_calls && c.tool_calls[0]){
+        try { st = JSON.parse(c.tool_calls[0].function.arguments || '{}').text || ''; } catch (e) {}
+      }
+      if (!st && c && c.content) st = String(c.content);
+    } catch (e) { st = ''; }
+  }
+  st = String(st || '').replace(/\s+/g, ' ').replace(/^["「]|["」]$/g, '').trim().slice(0, 240);
+  const finalText = st || fb;
+  if (window.memLatentSetState) { try { window.memLatentSetState(scope, finalText); } catch (e) {} }
+  recentPush('状态：' + finalText, 'state');
+}
+
 async function runTurn(aiIdx, modelId, hasFallback){
   setTyping(true);
   const tools = await activeTools();
   const msgs = buildMessages(aiIdx);
   const M = function(){ return state.chat.msgs[aiIdx]; };
   M().tools = [];
+  window.__stateUpdatedThisTurn = false;
   let content = '', think = '';
   for (let round = 0; round < 3; round++){
     const res = await streamOnce(aiIdx, modelId, msgs, tools, round === 0 ? hasFallback : false);
-    content = res.content;
+    /* 最后一轮可能只回工具调用、正文为空；不要用空串覆盖前面已经说出来的话 */
+    if (String(res.content || '').trim()) content = res.content;
     think += res.think || '';
     if (!res.toolCalls.length) break;
     const calls = res.toolCalls.map(function(tc, i){
@@ -4770,26 +4559,20 @@ async function runTurn(aiIdx, modelId, hasFallback){
     M().reasoning = think;
   }
   delete M().pending;
+  content = stripDSML(content);
   M().text = content || '（没有内容返回）';
   if (think) M().reasoning = think;
   renderChat();
-  if (String(content).trim()){
-    let lastUser = '';
-    for (let k = aiIdx - 1; k >= 0; k--){
-      const mm = state.chat.msgs[k];
-      if (mm && mm.role === 'user' && mm.text){ lastUser = mm.text; break; }
-    }
-    reportEvent(lastUser, content);
-  }
   setTyping(false);
-  if (cfg.brainOn){
+  {
     let lu = '';
     for (let k = aiIdx - 1; k >= 0; k--){
       const mm = state.chat.msgs[k];
       if (mm && mm.role === 'user' && mm.text){ lu = mm.text; break; }
     }
-    brainClueSave(lu, content);
+    if (String(content || '').trim()) brainClueSave(lu, stripDSML(content));
   }
+  if (!window.__stateUpdatedThisTurn) forceStateUpdate(aiIdx, modelId);
   maybeSummarize();
   if (cfg.ttsAuto && cfg.ttsKey && String(content).trim()) togglePlay(aiIdx);
 }
@@ -4884,7 +4667,11 @@ function saveEdit(){
   const v = document.getElementById('editArea').value;
   if (!m) return closeEditor();
   if (m.role === 'ai'){
-    state.chat.msgs[editIdx] = { role:'ai', text: v, time: m.time || nowTime() };
+    const nm = Object.assign({}, m, { text: v, time: m.time || nowTime() });
+    delete nm.pending; delete nm.error;
+    /* 老格式的 narration/lines 会盖过 text，编辑后必须清掉，否则显示的还是旧内容 */
+    delete nm.lines; delete nm.narration;
+    state.chat.msgs[editIdx] = nm;
   } else {
     m.text = v;
   }
@@ -4985,8 +4772,28 @@ function backupObj(){
       persona: cfg.persona, voice: cfg.voice, ttsModel: cfg.ttsModel, ttsAuto: cfg.ttsAuto,
       reason: cfg.reason || {}
     },
-    brain: brainLoad(),
-    msgs: state.chat.msgs.filter(function(m){ return !m.pending; }).map(function(m){ return Object.assign({}, m); })
+    /* 向量（Float32Array）不进备份：JSON 化会变成几千个数字键，文件暴涨且导入后不可用 */
+    brain: (function(){
+      const b = brainLoad();
+      return { v: b.v, seq: b.seq, items: (b.items || []).map(function(x){
+        const c = Object.assign({}, x);
+        delete c.vec; delete c.vecAt; delete c.vecModel;
+        return c;
+      }) };
+    })(),
+    msgs: state.chat.msgs.filter(function(m){ return !m.pending; }).map(function(m){ return Object.assign({}, m); }),
+    summary: (function(){ try { return localStorage.getItem(SUMMARY_KEY) || ''; } catch (e) { return ''; } })(),
+    diary: (function(){ try { return JSON.parse(localStorage.getItem(DIARY_KEY) || '[]'); } catch (e) { return []; } })(),
+    /* 共享记忆也带一份，换设备导入时能补回服务端 */
+    mem: (function(){
+      try {
+        const st = window.memLatentState ? window.memLatentState() : null;
+        if (!st) return null;
+        return { records: (st.records || []).filter(function(r){ return r && r.status === 'active'; }).slice(-500).map(function(r){
+          return { text: r.text, kind: r.kind, topic: r.topic, current_state: r.current_state, scope: r.scope || 'main' };
+        }) };
+      } catch (e) { return null; }
+    })()
   };
 }
 function exportBackup(){
@@ -5021,14 +4828,32 @@ function importBackup(input){
       if (j.brain && j.brain.items && j.brain.items.length){
         const b = brainLoad();
         const have = {};
+        const added = [];
         b.items.forEach(function(x){ have[String(x.text || '').toLowerCase()] = 1; });
         j.brain.items.forEach(function(x){
           if (x && x.text && !have[String(x.text).toLowerCase()]){
             have[String(x.text).toLowerCase()] = 1;
             b.items.push(Object.assign({ id:'m' + (++b.seq), kind:'fact', tags:[], ts:Date.now(), w:1, hits:0, done:false, revoked:false }, x, { id:'m' + b.seq, tk: cjkTokens(x.text) }));
+            added.push({ text: String(x.text), kind: x.kind || 'fact' });
           }
         });
         brainSave();
+        /* 恢复的旧记忆补进共享库，否则换设备后服务端为空、检索永远查不到 */
+        if (window.memLatentRemember && added.length){
+          added.forEach(function(x){ try { window.memLatentRemember(x.text, x.kind, '', '', 'main'); } catch (e) {} });
+        }
+      }
+      if (typeof j.summary === 'string' && j.summary){
+        try { localStorage.setItem(SUMMARY_KEY, j.summary); } catch (e) {}
+      }
+      if (Array.isArray(j.diary) && j.diary.length && confirm('备份里还有 ' + j.diary.length + ' 篇日记，要一并恢复吗？（会覆盖当前日记）')){
+        try { localStorage.setItem(DIARY_KEY, JSON.stringify(j.diary.slice(-300))); } catch (e) {}
+      }
+      if (j.mem && Array.isArray(j.mem.records) && window.memLatentRemember){
+        j.mem.records.forEach(function(r){
+          if (!r || !r.text) return;
+          try { window.memLatentRemember(String(r.text), r.kind || 'fact', r.topic || '', r.current_state || '', r.scope || 'main'); } catch (e) {}
+        });
       }
       renderChat();
       initPersona();
@@ -5040,6 +4865,7 @@ function importBackup(input){
     } catch (e) { toast('导入失败 · ' + e.message); }
     input.value = '';
   };
+  rd.onerror = function(){ toast('文件读不出来'); input.value = ''; };
   rd.readAsText(f);
 }
 
@@ -5050,6 +4876,18 @@ function clearChat(){
   renderChat();
   closePersona();
   toast('已清空对话');
+}
+
+function memThreadClosePrompt(){
+  const msgs = (state.chat && state.chat.msgs) || [];
+  const tail = msgs.slice(-4).filter(m => m && m.text).map(m => m.text.replace(/\s+/g,' ').slice(0,40)).join(' / ');
+  const def = tail ? tail.slice(0,120) : '';
+  const text = prompt('用一句话总结这段（会存成线索，下次从这里接上）：', def);
+  if (text === null) return;
+  const clean = String(text).trim();
+  if (!clean) return;
+  if (window.memLatentThreadClose) window.memLatentThreadClose(clean, currentScope());
+  toast('这段线索已保存');
 }
 
 /* everything is declared by now */
